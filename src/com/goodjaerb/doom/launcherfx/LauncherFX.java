@@ -98,10 +98,12 @@ public class LauncherFX extends Application {
                     writer.println("; A section describing a Doom source port. The section name may be referenced from other options.");
                     writer.println("; Use 'vanilla=' to denote whether a source port emulates the Vanilla Doom experience and should not be used with mods/wads that require 'limit-removing' source ports. Optional; default assumption is 'false'.");
                     writer.println("; If 'img=' is not an absolute path, the 'images' folder will be checked for the image file. If defining an absolute path or path with subdirectories, use '\\' or '/' as the path separator. a single '\' will not parse well.");
+                    writer.println("; 'sort=' can be used to create an order of the ports/mods in the user interface. Optional. Sort order is undefined if not specified or if sorts are not all unique.");
                     writer.println("[Example1]");
                     writer.println("name=Example Source Port");
                     writer.println("desc=Describe the port and its features.");
                     writer.println("type=port");
+                    writer.println("sort=1");
                     writer.println("vanilla=true");
                     writer.println("cmd=/path/to/run/port");
                     writer.println("img=/optional/path/to/image/for/button.png");
@@ -114,6 +116,7 @@ public class LauncherFX extends Application {
                     writer.println("name=Mod Name");
                     writer.println("desc=Mod description.");
                     writer.println("type=mod");
+                    writer.println("sort=2");
                     writer.println("requires=Example1");
                     writer.println("iwad=Ultimate;Doom2");
                     writer.println("cmd=/optional/cmd/to/run/mod");
@@ -147,9 +150,18 @@ public class LauncherFX extends Application {
             Integer leftSort = left.getValue().get("sort", Integer.class);
             Integer rightSort = right.getValue().get("sort", Integer.class);
             
-            if(leftSort == null || rightSort == null) {
-                return 0;
+            if(leftSort == null) {
+                return 1;
             }
+            
+            if(rightSort == null) {
+                return -1;
+            }
+            
+            if(leftSort.equals(rightSort)) {
+                return 1;
+            }
+            
             return leftSort.compareTo(rightSort);
         });
         sortedSections.addAll(INI_FILE.entrySet());
@@ -192,7 +204,7 @@ public class LauncherFX extends Application {
             return imgPath.toString();
         }
         
-        return Paths.get(USER_HOME, CONFIG_DIR, "images", imgPath.toString()).toString();
+        return Paths.get(USER_HOME, CONFIG_DIR, CONFIG_DIR_IMAGES, imgPath.toString()).toString();
     }
 
     /**
