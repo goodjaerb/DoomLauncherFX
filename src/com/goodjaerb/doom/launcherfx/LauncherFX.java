@@ -14,10 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
@@ -147,17 +143,6 @@ public class LauncherFX extends Application {
     
     @Override
     public void start(Stage primaryStage) throws MalformedURLException {
-//        Button btn = new Button();
-//        btn.setText("Say 'Hello World'");
-//        btn.setOnAction(new EventHandler<ActionEvent>() {
-//            
-//            @Override
-//            public void handle(ActionEvent event) {
-//                System.out.println("Hello World!");
-//            }
-//        });
-//        
-
         Set<Entry<String, Section>> sortedSections = new TreeSet<>((Entry<String, Section> left, Entry<String, Section> right) -> {
             Integer leftSort = left.getValue().get("sort", Integer.class);
             Integer rightSort = right.getValue().get("sort", Integer.class);
@@ -191,7 +176,6 @@ public class LauncherFX extends Application {
         root.setMinSize(600, 550);
         Scene scene = new Scene(root, 600, 550);
         
-//        primaryStage.setTitle("Hello World!");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
@@ -217,5 +201,4 @@ public class LauncherFX extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-    
 }

@@ -6,7 +6,6 @@
 package com.goodjaerb.doom.launcherfx;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import javafx.geometry.Insets;
@@ -56,8 +55,6 @@ public class LaunchItemPane extends BorderPane {
         descriptionArea.maxWidth(400);
         descriptionArea.minHeight(125);
         descriptionArea.maxHeight(170);
-//        descriptionArea.setMinSize(420, 125);
-//        descriptionArea.setMaxSize(420, 125);
 
         setLeft(launchButton);
         setCenter(descriptionArea);
