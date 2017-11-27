@@ -29,7 +29,7 @@ import org.ini4j.Profile.Section;
 
 /**
  *
- * @author skuri
+ * @author goodjaerb
  */
 public class LauncherFX extends Application {
     private static final String USER_HOME = System.getProperty("user.home");

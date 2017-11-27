@@ -17,7 +17,7 @@ import javafx.scene.text.Text;
 
 /**
  *
- * @author skuri
+ * @author goodjaerb
  */
 public class LaunchItemPane extends BorderPane {
     
