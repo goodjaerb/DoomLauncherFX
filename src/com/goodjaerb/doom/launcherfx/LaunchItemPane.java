@@ -8,6 +8,8 @@ package com.goodjaerb.doom.launcherfx;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -20,18 +22,18 @@ import javafx.scene.text.Text;
  * @author goodjaerb
  */
 public class LaunchItemPane extends BorderPane {
+    public final String sectionName;
     
     private final Button launchButton;
     private final Text descriptionArea;
     
-    public LaunchItemPane() {
-        launchButton = new Button("button");
-        descriptionArea = new Text("label");
-        layoutPane();
-    }
-    
-    public LaunchItemPane(String name, String description, String cmd, String img) throws MalformedURLException {
+    public LaunchItemPane(String sectionName, String name, String description, String img, boolean setDisable, EventHandler<ActionEvent> handler) throws MalformedURLException {
+        this.sectionName = sectionName;
+        
         launchButton = new Button(name);
+        launchButton.addEventHandler(ActionEvent.ACTION, handler);
+        launchButton.setDisable(setDisable);
+        
         if(img != null && Files.exists(Paths.get(img))) {
             launchButton.setText(null);
             
@@ -62,5 +64,9 @@ public class LaunchItemPane extends BorderPane {
         setMargin(launchButton, new Insets(4));
         setMargin(descriptionArea, new Insets(12, 4, 4, 4));
         setAlignment(descriptionArea, Pos.TOP_LEFT);
+    }
+    
+    public void setButtonDisable(boolean b) {
+        launchButton.setDisable(b);
     }
 }
