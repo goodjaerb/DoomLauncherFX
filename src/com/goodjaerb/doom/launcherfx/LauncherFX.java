@@ -61,49 +61,63 @@ public class LauncherFX extends Application {
     public static final String TYPE_TC = "tc";
     public static final String TYPE_MOD = "mod";
     public static final String TYPE_IWAD = "iwad";
+    public static final String TYPE_PWAD = "pwad";
     
     public static final Ini INI_FILE = new Ini();
-    static {
-        try {
-            FileSystem fs = FileSystems.getDefault();
-            Path configFile = fs.getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
-            
+    
+    private final String CONFIG_HOME;
+    
+    private TabPane tabPane;
+    private Tab portsTab;
+    private Tab iwadsTab;
+    private Tab modsTab;
+    private Tab pwadsTab;
+    
+    private VBox portsBox;
+    private VBox iwadsBox;
+    private VBox modsBox;
+        
+    private Button cancelButton;
+    
+    private ProcessBuilder processBuilder;
+    private String selectedIwad;
+    private String selectedPort;
+    
+    public LauncherFX() throws IOException {
+        FileSystem fs = FileSystems.getDefault();
+        Path configFile = fs.getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
+
+        createConfigFile(configFile);
+
+        INI_FILE.load(Files.newBufferedReader(configFile));
+        String datadir = INI_FILE.get("LauncherFXDataDir", "launcher-data");
+
+        if(datadir != null) {
+            CONFIG_HOME = datadir;
+            configFile = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_FILE);
             createConfigFile(configFile);
-            
-            String dataDirPathRoot = "";
-            
+
+            INI_FILE.clear();
             INI_FILE.load(Files.newBufferedReader(configFile));
-            String datadir = INI_FILE.get("LauncherFXDataDir", "launcher-data");
-            
-            if(datadir != null) {
-                dataDirPathRoot = datadir;
-                configFile = fs.getPath(dataDirPathRoot, CONFIG_DIR, CONFIG_FILE);
-                createConfigFile(configFile);
-                
-                INI_FILE.clear();
-                INI_FILE.load(Files.newBufferedReader(configFile));
-            }
-            else {
-                dataDirPathRoot = USER_HOME;
-            }
-            
-            //create the directory structure
-            Path[] configDirs = {
-                fs.getPath(dataDirPathRoot, CONFIG_DIR, CONFIG_DIR_BOOMWADS),
-                fs.getPath(dataDirPathRoot, CONFIG_DIR, CONFIG_DIR_BOOMWADS, CONFIG_DIR_DOOM),
-                fs.getPath(dataDirPathRoot, CONFIG_DIR, CONFIG_DIR_BOOMWADS, CONFIG_DIR_DOOM2),
-                fs.getPath(dataDirPathRoot, CONFIG_DIR, CONFIG_DIR_IMAGES),
-                fs.getPath(dataDirPathRoot, CONFIG_DIR, CONFIG_DIR_IWAD),
-                fs.getPath(dataDirPathRoot, CONFIG_DIR, CONFIG_DIR_MODS),
-                fs.getPath(dataDirPathRoot, CONFIG_DIR, CONFIG_DIR_VANILLAWADS),
-                fs.getPath(dataDirPathRoot, CONFIG_DIR, CONFIG_DIR_VANILLAWADS, CONFIG_DIR_DOOM),
-                fs.getPath(dataDirPathRoot, CONFIG_DIR, CONFIG_DIR_VANILLAWADS, CONFIG_DIR_DOOM2),
-            };
-            for(Path p : configDirs) {
-                Files.createDirectories(p);
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        else {
+            CONFIG_HOME = USER_HOME;
+        }
+
+        //create the directory structure
+        Path[] configDirs = {
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_BOOMWADS),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_BOOMWADS, CONFIG_DIR_DOOM),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_BOOMWADS, CONFIG_DIR_DOOM2),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_IMAGES),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_IWAD),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_MODS),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_VANILLAWADS),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_VANILLAWADS, CONFIG_DIR_DOOM),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_VANILLAWADS, CONFIG_DIR_DOOM2),
+        };
+        for(Path p : configDirs) {
+            Files.createDirectories(p);
         }
     }
     
@@ -186,22 +200,6 @@ public class LauncherFX extends Application {
             }
         }
     }
-    
-    private TabPane tabPane;
-    private Tab portsTab;
-    private Tab iwadsTab;
-    private Tab modsTab;
-    private Tab pwadsTab;
-    
-    private VBox portsBox;
-    private VBox iwadsBox;
-    private VBox modsBox;
-        
-    private Button cancelButton;
-    
-    private ProcessBuilder processBuilder;
-    private String selectedIwad;
-    private String selectedPort;
     
     @Override
     public void start(Stage primaryStage) throws MalformedURLException {
@@ -318,7 +316,7 @@ public class LauncherFX extends Application {
             return imgPath.toString();
         }
         
-        return Paths.get(USER_HOME, CONFIG_DIR, CONFIG_DIR_IMAGES, imgPath.toString()).toString();
+        return Paths.get(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_IMAGES, imgPath.toString()).toString();
     }
     
     private String getIwadPath(String section) {
@@ -332,7 +330,7 @@ public class LauncherFX extends Application {
             return iwadPath.toString();
         }
         
-        return Paths.get(USER_HOME, CONFIG_DIR, CONFIG_DIR_IWAD, iwadPath.toString()).toString();
+        return Paths.get(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_IWAD, iwadPath.toString()).toString();
     }
     
     private String getModFilePath(String section) {
@@ -346,7 +344,7 @@ public class LauncherFX extends Application {
             return modPath.toString();
         }
         
-        return Paths.get(USER_HOME, CONFIG_DIR, CONFIG_DIR_MODS, modPath.toString()).toString();
+        return Paths.get(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_MODS, modPath.toString()).toString();
     }
     
     private String convertWorkingDirPath(String pathStr) {
@@ -357,7 +355,7 @@ public class LauncherFX extends Application {
             return modPath.toString();
         }
         
-        return Paths.get(USER_HOME, CONFIG_DIR, CONFIG_DIR_MODS, modPath.toString()).toString();
+        return Paths.get(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_MODS, modPath.toString()).toString();
     }
     
     public void chooseIwad() {
@@ -580,8 +578,6 @@ public class LauncherFX extends Application {
                         workingDir = new File(convertWorkingDirPath(workingDirPath));
                     }
                     processBuilder.directory(workingDir);
-
-
 
                     System.out.println("command=" + processBuilder.command() + ", workingdir=" + processBuilder.directory());
                     try {
