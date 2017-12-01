@@ -27,6 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -35,6 +36,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
@@ -43,6 +45,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
@@ -95,6 +98,7 @@ public class LauncherFX extends Application {
     private List<String> processCommand;
     private String selectedIwad;
     private String selectedPort;
+    private PWadListItem selectedPwad;
     
     public LauncherFX() throws IOException {
         FileSystem fs = FileSystems.getDefault();
@@ -288,12 +292,17 @@ public class LauncherFX extends Application {
         EventHandler<ActionEvent> launchHandler = (event) -> {
             addArgsToProcess(INI_FILE.get(selectedPort, "args"));
             
+            PWadListItem pwadItem = pwadListView.getSelectionModel().getSelectedItem();
+            if(pwadItem != null && pwadItem != NO_PWAD) {
+                addArgsToProcess("-file \"" + pwadItem.path + "\"");
+            }
+            
             WarpListItem warpItem = warpListView.getSelectionModel().getSelectedItem();
             if(warpItem != null && warpItem != DO_NOT_WARP) {
                 addArgsToProcess("-warp " + warpItem.arg);
             }
-            File workingDir = new File(processCommand.get(0)).getParentFile();
             
+            File workingDir = new File(processCommand.get(0)).getParentFile();
             String workingDirPath = INI_FILE.get(selectedPort, "workingdir");
             if(workingDirPath != null) {
                 workingDir = new File(convertWorkingDirPath(workingDirPath));
@@ -330,18 +339,17 @@ public class LauncherFX extends Application {
         buttonPane.setHgap(8);
         
         pwadListView = new ListView<>();
-        pwadListView.setMinWidth(200);
-        pwadListView.setMinHeight(450);
+        pwadListView.setMinSize(350, 450);
         pwadListView.setDisable(true);
         
         continueToWarpButton = new Button("Continue >>>");
         continueToWarpButton.setMinSize(200, 200);
         continueToWarpButton.setDisable(true);
         continueToWarpButton.addEventHandler(ActionEvent.ACTION, (event) -> {
-            PWadListItem chosenPwad = pwadListView.getSelectionModel().getSelectedItem();
-            if(chosenPwad != NO_PWAD) {
-                addArgsToProcess("-file " + chosenPwad.path);
-            }
+            selectedPwad = pwadListView.getSelectionModel().getSelectedItem();
+//            if(chosenPwad != NO_PWAD) {
+//                addArgsToProcess("-file " + chosenPwad.path);
+//            }
             chooseWarp();
         });
         
@@ -353,6 +361,7 @@ public class LauncherFX extends Application {
         warpListView = new ListView<>();
         warpListView.setMinSize(200, 450);
         warpListView.setDisable(true);
+        warpListView.setCellFactory((ListView<WarpListItem> list) -> new WarpListCell());
         
         launchButton = new Button("Launch!");
         launchButton.setMinSize(200, 200);
@@ -525,16 +534,45 @@ public class LauncherFX extends Application {
         String wadfolder = INI_FILE.get(selectedIwad, "wadfolder");
         switch (wadfolder) {
             case CONFIG_DIR_DOOM:
-                warpListView.setItems(FXCollections.observableArrayList(DOOM_WARP_LIST));
-                warpListView.getSelectionModel().selectFirst();
+//                ObservableList<WarpListItem> list = FXCollections.observableArrayList(DOOM_WARP_LIST);
+//                if(selectedPwad != NO_PWAD && selectedPwad.warp != null) {
+//                    for(WarpListItem item : list) {
+//                        if(item.display.equals(selectedPwad.warp)) {
+//                            item.highlight = true;
+//                        }
+//                    }
+//                }
+//                warpListView.setItems(list);
+//                warpListView.getSelectionModel().selectFirst();
+                populateWarpList(DOOM_WARP_LIST);
                 break;
             case CONFIG_DIR_DOOM2:
-                warpListView.setItems(FXCollections.observableArrayList(DOOM2_WARP_LIST));
-                warpListView.getSelectionModel().selectFirst();
+//                warpListView.setItems(FXCollections.observableArrayList(DOOM2_WARP_LIST));
+//                warpListView.getSelectionModel().selectFirst();
+                populateWarpList(DOOM2_WARP_LIST);
                 break;
             default:
                 break;
         }
+    }
+    
+    private void populateWarpList(List<WarpListItem> list) {
+        ObservableList<WarpListItem> olist = FXCollections.observableArrayList(list);
+        
+        WarpListItem selectThis = DO_NOT_WARP;
+        //have to do this no matter what to clear any potential prior highlights.
+        for(WarpListItem item : olist) {
+            if(item.display.equals(selectedPwad.warp)) {
+                item.highlight = true;
+                selectThis = item;
+            }
+            else {
+                item.highlight = false;
+            }
+        }
+        warpListView.getItems().clear();
+        warpListView.setItems(olist);
+        warpListView.getSelectionModel().select(selectThis);
     }
     
     private void loadPwadList() throws IOException {
@@ -552,7 +590,9 @@ public class LauncherFX extends Application {
             Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_VANILLAWADS, wadFolder);
             if(Files.exists(wadBasePath)) {
                 Files.list(wadBasePath).forEach((path) -> {
-                    pwadList.add(new PWadListItem(path.getFileName().toString(), path.toString()));
+                    if(path.getFileName().toString().toLowerCase().endsWith("wad")) {
+                        pwadList.add(handlePwad(path));
+                    }
                 });
             }
             
@@ -562,13 +602,39 @@ public class LauncherFX extends Application {
                 wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_BOOMWADS, wadFolder);
                 if(Files.exists(wadBasePath)) {
                     Files.list(wadBasePath).forEach((path) -> {
-                        pwadList.add(new PWadListItem(path.getFileName().toString(), path.toString()));
+                        if(path.getFileName().toString().toLowerCase().endsWith("wad")) {
+                            pwadList.add(handlePwad(path));
+                        }
                     });
                 }
             }
         
             pwadListView.setItems(FXCollections.observableArrayList(pwadList));
             pwadListView.getSelectionModel().select(NO_PWAD);
+        }
+    }
+    
+    private PWadListItem handlePwad(Path pwadPath) {
+        String filename = pwadPath.getFileName().toString();
+
+        Section pwadSection = INI_FILE.get(filename);
+        if(pwadSection != null) {
+            String name = pwadSection.get("name") + " (" + filename + ")";
+            String author = pwadSection.get("author");
+            if(author != null) {
+                name += " by " + author;
+            }
+            
+            PWadListItem item = new PWadListItem(name, pwadPath.toString());
+            
+            String warp = pwadSection.get("warp");
+            if(warp != null) {
+                item.warp = warp;
+            }
+            return item;
+        }
+        else {
+            return new PWadListItem(pwadPath.getFileName().toString(), pwadPath.toString());
         }
     }
     
@@ -587,7 +653,9 @@ public class LauncherFX extends Application {
         setItemsDisable(modsBox, true);
         
         pwadListView.setDisable(true);
+        pwadListView.getItems().clear();
         warpListView.setDisable(true);
+        warpListView.getItems().clear();
         
         portsTab.setDisable(false);
         iwadsTab.setDisable(false);
@@ -772,11 +840,32 @@ public class LauncherFX extends Application {
         }
     }
     
+    private class WarpListCell extends ListCell<WarpListItem> {
+        
+        @Override
+        protected void updateItem(WarpListItem item, boolean empty) {
+            super.updateItem(item, empty);
+            
+            if(!empty) {
+                setStyle(null);
+                if(item != null && item.highlight) {
+                    setStyle("-fx-font-weight: bold;");
+                }
+            }
+            else {
+                System.out.println("warplistcell.updateitem() empty=true, " + item);
+                setStyle("-fx-font-weight: normal;");
+            }
+            setText(item == null ? null : item.display);
+        }
+    }
+    
     private final PWadListItem NO_PWAD = new PWadListItem("No PWAD.", "NOPWADPATH");
     private class PWadListItem implements Comparable<PWadListItem> {
         
         public final String display;
         public final String path;
+        public String warp;
         
         public PWadListItem(String display, String path) {
             this.display = display;
@@ -803,6 +892,7 @@ public class LauncherFX extends Application {
     private class WarpListItem implements Comparable<WarpListItem> {
         public final String display;
         public final String arg;
+        public boolean highlight;
         
         public WarpListItem(String display, String arg) {
             this.display = display;
@@ -829,45 +919,45 @@ public class LauncherFX extends Application {
     private final WarpListItem DO_NOT_WARP = new WarpListItem("Do not warp.", "NOWARP");
     private final List<WarpListItem> DOOM_WARP_LIST = 
             Collections.unmodifiableList(Arrays.asList(DO_NOT_WARP,
-                    new WarpListItem("E1M1", "\"1 1\""), 
-                    new WarpListItem("E1M2", "\"1 2\""), 
-                    new WarpListItem("E1M3", "\"1 3\""), 
-                    new WarpListItem("E1M4", "\"1 4\""), 
-                    new WarpListItem("E1M5", "\"1 5\""), 
-                    new WarpListItem("E1M6", "\"1 6\""), 
-                    new WarpListItem("E1M7", "\"1 7\""), 
-                    new WarpListItem("E1M8", "\"1 8\""), 
-                    new WarpListItem("E1M9", "\"1 9\""), 
+                    new WarpListItem("E1M1", "1 1"), 
+                    new WarpListItem("E1M2", "1 2"), 
+                    new WarpListItem("E1M3", "1 3"), 
+                    new WarpListItem("E1M4", "1 4"), 
+                    new WarpListItem("E1M5", "1 5"), 
+                    new WarpListItem("E1M6", "1 6"), 
+                    new WarpListItem("E1M7", "1 7"), 
+                    new WarpListItem("E1M8", "1 8"), 
+                    new WarpListItem("E1M9", "1 9"), 
                     
-                    new WarpListItem("E2M1", "\"2 1\""), 
-                    new WarpListItem("E2M2", "\"2 2\""), 
-                    new WarpListItem("E2M3", "\"2 3\""), 
-                    new WarpListItem("E2M4", "\"2 4\""), 
-                    new WarpListItem("E2M5", "\"2 5\""), 
-                    new WarpListItem("E2M6", "\"2 6\""), 
-                    new WarpListItem("E2M7", "\"2 7\""), 
-                    new WarpListItem("E2M8", "\"2 8\""), 
-                    new WarpListItem("E2M9", "\"2 9\""), 
+                    new WarpListItem("E2M1", "2 1"), 
+                    new WarpListItem("E2M2", "2 2"), 
+                    new WarpListItem("E2M3", "2 3"), 
+                    new WarpListItem("E2M4", "2 4"), 
+                    new WarpListItem("E2M5", "2 5"), 
+                    new WarpListItem("E2M6", "2 6"), 
+                    new WarpListItem("E2M7", "2 7"), 
+                    new WarpListItem("E2M8", "2 8"), 
+                    new WarpListItem("E2M9", "2 9"), 
                     
-                    new WarpListItem("E3M1", "\"3 1\""), 
-                    new WarpListItem("E3M2", "\"3 2\""), 
-                    new WarpListItem("E3M3", "\"3 3\""), 
-                    new WarpListItem("E3M4", "\"3 4\""), 
-                    new WarpListItem("E3M5", "\"3 5\""), 
-                    new WarpListItem("E3M6", "\"3 6\""), 
-                    new WarpListItem("E3M7", "\"3 7\""), 
-                    new WarpListItem("E3M8", "\"3 8\""), 
-                    new WarpListItem("E3M9", "\"3 9\""), 
+                    new WarpListItem("E3M1", "3 1"), 
+                    new WarpListItem("E3M2", "3 2"), 
+                    new WarpListItem("E3M3", "3 3"), 
+                    new WarpListItem("E3M4", "3 4"), 
+                    new WarpListItem("E3M5", "3 5"), 
+                    new WarpListItem("E3M6", "3 6"), 
+                    new WarpListItem("E3M7", "3 7"), 
+                    new WarpListItem("E3M8", "3 8"), 
+                    new WarpListItem("E3M9", "3 9"), 
                     
-                    new WarpListItem("E4M1", "\"4 1\""), 
-                    new WarpListItem("E4M2", "\"4 2\""), 
-                    new WarpListItem("E4M3", "\"4 3\""), 
-                    new WarpListItem("E4M4", "\"4 4\""), 
-                    new WarpListItem("E4M5", "\"4 5\""), 
-                    new WarpListItem("E4M6", "\"4 6\""), 
-                    new WarpListItem("E4M7", "\"4 7\""), 
-                    new WarpListItem("E4M8", "\"4 8\""), 
-                    new WarpListItem("E4M9", "\"4 9\"")));
+                    new WarpListItem("E4M1", "4 1"), 
+                    new WarpListItem("E4M2", "4 2"), 
+                    new WarpListItem("E4M3", "4 3"), 
+                    new WarpListItem("E4M4", "4 4"), 
+                    new WarpListItem("E4M5", "4 5"), 
+                    new WarpListItem("E4M6", "4 6"), 
+                    new WarpListItem("E4M7", "4 7"), 
+                    new WarpListItem("E4M8", "4 8"), 
+                    new WarpListItem("E4M9", "4 9")));
     
     private final List<WarpListItem> DOOM2_WARP_LIST = 
             Collections.unmodifiableList(Arrays.asList(DO_NOT_WARP,
