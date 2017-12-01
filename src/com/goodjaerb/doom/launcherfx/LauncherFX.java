@@ -207,8 +207,8 @@ public class LauncherFX extends Application {
                 writer.println("[Example2]");
                 writer.println("name=Mod Name");
                 writer.println("desc=Mod description.");
-                writer.println("type=mod");
-                writer.println("sort=2");
+                writer.println("type=tc");
+                writer.println("sort=3");
                 writer.println("port=Example1");
                 writer.println("iwad=Ultimate,Doom2");
                 writer.println("img=/optional/path/to/img.png");
@@ -225,6 +225,10 @@ public class LauncherFX extends Application {
                 writer.println("type=iwad");
                 writer.println("wadfolder=doom2");
                 writer.println("file=doom2.wad");
+                writer.println();
+                writer.println("; Helper lists for warp= values.");
+                writer.println("; E1M1,E1M2,E1M3,E1M4,E1M5,E1M6,E1M7,E1M8,E1M9,E2M1,E2M2,E2M3,E2M4,E2M5,E2M6,E2M7,E2M8,E2M9,E3M1,E3M2,E3M3,E3M4,E3M5,E3M6,E3M7,E3M8,E3M9,E4M1,E4M2,E4M3,E4M4,E4M5,E4M6,E4M7,E4M8,E4M9");
+                writer.println("; MAP01,MAP02,MAP03,MAP04,MAP05,MAP06,MAP07,MAP08,MAP09,MAP10,MAP11,MAP12,MAP13,MAP14,MAP15,MAP16,MAP17,MAP18,MAP19,MAP20,MAP21,MAP22,MAP23,MAP24,MAP25,MAP26,MAP27,MAP28,MAP29,MAP30,MAP31,MAP32");
                 writer.flush();
             }
         }
@@ -358,9 +362,6 @@ public class LauncherFX extends Application {
         continueToWarpButton.setDisable(true);
         continueToWarpButton.addEventHandler(ActionEvent.ACTION, (event) -> {
             selectedPwad = pwadListView.getSelectionModel().getSelectedItem();
-//            if(chosenPwad != NO_PWAD) {
-//                addArgsToProcess("-file " + chosenPwad.path);
-//            }
             chooseWarp();
         });
         
@@ -544,21 +545,9 @@ public class LauncherFX extends Application {
         String wadfolder = INI_FILE.get(selectedIwad, "wadfolder");
         switch (wadfolder) {
             case CONFIG_DIR_DOOM:
-//                ObservableList<WarpListItem> list = FXCollections.observableArrayList(DOOM_WARP_LIST);
-//                if(selectedPwad != NO_PWAD && selectedPwad.warp != null) {
-//                    for(WarpListItem item : list) {
-//                        if(item.display.equals(selectedPwad.warp)) {
-//                            item.highlight = true;
-//                        }
-//                    }
-//                }
-//                warpListView.setItems(list);
-//                warpListView.getSelectionModel().selectFirst();
                 populateWarpList(DOOM_WARP_LIST);
                 break;
             case CONFIG_DIR_DOOM2:
-//                warpListView.setItems(FXCollections.observableArrayList(DOOM2_WARP_LIST));
-//                warpListView.getSelectionModel().selectFirst();
                 populateWarpList(DOOM2_WARP_LIST);
                 break;
             default:
@@ -569,12 +558,21 @@ public class LauncherFX extends Application {
     private void populateWarpList(List<WarpListItem> list) {
         ObservableList<WarpListItem> olist = FXCollections.observableArrayList(list);
         
+        String warp = "";
+        String tcWarp = INI_FILE.get(selectedPort, "warp");
+        if(tcWarp == null) {
+            warp = selectedPwad.warp;
+        }
+        else {
+            warp = tcWarp;
+        }
+        
         WarpListItem selectThis = DO_NOT_WARP;
         //have to do this no matter what to clear any potential prior highlights.
         for(WarpListItem item : olist) {
-            if(item.display.equals(selectedPwad.warp)) {
+            if(warp.contains(item.display)) {
                 item.highlight = true;
-                selectThis = item;
+//                selectThis = item; //idk if i want to auto-select. plus would select last level in a multi-level wad...
             }
             else {
                 item.highlight = false;
@@ -886,7 +884,6 @@ public class LauncherFX extends Application {
                 }
             }
             else {
-                System.out.println("warplistcell.updateitem() empty=true, " + item);
                 setStyle("-fx-font-weight: normal;");
             }
             setText(item == null ? null : item.display);
@@ -903,6 +900,7 @@ public class LauncherFX extends Application {
         public PWadListItem(String display, String path) {
             this.display = display;
             this.path = path;
+            this.warp = "";
         }
         
         @Override
