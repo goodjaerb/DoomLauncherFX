@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -36,6 +37,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
@@ -45,7 +48,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
@@ -70,7 +72,6 @@ public class LauncherFX extends Application {
     public static final String TYPE_TC = "tc";
     public static final String TYPE_MOD = "mod";
     public static final String TYPE_IWAD = "iwad";
-    public static final String TYPE_PWAD = "pwad";
     
     public static final Ini INI_FILE = new Ini();
     
@@ -187,9 +188,20 @@ public class LauncherFX extends Application {
                 writer.println("; A section describing a mod that relies on a source port.");
                 writer.println("; Use the 'port=' field to define the source port(s) that can play this mod using the section name. Optional.");
                 writer.println("; Use 'iwad=' to list the iwads the mod is compatible with, separated by commas if more than one, again using section names defining the iwads. Optional.");
+                writer.println("[Example2]");
+                writer.println("name=Mod Name");
+                writer.println("desc=Mod description.");
+                writer.println("type=mod");
+                writer.println("sort=2");
+                writer.println("port=Example1");
+                writer.println("iwad=Ultimate,Doom2");
+                writer.println("img=/optional/path/to/img.png");
+                writer.println();
+                writer.println("; A section describing a Total Conversion (TC) that relies on a source port.");
+                writer.println("; Use the 'port=' field to define the source port(s) that can play this mod using the section name.");
+                writer.println("; Use 'iwad=' to list the iwads the mod is compatible with, separated by commas if more than one, again using section names defining the iwads. Optional.");
                 writer.println("; Use 'cmd=' if you want the mod to appear in the menu as a means of direct launching. Optional. Use quotes (\"...\") around the value if there are spaces in the path.");
-                writer.println("; Use 'args=' if the mod has to run with a source port (defined in 'port=') and needs to pass extra parameters. Optional. If using this, can only list one port in 'port=' and that port's 'cmd' will be run with these args. Use quotes (\"...\") around individual argument values that have spaces in them.");
-                writer.println("; If neither 'cmd' nor 'args' are defined, the mod will be listed in the Mods tab and apply itself to whatever port/iwad is selected.");
+                writer.println("; Use 'args=' if the mod has to run with a source port (defined in 'port=') and needs to pass extra parameters. Optional. Use quotes (\"...\") around individual argument values that have spaces in them.");
                 writer.println("; Use 'workingdir=' to point to the mod folder in the event you have to run with 'args=' that point to files in said working directory. Like for 'img=', if not an absolute path, the mods folder defined above will be used as the root of the given working directory. Do not use quotes for 'workingdir' even if there are spaces in the path.");
                 writer.println("; Use 'skipwads=true' if you don't want to be offered to load a pwad.");
                 writer.println("[Example2]");
@@ -199,7 +211,6 @@ public class LauncherFX extends Application {
                 writer.println("sort=2");
                 writer.println("port=Example1");
                 writer.println("iwad=Ultimate,Doom2");
-                writer.println("cmd=/optional/cmd/to/run/mod");
                 writer.println("img=/optional/path/to/img.png");
                 writer.println();
                 writer.println("; Defines base iwad files required to play Doom. These files are to be stored in /<user home directory>/.launcherfx/iwad/. Do not use quotes for 'file' even if there are spaces in the path.");
@@ -373,11 +384,11 @@ public class LauncherFX extends Application {
         warpPane.setPadding(new Insets(8));
         warpPane.setHgap(8);
         
-        portsTab = new Tab("Ports & TC's", portsBox);
+        portsTab = new Tab("Ports & TC's", new ScrollPane(portsBox));
         portsTab.setClosable(false);
-        iwadsTab = new Tab("IWADS", iwadsBox);
+        iwadsTab = new Tab("IWADS", new ScrollPane(iwadsBox));
         iwadsTab.setClosable(false);
-        modsTab = new Tab("Mods", modsBox);
+        modsTab = new Tab("Mods", new ScrollPane(modsBox));
         modsTab.setClosable(false);
         pwadsTab = new Tab("PWADS", new BorderPane(null, pwadPane, null, null, null));
         pwadsTab.setClosable(false);
@@ -391,9 +402,8 @@ public class LauncherFX extends Application {
         tabPane.getTabs().add(pwadsTab);
         tabPane.getTabs().add(warpTab);
         
-        ScrollPane scrollPane = new ScrollPane(new VBox(tabPane));
         
-        VBox root = new VBox(scrollPane, buttonPane);
+        VBox root = new VBox(tabPane, buttonPane);
         root.setMinSize(600, 550);
         Scene scene = new Scene(root, 600, 550);
         
@@ -578,6 +588,7 @@ public class LauncherFX extends Application {
     private void loadPwadList() throws IOException {
         String skipWads = INI_FILE.get(selectedPort, "skipwads");
         if("true".equals(skipWads)) {
+            selectedPwad = NO_PWAD;
             chooseWarp();
         }
         else {
@@ -806,15 +817,37 @@ public class LauncherFX extends Application {
                 case "tc":
                     if(mySection != null) {
                         String port = mySection.get("port");
-                        String myCmd = INI_FILE.get(port, "cmd");
-
-                        if(myCmd != null) {
-                            processCommand = new ArrayList<>();
-                            addArgsToProcess(myCmd);
-                            
-                            selectedPort = sectionName;
+                        String[] splitPort = port.split(",");
+                        if(splitPort.length == 1) {
+                            port = splitPort[0];
                         }
-                        chooseIwad();
+                        else {
+                            ChoiceDialog<String> dialog = new ChoiceDialog<>(splitPort[0], splitPort);
+                            dialog.setHeaderText("Select the Source Port you would like to open this TC with.");
+                            dialog.setContentText("Source Port:");
+                            dialog.setResultConverter((buttonType) -> {
+                                if(buttonType == ButtonType.OK) {
+                                    return dialog.getSelectedItem();
+                                }
+                                return null;
+                            });
+                            Optional<String> r = dialog.showAndWait();
+                            port = r.orElse(null);
+                        }
+                        if(port == null) {
+                            doCancel();
+                        }
+                        else {
+                            String myCmd = INI_FILE.get(port, "cmd");
+
+                            if(myCmd != null) {
+                                processCommand = new ArrayList<>();
+                                addArgsToProcess(myCmd);
+
+                                selectedPort = sectionName;
+                            }
+                            chooseIwad();
+                        }
                     }
                     break;
                 case "mod":
