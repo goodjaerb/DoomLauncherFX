@@ -1,0 +1,24 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+apply plugin: 'application'
+mainClassName = "com.goodjaerb.doom.launcherfx.LauncherFX"
+
+jar {
+    baseName = 'launcherfx'
+    version = '0.0.1'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+     mavenCentral()
+}
+
+dependencies {
+    compile("org.ini4j:ini4j:0.5.4")
+}
