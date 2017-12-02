@@ -315,6 +315,7 @@ public class LauncherFX extends Application {
             
             PWadListItem pwadItem = pwadListView.getSelectionModel().getSelectedItem();
             if(pwadItem != null && pwadItem != NO_PWAD) {
+                addArgsToProcess(pwadItem.args);
                 addArgsToProcess("-file \"" + pwadItem.path + "\"");
             }
             
@@ -677,10 +678,29 @@ public class LauncherFX extends Application {
             if(warp != null) {
                 item.warp = warp;
             }
+            
+            String args = pwadSection.get("args");
+            if(args != null) {
+                item.args = args.replace("%WADPATH%", pwadPath.getParent().toString());
+            }
+            else {
+                //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
+                Path dehPath = pwadPath.resolveSibling(filename.replace(".wad", ".deh"));
+                if(Files.exists(dehPath)) {
+                    item.args = "-deh \"" + dehPath.toString() + "\"";
+                }
+            }
             return item;
         }
         else {
-            return new PWadListItem(pwadPath.getFileName().toString(), pwadPath.toString());
+            PWadListItem item = new PWadListItem(pwadPath.getFileName().toString(), pwadPath.toString());
+            
+            //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
+            Path dehPath = pwadPath.resolveSibling(filename.replace(".wad", ".deh"));
+            if(Files.exists(dehPath)) {
+                item.args = "-deh \"" + dehPath.toString() + "\"";
+            }
+            return item;
         }
     }
     
@@ -933,6 +953,7 @@ public class LauncherFX extends Application {
         public final String display;
         public final String path;
         public String warp;
+        public String args;
         
         public PWadListItem(String display, String path) {
             this.display = display;
