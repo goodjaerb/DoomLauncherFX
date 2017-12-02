@@ -60,11 +60,13 @@ public class LauncherFX extends Application {
     private static final String CONFIG_DIR = ".launcherfx";
     private static final String CONFIG_FILE = "launcherfx.ini";
     
-    private static final String CONFIG_DIR_BOOMWADS = "boomwads";
     private static final String CONFIG_DIR_IMAGES = "images";
     private static final String CONFIG_DIR_IWAD = "iwad";
     private static final String CONFIG_DIR_MODS = "mods";
-    private static final String CONFIG_DIR_VANILLAWADS = "vanillawads";
+    private static final String CONFIG_DIR_WADS = "wads";
+    private static final String CONFIG_DIR_BOOM = "boom";
+    private static final String CONFIG_DIR_LIMIT_REMOVING = "limit-removing";
+    private static final String CONFIG_DIR_VANILLA = "vanilla";
     private static final String CONFIG_DIR_DOOM = "doom";
     private static final String CONFIG_DIR_DOOM2 = "doom2";
     
@@ -124,15 +126,15 @@ public class LauncherFX extends Application {
 
         //create the directory structure
         Path[] configDirs = {
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_BOOMWADS),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_BOOMWADS, CONFIG_DIR_DOOM),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_BOOMWADS, CONFIG_DIR_DOOM2),
             fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_IMAGES),
             fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_IWAD),
             fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_MODS),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_VANILLAWADS),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_VANILLAWADS, CONFIG_DIR_DOOM),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_VANILLAWADS, CONFIG_DIR_DOOM2),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, CONFIG_DIR_BOOM, CONFIG_DIR_DOOM),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, CONFIG_DIR_BOOM, CONFIG_DIR_DOOM2),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, CONFIG_DIR_LIMIT_REMOVING, CONFIG_DIR_DOOM),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, CONFIG_DIR_LIMIT_REMOVING, CONFIG_DIR_DOOM2),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, CONFIG_DIR_VANILLA, CONFIG_DIR_DOOM),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, CONFIG_DIR_VANILLA, CONFIG_DIR_DOOM2),
         };
         for(Path p : configDirs) {
             Files.createDirectories(p);
@@ -154,15 +156,19 @@ public class LauncherFX extends Application {
                 writer.println("; A directory '" + CONFIG_DIR + "' will be created in the user's home directory. Within this directory will be another series of directories to store various wads and mods as described below. Also will be this '" + CONFIG_FILE + "' files.");
                 writer.println("; The directory structure will be as follows:");
                 writer.println("; <user home>/" + CONFIG_DIR + "/");
-                writer.println("; +-> " + CONFIG_DIR_BOOMWADS + "/\t\tUsed for wads requiring 'limit-removing' (often referred to as Boom compatible) source ports.");
-                writer.println("; |    +-> " + CONFIG_DIR_DOOM + "/\t\tWads that require the iwad for Doom");
-                writer.println("; |    +-> " + CONFIG_DIR_DOOM2 + "/\t\tWads that require the iwad for Doom 2");
                 writer.println("; +-> " + CONFIG_DIR_IMAGES + "/");
                 writer.println("; +-> " + CONFIG_DIR_IWAD + "/");
                 writer.println("; +-> " + CONFIG_DIR_MODS + "/");
-                writer.println("; +-> " + CONFIG_DIR_VANILLAWADS + "/\t\tUsed for wads that do not require 'limit-removing' source ports.");
-                writer.println("; |    +-> " + CONFIG_DIR_DOOM + "/");
-                writer.println("; |    +-> " + CONFIG_DIR_DOOM2 + "/");
+                writer.println("; +-> " + CONFIG_DIR_WADS + "/");
+                writer.println("; |    +-> " + CONFIG_DIR_BOOM + "/\t\tUsed for wads requiring Boom-compatible editing extensions source ports.");
+                writer.println("; |         +-> " + CONFIG_DIR_DOOM + "/\t\tWads that require the iwad for Doom");
+                writer.println("; |         +-> " + CONFIG_DIR_DOOM2 + "/\t\tWads that require the iwad for Doom 2");
+                writer.println("; |    +-> " + CONFIG_DIR_LIMIT_REMOVING + "/\t\tUsed for wads requiring limit-removing source ports but no further extensions.");
+                writer.println("; |         +-> " + CONFIG_DIR_DOOM + "/\t\tWads that require the iwad for Doom");
+                writer.println("; |         +-> " + CONFIG_DIR_DOOM2 + "/\t\tWads that require the iwad for Doom 2");
+                writer.println("; |    +-> " + CONFIG_DIR_VANILLA + "/\t\tUsed for wads that do not require 'limit-removing' source ports.");
+                writer.println("; |         +-> " + CONFIG_DIR_DOOM + "/");
+                writer.println("; |         +-> " + CONFIG_DIR_DOOM2 + "/");
                 writer.println("; +-> " + CONFIG_FILE);
                 writer.println();
                 writer.println("; if you want to keep the above data structures in another location, uncomment the following two lines and give the absolute path to the location you want. Leave THIS ini here with this line in it, and copy the rest of your configuration below into the ini at your new location.");
@@ -171,7 +177,7 @@ public class LauncherFX extends Application {
                 writer.println("; launcher-data=/path/to/launcher/data");
                 writer.println();
                 writer.println("; A section describing a Doom source port. The section name may be referenced from other options.");
-                writer.println("; Use 'vanilla=' to denote whether a source port emulates the Vanilla Doom experience and should not be used with mods/wads that require 'limit-removing' source ports. Optional; default assumption is 'false'.");
+                writer.println("; Use 'wadfolder=' in a port section to limit which wads folder to search for pwads. By default the application creates folders called 'boom', 'limit-removing', and 'vanilla'. If you need more you can create them and use the name in the ini. Optional. No value for wadfolder will assume all wads are legal.");
                 writer.println("; Each section must have a 'type=', defining each section as a 'port', 'mod', or 'iwad'");
                 writer.println("; Use quotes (\"...\") around the value for cmd if there are spaces in the path.");
                 writer.println("; If 'img=' is not an absolute path, the 'images' folder above will be checked for the image file. If defining an absolute path or path with subdirectories, use '\\' or '/' as the path separator. a single '\' will not parse well. Do not use quotes for 'img' even if there are spaces in the path.");
@@ -181,7 +187,7 @@ public class LauncherFX extends Application {
                 writer.println("desc=Describe the port and its features.");
                 writer.println("type=port");
                 writer.println("sort=1");
-                writer.println("vanilla=true");
+                writer.println("wadfolder=limit-removing,vanilla");
                 writer.println("cmd=/path/to/run/port");
                 writer.println("img=/optional/path/to/image/for/button.png");
                 writer.println();
@@ -590,33 +596,64 @@ public class LauncherFX extends Application {
             chooseWarp();
         }
         else {
-            String wadFolder = INI_FILE.get(selectedIwad, "wadfolder");
-            
             SortedSet<PWadListItem> pwadList = new TreeSet<>();
             pwadList.add(NO_PWAD);
             
-            FileSystem fs = FileSystems.getDefault();
-            Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_VANILLAWADS, wadFolder);
-            if(Files.exists(wadBasePath)) {
+            String wadFolder = INI_FILE.get(selectedIwad, "wadfolder");
+            String portCompatibleFolders = INI_FILE.get(selectedPort, "wadfolder");
+            if(portCompatibleFolders == null) {
+                // parse all folders.
+                FileSystem fs = FileSystems.getDefault();
+                Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS);
                 Files.list(wadBasePath).forEach((path) -> {
-                    if(path.getFileName().toString().toLowerCase().endsWith("wad")) {
-                        pwadList.add(handlePwad(path));
+                    try {
+                        Files.list(path.resolve(wadFolder)).forEach((file) -> {
+                            if(Files.isRegularFile(file) && file.getFileName().toString().toLowerCase().endsWith("wad")) {
+                                pwadList.add(handlePwad(file));
+                            }
+                        });
+                    }
+                    catch (IOException ex) {
+                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 });
             }
-            
-            String vanilla = INI_FILE.get(selectedPort, "vanilla");
-            if(vanilla == null || !"true".equals(vanilla)) {
-                // if the port is not vanilla only then we can add boom wads too!
-                wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_BOOMWADS, wadFolder);
-                if(Files.exists(wadBasePath)) {
-                    Files.list(wadBasePath).forEach((path) -> {
-                        if(path.getFileName().toString().toLowerCase().endsWith("wad")) {
-                            pwadList.add(handlePwad(path));
+            else {
+                String[] splitPortFolders = portCompatibleFolders.split(",");
+                for(String wadDir : splitPortFolders) {
+                    FileSystem fs = FileSystems.getDefault();
+                    Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, wadDir);
+                    Files.list(wadBasePath.resolve(wadFolder)).forEach((file) -> {
+                        if(Files.isRegularFile(file) && file.getFileName().toString().toLowerCase().endsWith("wad")) {
+                            pwadList.add(handlePwad(file));
                         }
                     });
                 }
             }
+                    
+            
+//            FileSystem fs = FileSystems.getDefault();
+//            Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_VANILLAWADS, wadFolder);
+//            if(Files.exists(wadBasePath)) {
+//                Files.list(wadBasePath).forEach((path) -> {
+//                    if(path.getFileName().toString().toLowerCase().endsWith("wad")) {
+//                        pwadList.add(handlePwad(path));
+//                    }
+//                });
+//            }
+//            
+//            String vanilla = INI_FILE.get(selectedPort, "vanilla");
+//            if(vanilla == null || !"true".equals(vanilla)) {
+//                // if the port is not vanilla only then we can add boom wads too!
+//                wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_BOOMWADS, wadFolder);
+//                if(Files.exists(wadBasePath)) {
+//                    Files.list(wadBasePath).forEach((path) -> {
+//                        if(path.getFileName().toString().toLowerCase().endsWith("wad")) {
+//                            pwadList.add(handlePwad(path));
+//                        }
+//                    });
+//                }
+//            }
         
             pwadListView.setItems(FXCollections.observableArrayList(pwadList));
             pwadListView.getSelectionModel().select(NO_PWAD);
