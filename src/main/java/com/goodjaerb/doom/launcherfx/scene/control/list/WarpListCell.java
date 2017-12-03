@@ -5,7 +5,6 @@
  */
 package com.goodjaerb.doom.launcherfx.scene.control.list;
 
-import com.goodjaerb.doom.launcherfx.scene.control.list.WarpListItem;
 import javafx.scene.control.ListCell;
 
 /**
