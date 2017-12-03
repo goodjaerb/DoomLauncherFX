@@ -317,12 +317,18 @@ public class LauncherFX extends Application {
             List<PWadListItem> selectedPwadItems = pwadListView.getSelectionModel().getSelectedItems();
             if(selectedPwadItems.size() == 1) {
                 PWadListItem pwadItem = pwadListView.getSelectionModel().getSelectedItem();
-                if(pwadItem != null && pwadItem != NO_PWAD) {
+                if(pwadItem != NO_PWAD) {
                     if(pwadItem.args != null) {
                         addArgsToProcess(pwadItem.args);
                     }
                     else {
-                        addArgsToProcess("-file \"" + pwadItem.path + "\"");
+                        if(pwadItem.type == PWadListItem.Type.WAD) {
+                            addArgsToProcess("-file \"" + pwadItem.path + "\"");
+                        }
+                        else if(pwadItem.type == PWadListItem.Type.DEH) {
+                            // idk if this is a thing that people would do, but it's possible so i'll handle it.
+                            addArgsToProcess("-deh \"" + pwadItem.path + "\"");
+                        }
                     }
                 }
             }
@@ -331,10 +337,10 @@ public class LauncherFX extends Application {
                 String dehPaths = "";
                 String wadPaths = "";
                 for(PWadListItem item : selectedPwadItems) {
-                    if(item.path.toLowerCase().endsWith(".deh")) {
+                    if(item.type == PWadListItem.Type.DEH) {
                         dehPaths += " \"" + item.path + "\"";
                     }
-                    else if(item.path.toLowerCase().endsWith(".wad")) {
+                    else if(item.type == PWadListItem.Type.WAD) {
                         wadPaths += " \"" + item.path + "\"";
                     }
                 }
