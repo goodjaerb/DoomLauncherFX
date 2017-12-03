@@ -737,7 +737,7 @@ public class LauncherFX extends Application {
                     //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
                     Path dehPath = pwadPath.resolveSibling(filename.replace(".wad", ".deh"));
                     if(Files.exists(dehPath)) {
-                        item.args = "-deh \"" + dehPath.toString() + "\"";
+                        item.args = "-deh \"" + dehPath.toString() + "\" -file \"" + pwadPath.toString() + "\"";
                     }
                 }
                 return item;
@@ -749,7 +749,7 @@ public class LauncherFX extends Application {
             //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
             Path dehPath = pwadPath.resolveSibling(filename.replace(".wad", ".deh"));
             if(Files.exists(dehPath)) {
-                item.args = "-deh \"" + dehPath.toString() + "\"";
+                item.args = "-deh \"" + dehPath.toString() + "\" -file \"" + pwadPath.toString() + "\"";
             }
             return item;
         }
