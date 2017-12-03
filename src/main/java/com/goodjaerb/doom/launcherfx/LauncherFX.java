@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -36,6 +35,7 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
@@ -45,6 +45,8 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
@@ -323,11 +325,11 @@ public class LauncherFX extends Application {
                     }
                     else {
                         if(pwadItem.type == PWadListItem.Type.WAD) {
-                            addArgsToProcess("-file \"" + pwadItem.path + "\"");
+                            addArgsToProcess("-file \"" + pwadItem.path.toString() + "\"");
                         }
                         else if(pwadItem.type == PWadListItem.Type.DEH) {
                             // idk if this is a thing that people would do, but it's possible so i'll handle it.
-                            addArgsToProcess("-deh \"" + pwadItem.path + "\"");
+                            addArgsToProcess("-deh \"" + pwadItem.path.toString() + "\"");
                         }
                     }
                 }
@@ -338,10 +340,10 @@ public class LauncherFX extends Application {
                 String wadPaths = "";
                 for(PWadListItem item : selectedPwadItems) {
                     if(item.type == PWadListItem.Type.DEH) {
-                        dehPaths += " \"" + item.path + "\"";
+                        dehPaths += " \"" + item.path.toString() + "\"";
                     }
                     else if(item.type == PWadListItem.Type.WAD) {
-                        wadPaths += " \"" + item.path + "\"";
+                        wadPaths += " \"" + item.path.toString() + "\"";
                     }
                 }
                 if(!dehPaths.isEmpty()) {
@@ -375,6 +377,8 @@ public class LauncherFX extends Application {
             }
             catch (IOException | InterruptedException ex) {
                 Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                new Alert(Alert.AlertType.ERROR, "An error occured accessing or running the program '" + processBuilder.command() + "'.", ButtonType.CLOSE).showAndWait();
+                doCancel();
             }
         };
         
@@ -397,6 +401,7 @@ public class LauncherFX extends Application {
         pwadListView.setMinSize(350, 450);
         pwadListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         pwadListView.setDisable(true);
+        pwadListView.setCellFactory((ListView<PWadListItem> list) -> new PWadListCell());
         
         continueToWarpButton = new Button("Continue >>>");
         continueToWarpButton.setMinSize(200, 200);
@@ -599,7 +604,7 @@ public class LauncherFX extends Application {
     private void populateWarpList(List<WarpListItem> list) {
         ObservableList<WarpListItem> olist = FXCollections.observableArrayList(list);
         
-        String warp = "";
+        String warp;
         String tcWarp = INI_FILE.get(selectedPort, "warp");
         if(tcWarp == null) {
             warp = selectedPwad.warp;
@@ -668,12 +673,12 @@ public class LauncherFX extends Application {
             String filename = file.getFileName().toString().toLowerCase();
             if(Files.isRegularFile(file)) {
                 if(filename.endsWith(".txt")) {
-                    theWadSet.add(new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file.toString()));
+                    theWadSet.add(new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file));
                 }
                 else if(filename.endsWith(".deh")) {
                     String ignore = INI_FILE.get(file.getFileName().toString(), "ignore");
                     if(ignore == null || !"true".equals(ignore)) {
-                        theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file.toString()));
+                        theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file));
                     }
                 }
                 else if(filename.endsWith(".wad")) {
@@ -702,7 +707,7 @@ public class LauncherFX extends Application {
                     name += " by " + author;
                 }
 
-                PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, name, pwadPath.toString());
+                PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, name, pwadPath);
 
                 String warp = pwadSection.get("warp");
                 if(warp != null) {
@@ -724,7 +729,7 @@ public class LauncherFX extends Application {
             }
         }
         else {
-            PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, pwadPath.getFileName().toString(), pwadPath.toString());
+            PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, pwadPath.getFileName().toString(), pwadPath);
             
             //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
             Path dehPath = pwadPath.resolveSibling(filename.replace(".wad", ".deh"));
@@ -917,8 +922,7 @@ public class LauncherFX extends Application {
                                 }
                                 return null;
                             });
-                            Optional<String> r = dialog.showAndWait();
-                            port = r.orElse(null);
+                            port = dialog.showAndWait().orElse(null);
                         }
                         if(port == null) {
                             doCancel();
@@ -959,6 +963,27 @@ public class LauncherFX extends Application {
         }
     }
     
+    private class PWadListCell extends ListCell<PWadListItem> {
+        public PWadListCell() {
+            addEventHandler(MouseEvent.MOUSE_CLICKED, (event) -> {
+                PWadListItem item = getItem();
+                if(item != null && item.type == PWadListItem.Type.TXT && event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                    try {
+                        new TextViewer(item.path).showAndWait();
+                    } catch (IOException ex) {
+                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            });
+        }
+        
+        @Override
+        protected void updateItem(PWadListItem item, boolean empty) {
+            super.updateItem(item, empty);
+            setText(item == null ? null : item.display);
+        }
+    }
+    
     private class WarpListCell extends ListCell<WarpListItem> {
         
         @Override
@@ -978,7 +1003,7 @@ public class LauncherFX extends Application {
         }
     }
     
-    private static final PWadListItem NO_PWAD = new PWadListItem(PWadListItem.Type.WAD, "No PWAD.", "NOPWADPATH");
+    private static final PWadListItem NO_PWAD = new PWadListItem(PWadListItem.Type.WAD, "No PWAD.", null);
     private static class PWadListItem implements Comparable<PWadListItem> {
         public enum Type {
             WAD, TXT, DEH;
@@ -986,11 +1011,11 @@ public class LauncherFX extends Application {
         
         public final Type type;
         public final String display;
-        public final String path;
+        public final Path path;
         public String warp;
         public String args;
         
-        public PWadListItem(Type type, String display, String path) {
+        public PWadListItem(Type type, String display, Path path) {
             this.type = type;
             this.display = display;
             this.path = path;
@@ -1041,7 +1066,7 @@ public class LauncherFX extends Application {
         }
     }
     
-    private final WarpListItem DO_NOT_WARP = new WarpListItem("Do not warp.", "NOWARP");
+    private final WarpListItem DO_NOT_WARP = new WarpListItem("Do not warp.", null);
     private final List<WarpListItem> DOOM_WARP_LIST = 
             Collections.unmodifiableList(Arrays.asList(DO_NOT_WARP,
                     new WarpListItem("E1M1", "1 1"), 
