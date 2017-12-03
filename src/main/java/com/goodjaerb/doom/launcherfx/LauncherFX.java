@@ -357,6 +357,21 @@ public class LauncherFX extends Application {
             WarpListItem warpItem = warpListView.getSelectionModel().getSelectedItem();
             if(warpItem != null && warpItem != DO_NOT_WARP) {
                 addArgsToProcess("-warp " + warpItem.arg);
+                
+                ChoiceDialog<String> dialog = new ChoiceDialog<>(DOOM_SKILL_LIST.get(2), DOOM_SKILL_LIST);
+                dialog.setTitle("Select Skill Level");
+                dialog.setHeaderText("Hey, I see you want to warp directly to a level.\nWould you like to set the difficulty too?");
+                dialog.setContentText("Difficulty:");
+                dialog.setResultConverter((buttonType) -> {
+                    if(buttonType == ButtonType.OK) {
+                        return dialog.getSelectedItem();
+                    }
+                    return null;
+                });
+                String skill = dialog.showAndWait().orElse(null);
+                if(skill != null) {
+                    addArgsToProcess("-skill " + (DOOM_SKILL_LIST.indexOf(skill) + 1));
+                }
             }
             
             File workingDir = new File(processCommand.get(0)).getParentFile();
@@ -914,6 +929,7 @@ public class LauncherFX extends Application {
                         }
                         else {
                             ChoiceDialog<String> dialog = new ChoiceDialog<>(splitPort[0], splitPort);
+                            dialog.setTitle("Select Port");
                             dialog.setHeaderText("Select the Source Port you would like to open this TC with.");
                             dialog.setContentText("Source Port:");
                             dialog.setResultConverter((buttonType) -> {
@@ -1065,6 +1081,14 @@ public class LauncherFX extends Application {
             return display;
         }
     }
+    
+    private final List<String> DOOM_SKILL_LIST = 
+            Collections.unmodifiableList(Arrays.asList(
+                    "I'm Too Young To Die",
+                    "Hey, Not Too Rough",
+                    "Hurt Me Plenty",
+                    "Ultra-Violence",
+                    "Nightmare!"));
     
     private final WarpListItem DO_NOT_WARP = new WarpListItem("Do not warp.", null);
     private final List<WarpListItem> DOOM_WARP_LIST = 
