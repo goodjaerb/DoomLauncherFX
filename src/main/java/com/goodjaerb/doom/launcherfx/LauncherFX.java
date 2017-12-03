@@ -42,6 +42,7 @@ import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
@@ -313,10 +314,36 @@ public class LauncherFX extends Application {
         EventHandler<ActionEvent> launchHandler = (event) -> {
             addArgsToProcess(INI_FILE.get(selectedPort, "args"));
             
-            PWadListItem pwadItem = pwadListView.getSelectionModel().getSelectedItem();
-            if(pwadItem != null && pwadItem != NO_PWAD) {
-                addArgsToProcess(pwadItem.args);
-                addArgsToProcess("-file \"" + pwadItem.path + "\"");
+            List<PWadListItem> selectedPwadItems = pwadListView.getSelectionModel().getSelectedItems();
+            if(selectedPwadItems.size() == 1) {
+                PWadListItem pwadItem = pwadListView.getSelectionModel().getSelectedItem();
+                if(pwadItem != null && pwadItem != NO_PWAD) {
+                    if(pwadItem.args != null) {
+                        addArgsToProcess(pwadItem.args);
+                    }
+                    else {
+                        addArgsToProcess("-file \"" + pwadItem.path + "\"");
+                    }
+                }
+            }
+            else {
+                //if they chose multiple files, ignore item.args.
+                String dehPaths = "";
+                String wadPaths = "";
+                for(PWadListItem item : selectedPwadItems) {
+                    if(item.path.toLowerCase().endsWith(".deh")) {
+                        dehPaths += " \"" + item.path + "\"";
+                    }
+                    else if(item.path.toLowerCase().endsWith(".wad")) {
+                        wadPaths += " \"" + item.path + "\"";
+                    }
+                }
+                if(!dehPaths.isEmpty()) {
+                    addArgsToProcess("-deh" + dehPaths);
+                }
+                if(!wadPaths.isEmpty()) {
+                    addArgsToProcess("-file" + wadPaths);
+                }
             }
             
             WarpListItem warpItem = warpListView.getSelectionModel().getSelectedItem();
@@ -362,6 +389,7 @@ public class LauncherFX extends Application {
         
         pwadListView = new ListView<>();
         pwadListView.setMinSize(350, 450);
+        pwadListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         pwadListView.setDisable(true);
         
         continueToWarpButton = new Button("Continue >>>");
@@ -608,11 +636,7 @@ public class LauncherFX extends Application {
                 Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS);
                 Files.list(wadBasePath).forEach((path) -> {
                     try {
-                        Files.list(path.resolve(wadFolder)).forEach((file) -> {
-                            if(Files.isRegularFile(file) && file.getFileName().toString().toLowerCase().endsWith("wad")) {
-                                pwadList.add(handlePwad(file));
-                            }
-                        });
+                        addFilesToPwadList(path.resolve(wadFolder), pwadList);
                     }
                     catch (IOException ex) {
                         Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
@@ -624,41 +648,36 @@ public class LauncherFX extends Application {
                 for(String wadDir : splitPortFolders) {
                     FileSystem fs = FileSystems.getDefault();
                     Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, wadDir);
-                    Files.list(wadBasePath.resolve(wadFolder)).forEach((file) -> {
-                        if(Files.isRegularFile(file) && file.getFileName().toString().toLowerCase().endsWith("wad")) {
-                            pwadList.add(handlePwad(file));
-                        }
-                    });
+                    addFilesToPwadList(wadBasePath.resolve(wadFolder), pwadList);
                 }
             }
-                    
-            
-//            FileSystem fs = FileSystems.getDefault();
-//            Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_VANILLAWADS, wadFolder);
-//            if(Files.exists(wadBasePath)) {
-//                Files.list(wadBasePath).forEach((path) -> {
-//                    if(path.getFileName().toString().toLowerCase().endsWith("wad")) {
-//                        pwadList.add(handlePwad(path));
-//                    }
-//                });
-//            }
-//            
-//            String vanilla = INI_FILE.get(selectedPort, "vanilla");
-//            if(vanilla == null || !"true".equals(vanilla)) {
-//                // if the port is not vanilla only then we can add boom wads too!
-//                wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_BOOMWADS, wadFolder);
-//                if(Files.exists(wadBasePath)) {
-//                    Files.list(wadBasePath).forEach((path) -> {
-//                        if(path.getFileName().toString().toLowerCase().endsWith("wad")) {
-//                            pwadList.add(handlePwad(path));
-//                        }
-//                    });
-//                }
-//            }
         
             pwadListView.setItems(FXCollections.observableArrayList(pwadList));
             pwadListView.getSelectionModel().select(NO_PWAD);
         }
+    }
+    
+    private void addFilesToPwadList(Path wadPath, Set<PWadListItem> theWadSet) throws IOException {
+        Files.list(wadPath).forEach((file) -> {
+            String filename = file.getFileName().toString().toLowerCase();
+            if(Files.isRegularFile(file)) {
+                if(filename.endsWith(".txt")) {
+                    theWadSet.add(new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file.toString()));
+                }
+                else if(filename.endsWith(".deh")) {
+                    String ignore = INI_FILE.get(file.getFileName().toString(), "ignore");
+                    if(ignore == null || !"true".equals(ignore)) {
+                        theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file.toString()));
+                    }
+                }
+                else if(filename.endsWith(".wad")) {
+                    PWadListItem item = handlePwad(file);
+                    if(item != null) {
+                        theWadSet.add(item);
+                    }
+                }
+            }
+        });
     }
     
     private PWadListItem handlePwad(Path pwadPath) {
@@ -666,34 +685,40 @@ public class LauncherFX extends Application {
 
         Section pwadSection = INI_FILE.get(filename);
         if(pwadSection != null) {
-            String name = pwadSection.get("name") + " (" + filename + ")";
-            String author = pwadSection.get("author");
-            if(author != null) {
-                name += " by " + author;
-            }
-            
-            PWadListItem item = new PWadListItem(name, pwadPath.toString());
-            
-            String warp = pwadSection.get("warp");
-            if(warp != null) {
-                item.warp = warp;
-            }
-            
-            String args = pwadSection.get("args");
-            if(args != null) {
-                item.args = args.replace("%WADPATH%", pwadPath.getParent().toString());
+            String ignore = pwadSection.get("ignore");
+            if(ignore != null && "true".equals(ignore)) {
+                return null;
             }
             else {
-                //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
-                Path dehPath = pwadPath.resolveSibling(filename.replace(".wad", ".deh"));
-                if(Files.exists(dehPath)) {
-                    item.args = "-deh \"" + dehPath.toString() + "\"";
+                String name = pwadSection.get("name") + " (" + filename + ")";
+                String author = pwadSection.get("author");
+                if(author != null) {
+                    name += " by " + author;
                 }
+
+                PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, name, pwadPath.toString());
+
+                String warp = pwadSection.get("warp");
+                if(warp != null) {
+                    item.warp = warp;
+                }
+
+                String args = pwadSection.get("args");
+                if(args != null) {
+                    item.args = args.replace("%WADPATH%", pwadPath.getParent().toString());
+                }
+                else {
+                    //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
+                    Path dehPath = pwadPath.resolveSibling(filename.replace(".wad", ".deh"));
+                    if(Files.exists(dehPath)) {
+                        item.args = "-deh \"" + dehPath.toString() + "\"";
+                    }
+                }
+                return item;
             }
-            return item;
         }
         else {
-            PWadListItem item = new PWadListItem(pwadPath.getFileName().toString(), pwadPath.toString());
+            PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, pwadPath.getFileName().toString(), pwadPath.toString());
             
             //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
             Path dehPath = pwadPath.resolveSibling(filename.replace(".wad", ".deh"));
@@ -947,15 +972,20 @@ public class LauncherFX extends Application {
         }
     }
     
-    private final PWadListItem NO_PWAD = new PWadListItem("No PWAD.", "NOPWADPATH");
-    private class PWadListItem implements Comparable<PWadListItem> {
+    private static final PWadListItem NO_PWAD = new PWadListItem(PWadListItem.Type.WAD, "No PWAD.", "NOPWADPATH");
+    private static class PWadListItem implements Comparable<PWadListItem> {
+        public enum Type {
+            WAD, TXT, DEH;
+        }
         
+        public final Type type;
         public final String display;
         public final String path;
         public String warp;
         public String args;
         
-        public PWadListItem(String display, String path) {
+        public PWadListItem(Type type, String display, String path) {
+            this.type = type;
             this.display = display;
             this.path = path;
             this.warp = "";
