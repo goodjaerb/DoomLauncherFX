@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.goodjaerb.doom.launcherfx;
+package com.goodjaerb.doom.launcherfx.scene.control;
 
 import java.net.MalformedURLException;
 import java.nio.file.Files;

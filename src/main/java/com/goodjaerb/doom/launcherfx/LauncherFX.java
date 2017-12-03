@@ -5,6 +5,11 @@
  */
 package com.goodjaerb.doom.launcherfx;
 
+import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListItem;
+import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListCell;
+import com.goodjaerb.doom.launcherfx.scene.control.LaunchItemPane;
+import com.goodjaerb.doom.launcherfx.scene.control.list.WarpListCell;
+import com.goodjaerb.doom.launcherfx.scene.control.list.WarpListItem;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -39,14 +44,11 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
@@ -319,7 +321,7 @@ public class LauncherFX extends Application {
             List<PWadListItem> selectedPwadItems = pwadListView.getSelectionModel().getSelectedItems();
             if(selectedPwadItems.size() == 1) {
                 PWadListItem pwadItem = pwadListView.getSelectionModel().getSelectedItem();
-                if(pwadItem != NO_PWAD) {
+                if(pwadItem != PWadListItem.NO_PWAD) {
                     if(pwadItem.args != null) {
                         addArgsToProcess(pwadItem.args);
                     }
@@ -355,7 +357,7 @@ public class LauncherFX extends Application {
             }
             
             WarpListItem warpItem = warpListView.getSelectionModel().getSelectedItem();
-            if(warpItem != null && warpItem != DO_NOT_WARP) {
+            if(warpItem != null && warpItem != WarpListItem.DO_NOT_WARP) {
                 addArgsToProcess("-warp " + warpItem.arg);
                 
                 ChoiceDialog<String> dialog = new ChoiceDialog<>(DOOM_SKILL_LIST.get(2), DOOM_SKILL_LIST);
@@ -628,7 +630,7 @@ public class LauncherFX extends Application {
             warp = tcWarp;
         }
         
-        WarpListItem selectThis = DO_NOT_WARP;
+        WarpListItem selectThis = WarpListItem.DO_NOT_WARP;
         //have to do this no matter what to clear any potential prior highlights.
         for(WarpListItem item : olist) {
             if(warp.contains(item.display)) {
@@ -647,12 +649,12 @@ public class LauncherFX extends Application {
     private void loadPwadList() throws IOException {
         String skipWads = INI_FILE.get(selectedPort, "skipwads");
         if("true".equals(skipWads)) {
-            selectedPwad = NO_PWAD;
+            selectedPwad = PWadListItem.NO_PWAD;
             chooseWarp();
         }
         else {
             SortedSet<PWadListItem> pwadList = new TreeSet<>();
-            pwadList.add(NO_PWAD);
+            pwadList.add(PWadListItem.NO_PWAD);
             
             String wadFolder = INI_FILE.get(selectedIwad, "wadfolder");
             String portCompatibleFolders = INI_FILE.get(selectedPort, "wadfolder");
@@ -679,7 +681,7 @@ public class LauncherFX extends Application {
             }
         
             pwadListView.setItems(FXCollections.observableArrayList(pwadList));
-            pwadListView.getSelectionModel().select(NO_PWAD);
+            pwadListView.getSelectionModel().select(PWadListItem.NO_PWAD);
         }
     }
     
@@ -979,109 +981,6 @@ public class LauncherFX extends Application {
         }
     }
     
-    private class PWadListCell extends ListCell<PWadListItem> {
-        public PWadListCell() {
-            addEventHandler(MouseEvent.MOUSE_CLICKED, (event) -> {
-                PWadListItem item = getItem();
-                if(item != null && item.type == PWadListItem.Type.TXT && event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-                    try {
-                        new TextViewer(item.path).showAndWait();
-                    } catch (IOException ex) {
-                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            });
-        }
-        
-        @Override
-        protected void updateItem(PWadListItem item, boolean empty) {
-            super.updateItem(item, empty);
-            setText(item == null ? null : item.display);
-        }
-    }
-    
-    private class WarpListCell extends ListCell<WarpListItem> {
-        
-        @Override
-        protected void updateItem(WarpListItem item, boolean empty) {
-            super.updateItem(item, empty);
-            
-            if(!empty) {
-                setStyle(null);
-                if(item != null && item.highlight) {
-                    setStyle("-fx-font-weight: bold;");
-                }
-            }
-            else {
-                setStyle("-fx-font-weight: normal;");
-            }
-            setText(item == null ? null : item.display);
-        }
-    }
-    
-    private static final PWadListItem NO_PWAD = new PWadListItem(PWadListItem.Type.WAD, "No PWAD.", null);
-    private static class PWadListItem implements Comparable<PWadListItem> {
-        public enum Type {
-            WAD, TXT, DEH;
-        }
-        
-        public final Type type;
-        public final String display;
-        public final Path path;
-        public String warp;
-        public String args;
-        
-        public PWadListItem(Type type, String display, Path path) {
-            this.type = type;
-            this.display = display;
-            this.path = path;
-            this.warp = "";
-        }
-        
-        @Override
-        public int compareTo(PWadListItem other) {
-            if(this == NO_PWAD) {
-                return -1;
-            }
-            if(other == NO_PWAD) {
-                return 1;
-            }
-            return this.display.compareToIgnoreCase(other.display);
-        }
-        
-        @Override
-        public String toString() {
-            return display;
-        }
-    }
-    
-    private class WarpListItem implements Comparable<WarpListItem> {
-        public final String display;
-        public final String arg;
-        public boolean highlight;
-        
-        public WarpListItem(String display, String arg) {
-            this.display = display;
-            this.arg = arg;
-        }
-        
-        @Override
-        public int compareTo(WarpListItem other) {
-            if(this == DO_NOT_WARP) {
-                return -1;
-            }
-            if(other == DO_NOT_WARP) {
-                return 1;
-            }
-            return this.display.compareToIgnoreCase(other.display);
-        }
-        
-        @Override
-        public String toString() {
-            return display;
-        }
-    }
-    
     private final List<String> DOOM_SKILL_LIST = 
             Collections.unmodifiableList(Arrays.asList(
                     "I'm Too Young To Die",
@@ -1090,9 +989,8 @@ public class LauncherFX extends Application {
                     "Ultra-Violence",
                     "Nightmare!"));
     
-    private final WarpListItem DO_NOT_WARP = new WarpListItem("Do not warp.", null);
     private final List<WarpListItem> DOOM_WARP_LIST = 
-            Collections.unmodifiableList(Arrays.asList(DO_NOT_WARP,
+            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
                     new WarpListItem("E1M1", "1 1"), 
                     new WarpListItem("E1M2", "1 2"), 
                     new WarpListItem("E1M3", "1 3"), 
@@ -1134,7 +1032,7 @@ public class LauncherFX extends Application {
                     new WarpListItem("E4M9", "4 9")));
     
     private final List<WarpListItem> DOOM2_WARP_LIST = 
-            Collections.unmodifiableList(Arrays.asList(DO_NOT_WARP,
+            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
                     new WarpListItem("MAP01", "1"),
                     new WarpListItem("MAP02", "2"),
                     new WarpListItem("MAP03", "3"),
