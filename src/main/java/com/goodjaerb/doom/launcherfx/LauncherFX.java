@@ -643,13 +643,13 @@ public class LauncherFX extends Application {
         String wadfolder = INI_FILE.get(selectedIwad, "wadfolder");
         switch (wadfolder) {
             case CONFIG_DIR_DOOM:
-                populateWarpList(DOOM_WARP_LIST);
+                populateWarpList(ULTIMATE_DOOM_WARP_LIST);
                 break;
             case CONFIG_DIR_DOOM2:
                 populateWarpList(DOOM2_WARP_LIST);
                 break;
             case CONFIG_DIR_HERETIC:
-                populateWarpList(HERETIC_WARP_LIST);
+                populateWarpList(HERETIC_SERPENT_WARP_LIST);
                 break;
             default:
                 break;
@@ -1078,6 +1078,38 @@ public class LauncherFX extends Application {
                     new WarpListItem("E3M6", "3 6"), 
                     new WarpListItem("E3M7", "3 7"), 
                     new WarpListItem("E3M8", "3 8"), 
+                    new WarpListItem("E3M9", "3 9")));
+    
+    private final List<WarpListItem> ULTIMATE_DOOM_WARP_LIST = 
+            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
+                    new WarpListItem("E1M1", "1 1"), 
+                    new WarpListItem("E1M2", "1 2"), 
+                    new WarpListItem("E1M3", "1 3"), 
+                    new WarpListItem("E1M4", "1 4"), 
+                    new WarpListItem("E1M5", "1 5"), 
+                    new WarpListItem("E1M6", "1 6"), 
+                    new WarpListItem("E1M7", "1 7"), 
+                    new WarpListItem("E1M8", "1 8"), 
+                    new WarpListItem("E1M9", "1 9"), 
+                    
+                    new WarpListItem("E2M1", "2 1"), 
+                    new WarpListItem("E2M2", "2 2"), 
+                    new WarpListItem("E2M3", "2 3"), 
+                    new WarpListItem("E2M4", "2 4"), 
+                    new WarpListItem("E2M5", "2 5"), 
+                    new WarpListItem("E2M6", "2 6"), 
+                    new WarpListItem("E2M7", "2 7"), 
+                    new WarpListItem("E2M8", "2 8"), 
+                    new WarpListItem("E2M9", "2 9"), 
+                    
+                    new WarpListItem("E3M1", "3 1"), 
+                    new WarpListItem("E3M2", "3 2"), 
+                    new WarpListItem("E3M3", "3 3"), 
+                    new WarpListItem("E3M4", "3 4"), 
+                    new WarpListItem("E3M5", "3 5"), 
+                    new WarpListItem("E3M6", "3 6"), 
+                    new WarpListItem("E3M7", "3 7"), 
+                    new WarpListItem("E3M8", "3 8"), 
                     new WarpListItem("E3M9", "3 9"), 
                     
                     new WarpListItem("E4M1", "4 1"), 
@@ -1126,6 +1158,38 @@ public class LauncherFX extends Application {
                     new WarpListItem("MAP32", "32")));
     
     private final List<WarpListItem> HERETIC_WARP_LIST = 
+            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
+                    new WarpListItem("E1M1", "1 1"), 
+                    new WarpListItem("E1M2", "1 2"), 
+                    new WarpListItem("E1M3", "1 3"), 
+                    new WarpListItem("E1M4", "1 4"), 
+                    new WarpListItem("E1M5", "1 5"), 
+                    new WarpListItem("E1M6", "1 6"), 
+                    new WarpListItem("E1M7", "1 7"), 
+                    new WarpListItem("E1M8", "1 8"), 
+                    new WarpListItem("E1M9", "1 9"), 
+                    
+                    new WarpListItem("E2M1", "2 1"), 
+                    new WarpListItem("E2M2", "2 2"), 
+                    new WarpListItem("E2M3", "2 3"), 
+                    new WarpListItem("E2M4", "2 4"), 
+                    new WarpListItem("E2M5", "2 5"), 
+                    new WarpListItem("E2M6", "2 6"), 
+                    new WarpListItem("E2M7", "2 7"), 
+                    new WarpListItem("E2M8", "2 8"), 
+                    new WarpListItem("E2M9", "2 9"), 
+                    
+                    new WarpListItem("E3M1", "3 1"), 
+                    new WarpListItem("E3M2", "3 2"), 
+                    new WarpListItem("E3M3", "3 3"), 
+                    new WarpListItem("E3M4", "3 4"), 
+                    new WarpListItem("E3M5", "3 5"), 
+                    new WarpListItem("E3M6", "3 6"), 
+                    new WarpListItem("E3M7", "3 7"), 
+                    new WarpListItem("E3M8", "3 8"), 
+                    new WarpListItem("E3M9", "3 9")));
+    
+    private final List<WarpListItem> HERETIC_SERPENT_WARP_LIST = 
             Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
                     new WarpListItem("E1M1", "1 1"), 
                     new WarpListItem("E1M2", "1 2"), 
