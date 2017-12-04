@@ -119,27 +119,27 @@ public class LauncherFX extends Application {
 
         if(datadir != null) {
             CONFIG_HOME = datadir;
-            configFile = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_FILE);
+            configFile = fs.getPath(CONFIG_HOME, CONFIG_FILE);
             createConfigFile(configFile);
 
             INI_FILE.clear();
             INI_FILE.load(Files.newBufferedReader(configFile));
         }
         else {
-            CONFIG_HOME = USER_HOME;
+            CONFIG_HOME = USER_HOME + File.separator + CONFIG_DIR;
         }
 
         //create the directory structure
         Path[] configDirs = {
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_IMAGES),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_IWAD),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_MODS),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, CONFIG_DIR_BOOM, CONFIG_DIR_DOOM),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, CONFIG_DIR_BOOM, CONFIG_DIR_DOOM2),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, CONFIG_DIR_LIMIT_REMOVING, CONFIG_DIR_DOOM),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, CONFIG_DIR_LIMIT_REMOVING, CONFIG_DIR_DOOM2),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, CONFIG_DIR_VANILLA, CONFIG_DIR_DOOM),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, CONFIG_DIR_VANILLA, CONFIG_DIR_DOOM2),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR_IMAGES),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR_IWAD),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR_MODS),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, CONFIG_DIR_BOOM, CONFIG_DIR_DOOM),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, CONFIG_DIR_BOOM, CONFIG_DIR_DOOM2),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, CONFIG_DIR_LIMIT_REMOVING, CONFIG_DIR_DOOM),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, CONFIG_DIR_LIMIT_REMOVING, CONFIG_DIR_DOOM2),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, CONFIG_DIR_VANILLA, CONFIG_DIR_DOOM),
+            fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, CONFIG_DIR_VANILLA, CONFIG_DIR_DOOM2),
         };
         for(Path p : configDirs) {
             Files.createDirectories(p);
@@ -488,7 +488,7 @@ public class LauncherFX extends Application {
             return imgPath.toString();
         }
         
-        return Paths.get(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_IMAGES, imgPath.toString()).toString();
+        return Paths.get(CONFIG_HOME, CONFIG_DIR_IMAGES, imgPath.toString()).toString();
     }
     
     private String getIwadPath(String section) {
@@ -502,7 +502,7 @@ public class LauncherFX extends Application {
             return iwadPath.toString();
         }
         
-        return Paths.get(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_IWAD, iwadPath.toString()).toString();
+        return Paths.get(CONFIG_HOME, CONFIG_DIR_IWAD, iwadPath.toString()).toString();
     }
     
     private String getModFilePath(String section) {
@@ -516,7 +516,7 @@ public class LauncherFX extends Application {
             return modPath.toString();
         }
         
-        return Paths.get(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_MODS, modPath.toString()).toString();
+        return Paths.get(CONFIG_HOME, CONFIG_DIR_MODS, modPath.toString()).toString();
     }
     
     private String convertWorkingDirPath(String pathStr) {
@@ -527,7 +527,7 @@ public class LauncherFX extends Application {
             return modPath.toString();
         }
         
-        return Paths.get(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_MODS, modPath.toString()).toString();
+        return Paths.get(CONFIG_HOME, CONFIG_DIR_MODS, modPath.toString()).toString();
     }
     
     private void chooseIwad() {
@@ -661,7 +661,7 @@ public class LauncherFX extends Application {
             if(portCompatibleFolders == null) {
                 // parse all folders.
                 FileSystem fs = FileSystems.getDefault();
-                Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS);
+                Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS);
                 Files.list(wadBasePath).forEach((path) -> {
                     try {
                         addFilesToPwadList(path.resolve(wadFolder), pwadList);
@@ -675,7 +675,7 @@ public class LauncherFX extends Application {
                 String[] splitPortFolders = portCompatibleFolders.split(",");
                 for(String wadDir : splitPortFolders) {
                     FileSystem fs = FileSystems.getDefault();
-                    Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR, CONFIG_DIR_WADS, wadDir);
+                    Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, wadDir);
                     addFilesToPwadList(wadBasePath.resolve(wadFolder), pwadList);
                 }
             }
