@@ -288,7 +288,7 @@ public class LauncherFX extends Application {
                                 section,
                                 INI_FILE.get(section, "name"),
                                 INI_FILE.get(section, "desc"),
-                                getImagePath(section),
+                                getAbsolutePath(section, "img", CONFIG_DIR_IMAGES),
                                 false,
                                 new LaunchItemEventHandler(section)));
                         break;
@@ -297,7 +297,7 @@ public class LauncherFX extends Application {
                                 section,
                                 INI_FILE.get(section, "name"),
                                 INI_FILE.get(section, "desc"),
-                                getImagePath(section),
+                                getAbsolutePath(section, "img", CONFIG_DIR_IMAGES),
                                 true,
                                 new LaunchItemEventHandler(section)));
                         break;
@@ -306,7 +306,7 @@ public class LauncherFX extends Application {
                                 section,
                                 INI_FILE.get(section, "name"),
                                 INI_FILE.get(section, "desc"),
-                                getImagePath(section),
+                                getAbsolutePath(section, "img", CONFIG_DIR_IMAGES),
                                 true,
                                 new LaunchItemEventHandler(section)));
                         break;
@@ -391,10 +391,19 @@ public class LauncherFX extends Application {
                 }
             }
             
-            File workingDir = new File(processCommand.get(0)).getParentFile();
-            String workingDirPath = INI_FILE.get(selectedPort, "workingdir");
-            if(workingDirPath != null) {
-                workingDir = new File(convertWorkingDirPath(workingDirPath));
+//            File workingDir = new File(processCommand.get(0)).getParentFile();
+//            String workingDirPath = INI_FILE.get(selectedPort, "workingdir");
+//            if(workingDirPath != null) {
+            File workingDir = null;
+            String type = INI_FILE.get(selectedPort, "type");
+            if(TYPE_MOD.equals(type) || TYPE_TC.equals(type)) {
+                String workingDirStr = getAbsolutePath(selectedPort, "workingdir", CONFIG_DIR_MODS);
+                if(workingDirStr != null) {
+                    workingDir = new File(workingDirStr);
+                }
+            }
+            if(workingDir == null) {
+                workingDir = new File(processCommand.get(0)).getParentFile();
             }
             
             ProcessBuilder processBuilder = new ProcessBuilder(processCommand);
@@ -492,57 +501,70 @@ public class LauncherFX extends Application {
         primaryStage.show();
     }
     
-    private String getImagePath(String section) {
-        String pathStr = INI_FILE.get(section, "img");
+//    private String getImagePath(String section) {
+//        String pathStr = INI_FILE.get(section, "img");
+//        if(pathStr == null) {
+//            return null;
+//        }
+//        
+//        Path imgPath = Paths.get(pathStr);
+//        if(imgPath.isAbsolute()) {
+//            return imgPath.toString();
+//        }
+//        
+//        return Paths.get(CONFIG_HOME, CONFIG_DIR_IMAGES, imgPath.toString()).toString();
+//    }
+//    
+//    private String getIwadPath(String section) {
+//        String pathStr = INI_FILE.get(section, "file");
+//        if(pathStr == null) {
+//            return null;
+//        }
+//        
+//        Path iwadPath = Paths.get(pathStr);
+//        if(iwadPath.isAbsolute()) {
+//            return iwadPath.toString();
+//        }
+//        
+//        return Paths.get(CONFIG_HOME, CONFIG_DIR_IWAD, iwadPath.toString()).toString();
+//    }
+//    
+//    private String getModFilePath(String section) {
+//        String pathStr = INI_FILE.get(section, "file");
+//        if(pathStr == null) {
+//            return null;
+//        }
+//        
+//        Path modPath = Paths.get(pathStr);
+//        if(modPath.isAbsolute()) {
+//            return modPath.toString();
+//        }
+//        
+//        return Paths.get(CONFIG_HOME, CONFIG_DIR_MODS, modPath.toString()).toString();
+//    }
+//    
+//    private String convertWorkingDirPath(String pathStr) {
+//        assert pathStr != null;
+//        
+//        Path modPath = Paths.get(pathStr);
+//        if(modPath.isAbsolute()) {
+//            return modPath.toString();
+//        }
+//        
+//        return Paths.get(CONFIG_HOME, CONFIG_DIR_MODS, modPath.toString()).toString();
+//    }
+    
+    private String getAbsolutePath(String section, String key, String configSubDir) {
+        String pathStr = INI_FILE.get(section, key);
         if(pathStr == null) {
             return null;
         }
         
-        Path imgPath = Paths.get(pathStr);
-        if(imgPath.isAbsolute()) {
-            return imgPath.toString();
+        Path path = Paths.get(pathStr);
+        if(path.isAbsolute()) {
+            return path.toString();
         }
-        
-        return Paths.get(CONFIG_HOME, CONFIG_DIR_IMAGES, imgPath.toString()).toString();
-    }
-    
-    private String getIwadPath(String section) {
-        String pathStr = INI_FILE.get(section, "file");
-        if(pathStr == null) {
-            return null;
-        }
-        
-        Path iwadPath = Paths.get(pathStr);
-        if(iwadPath.isAbsolute()) {
-            return iwadPath.toString();
-        }
-        
-        return Paths.get(CONFIG_HOME, CONFIG_DIR_IWAD, iwadPath.toString()).toString();
-    }
-    
-    private String getModFilePath(String section) {
-        String pathStr = INI_FILE.get(section, "file");
-        if(pathStr == null) {
-            return null;
-        }
-        
-        Path modPath = Paths.get(pathStr);
-        if(modPath.isAbsolute()) {
-            return modPath.toString();
-        }
-        
-        return Paths.get(CONFIG_HOME, CONFIG_DIR_MODS, modPath.toString()).toString();
-    }
-    
-    private String convertWorkingDirPath(String pathStr) {
-        assert pathStr != null;
-        
-        Path modPath = Paths.get(pathStr);
-        if(modPath.isAbsolute()) {
-            return modPath.toString();
-        }
-        
-        return Paths.get(CONFIG_HOME, CONFIG_DIR_MODS, modPath.toString()).toString();
+        return Paths.get(CONFIG_HOME, configSubDir, path.toString()).toString();
     }
     
     private void chooseIwad() {
@@ -989,7 +1011,7 @@ public class LauncherFX extends Application {
                     break;
                 case "mod":
                     if(mySection != null && mySection.get("file") != null) {
-                        addArgsToProcess("-file " + getModFilePath(sectionName));
+                        addArgsToProcess("-file " + getAbsolutePath(sectionName, "file", CONFIG_DIR_MODS));
                     }
                     
                     try {
@@ -999,7 +1021,7 @@ public class LauncherFX extends Application {
                     }
                     break;
                 case "iwad":
-                    addArgsToProcess("-iwad " + getIwadPath(sectionName));
+                    addArgsToProcess("-iwad " + getAbsolutePath(sectionName, "file", CONFIG_DIR_IWAD));
 
                     selectedIwad = sectionName;
                     chooseMod();
