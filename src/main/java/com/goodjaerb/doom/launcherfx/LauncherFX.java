@@ -21,8 +21,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -105,6 +103,7 @@ public class LauncherFX extends Application {
     private Button cancelButton;
     
     private List<String> processCommand;
+    private GameData selectedGame;
     private String selectedIwad;
     private String selectedPort;
     private PWadListItem selectedPwad;
@@ -361,33 +360,35 @@ public class LauncherFX extends Application {
             if(warpItem != null && warpItem != WarpListItem.DO_NOT_WARP) {
                 addArgsToProcess("-warp " + warpItem.arg);
                 
-                List<String> skillList;
-                String wadfolder = INI_FILE.get(selectedIwad, "wadfolder");
-                switch (wadfolder) {
-                    case CONFIG_DIR_DOOM:
-                    case CONFIG_DIR_DOOM2:
-                        skillList = DOOM_SKILL_LIST;
-                        break;
-                    case CONFIG_DIR_HERETIC:
-                        skillList = HERETIC_SKILL_LIST;
-                        break;
-                    default:
-                        skillList = DOOM_SKILL_LIST;
-                        break;
-                }
-                ChoiceDialog<String> dialog = new ChoiceDialog<>(skillList.get(2), skillList);
-                dialog.setTitle("Select Skill Level");
-                dialog.setHeaderText("Hey, I see you want to warp directly to a level.\nWould you like to set the difficulty too?");
-                dialog.setContentText("Difficulty:");
-                dialog.setResultConverter((buttonType) -> {
-                    if(buttonType == ButtonType.OK) {
-                        return dialog.getSelectedItem();
+                List<String> skillList = selectedGame.skillList;
+//                String wadfolder = INI_FILE.get(selectedIwad, "wadfolder");
+//                switch (wadfolder) {
+//                    case CONFIG_DIR_DOOM:
+//                    case CONFIG_DIR_DOOM2:
+//                        skillList = DOOM_SKILL_LIST;
+//                        break;
+//                    case CONFIG_DIR_HERETIC:
+//                        skillList = HERETIC_SKILL_LIST;
+//                        break;
+//                    default:
+//                        skillList = DOOM_SKILL_LIST;
+//                        break;
+//                }
+                if(!skillList.isEmpty()) {
+                    ChoiceDialog<String> dialog = new ChoiceDialog<>(skillList.get(2), skillList);
+                    dialog.setTitle("Select Skill Level");
+                    dialog.setHeaderText("Hey, I see you want to warp directly to a level.\nWould you like to set the difficulty too?");
+                    dialog.setContentText("Difficulty:");
+                    dialog.setResultConverter((buttonType) -> {
+                        if(buttonType == ButtonType.OK) {
+                            return dialog.getSelectedItem();
+                        }
+                        return null;
+                    });
+                    String skill = dialog.showAndWait().orElse(null);
+                    if(skill != null) {
+                        addArgsToProcess("-skill " + (skillList.indexOf(skill) + 1));
                     }
-                    return null;
-                });
-                String skill = dialog.showAndWait().orElse(null);
-                if(skill != null) {
-                    addArgsToProcess("-skill " + (skillList.indexOf(skill) + 1));
                 }
             }
             
@@ -640,20 +641,21 @@ public class LauncherFX extends Application {
     }
     
     private void loadWarpList() {
-        String wadfolder = INI_FILE.get(selectedIwad, "wadfolder");
-        switch (wadfolder) {
-            case CONFIG_DIR_DOOM:
-                populateWarpList(ULTIMATE_DOOM_WARP_LIST);
-                break;
-            case CONFIG_DIR_DOOM2:
-                populateWarpList(DOOM2_WARP_LIST);
-                break;
-            case CONFIG_DIR_HERETIC:
-                populateWarpList(HERETIC_SERPENT_WARP_LIST);
-                break;
-            default:
-                break;
-        }
+//        String wadfolder = INI_FILE.get(selectedIwad, "wadfolder");
+//        switch (wadfolder) {
+//            case CONFIG_DIR_DOOM:
+//                populateWarpList(ULTIMATE_DOOM_WARP_LIST);
+//                break;
+//            case CONFIG_DIR_DOOM2:
+//                populateWarpList(DOOM2_WARP_LIST);
+//                break;
+//            case CONFIG_DIR_HERETIC:
+//                populateWarpList(HERETIC_SERPENT_WARP_LIST);
+//                break;
+//            default:
+//                break;
+//        }
+        populateWarpList(selectedGame.warpList);
     }
     
     private void populateWarpList(List<WarpListItem> list) {
@@ -694,18 +696,20 @@ public class LauncherFX extends Application {
             SortedSet<PWadListItem> pwadList = new TreeSet<>();
             pwadList.add(PWadListItem.NO_PWAD);
             
-            String wadFolder = INI_FILE.get(selectedIwad, "wadfolder");
+            String gameWadFolder = selectedGame.wadfolder;//INI_FILE.get(selectedIwad, "wadfolder");
             String portCompatibleFolders = INI_FILE.get(selectedPort, "wadfolder");
             if(portCompatibleFolders == null) {
                 // parse all folders.
                 FileSystem fs = FileSystems.getDefault();
                 Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS);
                 Files.list(wadBasePath).forEach((path) -> {
-                    try {
-                        addFilesToPwadList(path.resolve(wadFolder), pwadList);
-                    }
-                    catch (IOException ex) {
-                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                    if(Files.isDirectory(path)) {
+                        try {
+                            addFilesToPwadList(path.resolve(gameWadFolder), pwadList);
+                        }
+                        catch (IOException ex) {
+                            Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
                 });
             }
@@ -714,7 +718,7 @@ public class LauncherFX extends Application {
                 for(String wadDir : splitPortFolders) {
                     FileSystem fs = FileSystems.getDefault();
                     Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, wadDir);
-                    addFilesToPwadList(wadBasePath.resolve(wadFolder), pwadList);
+                    addFilesToPwadList(wadBasePath.resolve(gameWadFolder), pwadList);
                 }
             }
         
@@ -1021,9 +1025,11 @@ public class LauncherFX extends Application {
                     }
                     break;
                 case "iwad":
-                    addArgsToProcess("-iwad " + getAbsolutePath(sectionName, "file", CONFIG_DIR_IWAD));
+                    String iwadPath = getAbsolutePath(sectionName, "file", CONFIG_DIR_IWAD);
+                    addArgsToProcess("-iwad " + iwadPath);
 
                     selectedIwad = sectionName;
+                    selectedGame = GameData.getGameData(iwadPath);
                     chooseMod();
                     break;
                 default:
@@ -1031,252 +1037,4 @@ public class LauncherFX extends Application {
             }
         }
     }
-    
-    private final List<String> DOOM_SKILL_LIST = 
-            Collections.unmodifiableList(Arrays.asList(
-                    "I'm Too Young To Die",
-                    "Hey, Not Too Rough",
-                    "Hurt Me Plenty",
-                    "Ultra-Violence",
-                    "Nightmare!"));
-    
-    private final List<String> HERETIC_SKILL_LIST = 
-            Collections.unmodifiableList(Arrays.asList(
-                    "Thou Needeth a Wet-Nurse",
-                    "Yellowbellies-R-Us",
-                    "Bringest Them Oneth",
-                    "Thou Art a Smite-Meister",
-                    "Black Plague Possesses Thee"));
-    
-    private final List<WarpListItem> DOOM_WARP_LIST = 
-            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
-                    new WarpListItem("E1M1", "1 1"), 
-                    new WarpListItem("E1M2", "1 2"), 
-                    new WarpListItem("E1M3", "1 3"), 
-                    new WarpListItem("E1M4", "1 4"), 
-                    new WarpListItem("E1M5", "1 5"), 
-                    new WarpListItem("E1M6", "1 6"), 
-                    new WarpListItem("E1M7", "1 7"), 
-                    new WarpListItem("E1M8", "1 8"), 
-                    new WarpListItem("E1M9", "1 9"), 
-                    
-                    new WarpListItem("E2M1", "2 1"), 
-                    new WarpListItem("E2M2", "2 2"), 
-                    new WarpListItem("E2M3", "2 3"), 
-                    new WarpListItem("E2M4", "2 4"), 
-                    new WarpListItem("E2M5", "2 5"), 
-                    new WarpListItem("E2M6", "2 6"), 
-                    new WarpListItem("E2M7", "2 7"), 
-                    new WarpListItem("E2M8", "2 8"), 
-                    new WarpListItem("E2M9", "2 9"), 
-                    
-                    new WarpListItem("E3M1", "3 1"), 
-                    new WarpListItem("E3M2", "3 2"), 
-                    new WarpListItem("E3M3", "3 3"), 
-                    new WarpListItem("E3M4", "3 4"), 
-                    new WarpListItem("E3M5", "3 5"), 
-                    new WarpListItem("E3M6", "3 6"), 
-                    new WarpListItem("E3M7", "3 7"), 
-                    new WarpListItem("E3M8", "3 8"), 
-                    new WarpListItem("E3M9", "3 9")));
-    
-    private final List<WarpListItem> ULTIMATE_DOOM_WARP_LIST = 
-            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
-                    new WarpListItem("E1M1", "1 1"), 
-                    new WarpListItem("E1M2", "1 2"), 
-                    new WarpListItem("E1M3", "1 3"), 
-                    new WarpListItem("E1M4", "1 4"), 
-                    new WarpListItem("E1M5", "1 5"), 
-                    new WarpListItem("E1M6", "1 6"), 
-                    new WarpListItem("E1M7", "1 7"), 
-                    new WarpListItem("E1M8", "1 8"), 
-                    new WarpListItem("E1M9", "1 9"), 
-                    
-                    new WarpListItem("E2M1", "2 1"), 
-                    new WarpListItem("E2M2", "2 2"), 
-                    new WarpListItem("E2M3", "2 3"), 
-                    new WarpListItem("E2M4", "2 4"), 
-                    new WarpListItem("E2M5", "2 5"), 
-                    new WarpListItem("E2M6", "2 6"), 
-                    new WarpListItem("E2M7", "2 7"), 
-                    new WarpListItem("E2M8", "2 8"), 
-                    new WarpListItem("E2M9", "2 9"), 
-                    
-                    new WarpListItem("E3M1", "3 1"), 
-                    new WarpListItem("E3M2", "3 2"), 
-                    new WarpListItem("E3M3", "3 3"), 
-                    new WarpListItem("E3M4", "3 4"), 
-                    new WarpListItem("E3M5", "3 5"), 
-                    new WarpListItem("E3M6", "3 6"), 
-                    new WarpListItem("E3M7", "3 7"), 
-                    new WarpListItem("E3M8", "3 8"), 
-                    new WarpListItem("E3M9", "3 9"), 
-                    
-                    new WarpListItem("E4M1", "4 1"), 
-                    new WarpListItem("E4M2", "4 2"), 
-                    new WarpListItem("E4M3", "4 3"), 
-                    new WarpListItem("E4M4", "4 4"), 
-                    new WarpListItem("E4M5", "4 5"), 
-                    new WarpListItem("E4M6", "4 6"), 
-                    new WarpListItem("E4M7", "4 7"), 
-                    new WarpListItem("E4M8", "4 8"), 
-                    new WarpListItem("E4M9", "4 9")));
-    
-    private final List<WarpListItem> DOOM2_WARP_LIST = 
-            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
-                    new WarpListItem("MAP01", "1"),
-                    new WarpListItem("MAP02", "2"),
-                    new WarpListItem("MAP03", "3"),
-                    new WarpListItem("MAP04", "4"),
-                    new WarpListItem("MAP05", "5"),
-                    new WarpListItem("MAP06", "6"),
-                    new WarpListItem("MAP07", "7"),
-                    new WarpListItem("MAP08", "8"),
-                    new WarpListItem("MAP09", "9"),
-                    new WarpListItem("MAP10", "10"),
-                    new WarpListItem("MAP11", "11"),
-                    new WarpListItem("MAP12", "12"),
-                    new WarpListItem("MAP13", "13"),
-                    new WarpListItem("MAP14", "14"),
-                    new WarpListItem("MAP15", "15"),
-                    new WarpListItem("MAP16", "16"),
-                    new WarpListItem("MAP17", "17"),
-                    new WarpListItem("MAP18", "18"),
-                    new WarpListItem("MAP19", "19"),
-                    new WarpListItem("MAP20", "20"),
-                    new WarpListItem("MAP21", "21"),
-                    new WarpListItem("MAP22", "22"),
-                    new WarpListItem("MAP23", "23"),
-                    new WarpListItem("MAP24", "24"),
-                    new WarpListItem("MAP25", "25"),
-                    new WarpListItem("MAP26", "26"),
-                    new WarpListItem("MAP27", "27"),
-                    new WarpListItem("MAP28", "28"),
-                    new WarpListItem("MAP29", "29"),
-                    new WarpListItem("MAP30", "30"),
-                    new WarpListItem("MAP31", "31"),
-                    new WarpListItem("MAP32", "32")));
-    
-    private final List<WarpListItem> HERETIC_WARP_LIST = 
-            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
-                    new WarpListItem("E1M1", "1 1"), 
-                    new WarpListItem("E1M2", "1 2"), 
-                    new WarpListItem("E1M3", "1 3"), 
-                    new WarpListItem("E1M4", "1 4"), 
-                    new WarpListItem("E1M5", "1 5"), 
-                    new WarpListItem("E1M6", "1 6"), 
-                    new WarpListItem("E1M7", "1 7"), 
-                    new WarpListItem("E1M8", "1 8"), 
-                    new WarpListItem("E1M9", "1 9"), 
-                    
-                    new WarpListItem("E2M1", "2 1"), 
-                    new WarpListItem("E2M2", "2 2"), 
-                    new WarpListItem("E2M3", "2 3"), 
-                    new WarpListItem("E2M4", "2 4"), 
-                    new WarpListItem("E2M5", "2 5"), 
-                    new WarpListItem("E2M6", "2 6"), 
-                    new WarpListItem("E2M7", "2 7"), 
-                    new WarpListItem("E2M8", "2 8"), 
-                    new WarpListItem("E2M9", "2 9"), 
-                    
-                    new WarpListItem("E3M1", "3 1"), 
-                    new WarpListItem("E3M2", "3 2"), 
-                    new WarpListItem("E3M3", "3 3"), 
-                    new WarpListItem("E3M4", "3 4"), 
-                    new WarpListItem("E3M5", "3 5"), 
-                    new WarpListItem("E3M6", "3 6"), 
-                    new WarpListItem("E3M7", "3 7"), 
-                    new WarpListItem("E3M8", "3 8"), 
-                    new WarpListItem("E3M9", "3 9")));
-    
-    private final List<WarpListItem> HERETIC_SERPENT_WARP_LIST = 
-            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
-                    new WarpListItem("E1M1", "1 1"), 
-                    new WarpListItem("E1M2", "1 2"), 
-                    new WarpListItem("E1M3", "1 3"), 
-                    new WarpListItem("E1M4", "1 4"), 
-                    new WarpListItem("E1M5", "1 5"), 
-                    new WarpListItem("E1M6", "1 6"), 
-                    new WarpListItem("E1M7", "1 7"), 
-                    new WarpListItem("E1M8", "1 8"), 
-                    new WarpListItem("E1M9", "1 9"), 
-                    
-                    new WarpListItem("E2M1", "2 1"), 
-                    new WarpListItem("E2M2", "2 2"), 
-                    new WarpListItem("E2M3", "2 3"), 
-                    new WarpListItem("E2M4", "2 4"), 
-                    new WarpListItem("E2M5", "2 5"), 
-                    new WarpListItem("E2M6", "2 6"), 
-                    new WarpListItem("E2M7", "2 7"), 
-                    new WarpListItem("E2M8", "2 8"), 
-                    new WarpListItem("E2M9", "2 9"), 
-                    
-                    new WarpListItem("E3M1", "3 1"), 
-                    new WarpListItem("E3M2", "3 2"), 
-                    new WarpListItem("E3M3", "3 3"), 
-                    new WarpListItem("E3M4", "3 4"), 
-                    new WarpListItem("E3M5", "3 5"), 
-                    new WarpListItem("E3M6", "3 6"), 
-                    new WarpListItem("E3M7", "3 7"), 
-                    new WarpListItem("E3M8", "3 8"), 
-                    new WarpListItem("E3M9", "3 9"),
-                    
-                    new WarpListItem("E4M1", "4 1"), 
-                    new WarpListItem("E4M2", "4 2"), 
-                    new WarpListItem("E4M3", "4 3"), 
-                    new WarpListItem("E4M4", "4 4"), 
-                    new WarpListItem("E4M5", "4 5"), 
-                    new WarpListItem("E4M6", "4 6"), 
-                    new WarpListItem("E4M7", "4 7"), 
-                    new WarpListItem("E4M8", "4 8"), 
-                    new WarpListItem("E4M9", "4 9"),
-                    
-                    new WarpListItem("E5M1", "5 1"), 
-                    new WarpListItem("E5M2", "5 2"), 
-                    new WarpListItem("E5M3", "5 3"), 
-                    new WarpListItem("E5M4", "5 4"), 
-                    new WarpListItem("E5M5", "5 5"), 
-                    new WarpListItem("E5M6", "5 6"), 
-                    new WarpListItem("E5M7", "5 7"), 
-                    new WarpListItem("E5M8", "5 8"), 
-                    new WarpListItem("E5M9", "5 9"),
-                    
-                    new WarpListItem("E6M1", "6 1"), 
-                    new WarpListItem("E6M2", "6 2"), 
-                    new WarpListItem("E6M3", "6 3")));
-    
-    private final List<String> DOOM_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
-            "7742089b4468a736cadb659a7deca3320fe6dcbd", // Doom Version 1.9
-            "2c8212631b37f21ad06d18b5638c733a75e179ff", // Doom Version 1.8
-            "2e89b86859acd9fc1e552f587b710751efcffa8e", // Doom Version 1.666
-            "b5f86a559642a2b3bdfb8a75e91c8da97f057fe6", // Doom Version 1.2
-            "df0040ccb29cc1622e74ceb3b7793a2304cca2c8")); // Doom Version 1.1
-    
-    private final List<String> ULTIMATE_DOOM_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
-            "9b07b02ab3c275a6a7570c3f73cc20d63a0e3833", // Doom Version 1.9ud
-            "e5ec79505530e151ff0e6f517f3ce1fd65969c46")); // Doom BFG Edition
-    
-    private final List<String> DOOM2_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
-            "7ec7652fcfce8ddc6e801839291f0e28ef1d5ae7", // Doom 2 Version 1.9
-            "a59548125f59f6aa1a41c22f615557d3dd2e85a9", // Doom 2 BFG Edition
-            "d510c877031bbd5f3d198581a2c8651e09b9861f", // Doom 2 Version 1.8f
-            "79c283b18e61b9a989cfd3e0f19a42ea98fda551", // Doom 2 Version 1.8
-            "70192b8d5aba65c7e633a7c7bcfe7e3e90640c97", // Doom 2 Version 1.7a
-            "78009057420b792eacff482021db6fe13b370dcc", // Doom 2 Version 1.7
-            "6d559b7ceece4f5ad457415049711992370d520a", // Doom 2 Version 1.666
-            "a4ce5128d57cb129fdd1441c12b58245be55c8ce")); // Doom 2 Version 1.666g
-    
-    private final List<String> HERETIC_EXP_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
-            "f489d479371df32f6d280a0cb23b59a35ba2b833")); // Heretic Version 1.3 (Shadow of the Serpent Riders)
-    
-    private final List<String> HERETIC_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
-            "A54C5D30629976A649119C5CE8BABAE2DDFB1A60", // Heretic Version 1.2
-            "B5A6CC79CDE48D97905B44282E82C4C966A23A87")); // Heretic Version 1.0
-    
-    private final List<String> HEXEN_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
-            "4b53832f0733c1e29e5f1de2428e5475e891af29")); // Hexen Version 1.1
-            
-    private final List<String> HEXEN_EXP_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
-            "081f6a2024643b54ef4a436a85508539b6d20a1e", // Hexen: Deathkings of the Dark Citadel Version 1.1
-            "c3065527d62b05a930fe75fe8181a64fb1982976")); // Hexen: Deathkings of the Dark Citadel Version 1.0
 }
