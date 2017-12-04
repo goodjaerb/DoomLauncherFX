@@ -74,6 +74,7 @@ public class LauncherFX extends Application {
     private static final String CONFIG_DIR_VANILLA = "vanilla";
     private static final String CONFIG_DIR_DOOM = "doom";
     private static final String CONFIG_DIR_DOOM2 = "doom2";
+    private static final String CONFIG_DIR_HERETIC = "heretic";
     
     public static final String TYPE_PORT = "port";
     public static final String TYPE_TC = "tc";
@@ -360,7 +361,21 @@ public class LauncherFX extends Application {
             if(warpItem != null && warpItem != WarpListItem.DO_NOT_WARP) {
                 addArgsToProcess("-warp " + warpItem.arg);
                 
-                ChoiceDialog<String> dialog = new ChoiceDialog<>(DOOM_SKILL_LIST.get(2), DOOM_SKILL_LIST);
+                List<String> skillList;
+                String wadfolder = INI_FILE.get(selectedIwad, "wadfolder");
+                switch (wadfolder) {
+                    case CONFIG_DIR_DOOM:
+                    case CONFIG_DIR_DOOM2:
+                        skillList = DOOM_SKILL_LIST;
+                        break;
+                    case CONFIG_DIR_HERETIC:
+                        skillList = HERETIC_SKILL_LIST;
+                        break;
+                    default:
+                        skillList = DOOM_SKILL_LIST;
+                        break;
+                }
+                ChoiceDialog<String> dialog = new ChoiceDialog<>(skillList.get(2), skillList);
                 dialog.setTitle("Select Skill Level");
                 dialog.setHeaderText("Hey, I see you want to warp directly to a level.\nWould you like to set the difficulty too?");
                 dialog.setContentText("Difficulty:");
@@ -372,7 +387,7 @@ public class LauncherFX extends Application {
                 });
                 String skill = dialog.showAndWait().orElse(null);
                 if(skill != null) {
-                    addArgsToProcess("-skill " + (DOOM_SKILL_LIST.indexOf(skill) + 1));
+                    addArgsToProcess("-skill " + (skillList.indexOf(skill) + 1));
                 }
             }
             
@@ -541,14 +556,12 @@ public class LauncherFX extends Application {
         tabPane.getSelectionModel().select(iwadsTab);
         setItemsDisable(iwadsBox, false);
         
-        if(TYPE_TC.equals(INI_FILE.get(selectedPort, "type"))) {
-            for(Node launchItem : iwadsBox.getChildren()) {
-                if(isIwadCompatible(INI_FILE.get(selectedPort, "iwad"), ((LaunchItemPane)launchItem).sectionName)) {
-                    ((LaunchItemPane)launchItem).setButtonDisable(false);
-                }
-                else {
-                    ((LaunchItemPane)launchItem).setButtonDisable(true);
-                }
+        for(Node launchItem : iwadsBox.getChildren()) {
+            if(isIwadCompatible(INI_FILE.get(selectedPort, "iwad"), ((LaunchItemPane)launchItem).sectionName)) {
+                ((LaunchItemPane)launchItem).setButtonDisable(false);
+            }
+            else {
+                ((LaunchItemPane)launchItem).setButtonDisable(true);
             }
         }
     }
@@ -612,6 +625,9 @@ public class LauncherFX extends Application {
                 break;
             case CONFIG_DIR_DOOM2:
                 populateWarpList(DOOM2_WARP_LIST);
+                break;
+            case CONFIG_DIR_HERETIC:
+                populateWarpList(HERETIC_WARP_LIST);
                 break;
             default:
                 break;
@@ -686,26 +702,28 @@ public class LauncherFX extends Application {
     }
     
     private void addFilesToPwadList(Path wadPath, Set<PWadListItem> theWadSet) throws IOException {
-        Files.list(wadPath).forEach((file) -> {
-            String filename = file.getFileName().toString().toLowerCase();
-            if(Files.isRegularFile(file)) {
-                if(filename.endsWith(".txt")) {
-                    theWadSet.add(new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file));
-                }
-                else if(filename.endsWith(".deh")) {
-                    String ignore = INI_FILE.get(file.getFileName().toString(), "ignore");
-                    if(ignore == null || !"true".equals(ignore)) {
-                        theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file));
+        if(Files.exists(wadPath)) {
+            Files.list(wadPath).forEach((file) -> {
+                String filename = file.getFileName().toString().toLowerCase();
+                if(Files.isRegularFile(file)) {
+                    if(filename.endsWith(".txt")) {
+                        theWadSet.add(new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file));
+                    }
+                    else if(filename.endsWith(".deh")) {
+                        String ignore = INI_FILE.get(file.getFileName().toString(), "ignore");
+                        if(ignore == null || !"true".equals(ignore)) {
+                            theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file));
+                        }
+                    }
+                    else if(filename.endsWith(".wad")) {
+                        PWadListItem item = handlePwad(file);
+                        if(item != null) {
+                            theWadSet.add(item);
+                        }
                     }
                 }
-                else if(filename.endsWith(".wad")) {
-                    PWadListItem item = handlePwad(file);
-                    if(item != null) {
-                        theWadSet.add(item);
-                    }
-                }
-            }
-        });
+            });
+        }
     }
     
     private PWadListItem handlePwad(Path pwadPath) {
@@ -794,15 +812,26 @@ public class LauncherFX extends Application {
      * @return 
      */
     private boolean isIwadCompatible(String supportedIwadList, String iwadSectionName) {
-        if(supportedIwadList == null) {
-            //if there's no list, then presumably there's no limitation.
-            return true;
+        String supportedPorts = INI_FILE.get(iwadSectionName, "port");
+        if(supportedPorts != null) {
+            String[] splitPorts = supportedPorts.split(",");
+            for(String port : splitPorts) {
+                if(port.equals(selectedPort)) {
+                    return true;
+                }
+            }
         }
-        
-        String[] splitIwads = supportedIwadList.split(",");
-        for(String iwad : splitIwads) {
-            if(iwad.equals(iwadSectionName)) {
+        else {
+            if(supportedIwadList == null) {
+                //if there's no list, then presumably there's no limitation.
                 return true;
+            }
+
+            String[] splitIwads = supportedIwadList.split(",");
+            for(String iwad : splitIwads) {
+                if(iwad.equals(iwadSectionName)) {
+                    return true;
+                }
             }
         }
         
@@ -989,6 +1018,14 @@ public class LauncherFX extends Application {
                     "Ultra-Violence",
                     "Nightmare!"));
     
+    private final List<String> HERETIC_SKILL_LIST = 
+            Collections.unmodifiableList(Arrays.asList(
+                    "Thou Needeth a Wet-Nurse",
+                    "Yellowbellies-R-Us",
+                    "Bringest Them Oneth",
+                    "Thou Art a Smite-Meister",
+                    "Black Plague Possesses Thee"));
+    
     private final List<WarpListItem> DOOM_WARP_LIST = 
             Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
                     new WarpListItem("E1M1", "1 1"), 
@@ -1065,4 +1102,60 @@ public class LauncherFX extends Application {
                     new WarpListItem("MAP30", "30"),
                     new WarpListItem("MAP31", "31"),
                     new WarpListItem("MAP32", "32")));
+    
+    private final List<WarpListItem> HERETIC_WARP_LIST = 
+            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
+                    new WarpListItem("E1M1", "1 1"), 
+                    new WarpListItem("E1M2", "1 2"), 
+                    new WarpListItem("E1M3", "1 3"), 
+                    new WarpListItem("E1M4", "1 4"), 
+                    new WarpListItem("E1M5", "1 5"), 
+                    new WarpListItem("E1M6", "1 6"), 
+                    new WarpListItem("E1M7", "1 7"), 
+                    new WarpListItem("E1M8", "1 8"), 
+                    new WarpListItem("E1M9", "1 9"), 
+                    
+                    new WarpListItem("E2M1", "2 1"), 
+                    new WarpListItem("E2M2", "2 2"), 
+                    new WarpListItem("E2M3", "2 3"), 
+                    new WarpListItem("E2M4", "2 4"), 
+                    new WarpListItem("E2M5", "2 5"), 
+                    new WarpListItem("E2M6", "2 6"), 
+                    new WarpListItem("E2M7", "2 7"), 
+                    new WarpListItem("E2M8", "2 8"), 
+                    new WarpListItem("E2M9", "2 9"), 
+                    
+                    new WarpListItem("E3M1", "3 1"), 
+                    new WarpListItem("E3M2", "3 2"), 
+                    new WarpListItem("E3M3", "3 3"), 
+                    new WarpListItem("E3M4", "3 4"), 
+                    new WarpListItem("E3M5", "3 5"), 
+                    new WarpListItem("E3M6", "3 6"), 
+                    new WarpListItem("E3M7", "3 7"), 
+                    new WarpListItem("E3M8", "3 8"), 
+                    new WarpListItem("E3M9", "3 9"),
+                    
+                    new WarpListItem("E4M1", "4 1"), 
+                    new WarpListItem("E4M2", "4 2"), 
+                    new WarpListItem("E4M3", "4 3"), 
+                    new WarpListItem("E4M4", "4 4"), 
+                    new WarpListItem("E4M5", "4 5"), 
+                    new WarpListItem("E4M6", "4 6"), 
+                    new WarpListItem("E4M7", "4 7"), 
+                    new WarpListItem("E4M8", "4 8"), 
+                    new WarpListItem("E4M9", "4 9"),
+                    
+                    new WarpListItem("E5M1", "5 1"), 
+                    new WarpListItem("E5M2", "5 2"), 
+                    new WarpListItem("E5M3", "5 3"), 
+                    new WarpListItem("E5M4", "5 4"), 
+                    new WarpListItem("E5M5", "5 5"), 
+                    new WarpListItem("E5M6", "5 6"), 
+                    new WarpListItem("E5M7", "5 7"), 
+                    new WarpListItem("E5M8", "5 8"), 
+                    new WarpListItem("E5M9", "5 9"),
+                    
+                    new WarpListItem("E6M1", "6 1"), 
+                    new WarpListItem("E6M2", "6 2"), 
+                    new WarpListItem("E6M3", "6 3")));
 }
