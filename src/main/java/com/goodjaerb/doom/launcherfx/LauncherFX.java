@@ -72,7 +72,6 @@ public class LauncherFX extends Application {
     private static final String CONFIG_DIR_VANILLA = "vanilla";
     private static final String CONFIG_DIR_DOOM = "doom";
     private static final String CONFIG_DIR_DOOM2 = "doom2";
-    private static final String CONFIG_DIR_HERETIC = "heretic";
     
     public static final String TYPE_PORT = "port";
     public static final String TYPE_TC = "tc";
@@ -228,13 +227,11 @@ public class LauncherFX extends Application {
                 writer.println("[Ultimate]");
                 writer.println("name=Ultimate Doom");
                 writer.println("type=iwad");
-                writer.println("wadfolder=doom");
                 writer.println("file=doom.wad");
                 writer.println();
                 writer.println("[Doom2]");
                 writer.println("name=Doom II");
                 writer.println("type=iwad");
-                writer.println("wadfolder=doom2");
                 writer.println("file=doom2.wad");
                 writer.println();
                 writer.println("; Helper lists for warp= values.");
@@ -361,19 +358,6 @@ public class LauncherFX extends Application {
                 addArgsToProcess("-warp " + warpItem.arg);
                 
                 List<String> skillList = selectedGame.skillList;
-//                String wadfolder = INI_FILE.get(selectedIwad, "wadfolder");
-//                switch (wadfolder) {
-//                    case CONFIG_DIR_DOOM:
-//                    case CONFIG_DIR_DOOM2:
-//                        skillList = DOOM_SKILL_LIST;
-//                        break;
-//                    case CONFIG_DIR_HERETIC:
-//                        skillList = HERETIC_SKILL_LIST;
-//                        break;
-//                    default:
-//                        skillList = DOOM_SKILL_LIST;
-//                        break;
-//                }
                 if(!skillList.isEmpty()) {
                     ChoiceDialog<String> dialog = new ChoiceDialog<>(skillList.get(2), skillList);
                     dialog.setTitle("Select Skill Level");
@@ -392,9 +376,6 @@ public class LauncherFX extends Application {
                 }
             }
             
-//            File workingDir = new File(processCommand.get(0)).getParentFile();
-//            String workingDirPath = INI_FILE.get(selectedPort, "workingdir");
-//            if(workingDirPath != null) {
             File workingDir = null;
             String type = INI_FILE.get(selectedPort, "type");
             if(TYPE_MOD.equals(type) || TYPE_TC.equals(type)) {
@@ -502,59 +483,6 @@ public class LauncherFX extends Application {
         primaryStage.show();
     }
     
-//    private String getImagePath(String section) {
-//        String pathStr = INI_FILE.get(section, "img");
-//        if(pathStr == null) {
-//            return null;
-//        }
-//        
-//        Path imgPath = Paths.get(pathStr);
-//        if(imgPath.isAbsolute()) {
-//            return imgPath.toString();
-//        }
-//        
-//        return Paths.get(CONFIG_HOME, CONFIG_DIR_IMAGES, imgPath.toString()).toString();
-//    }
-//    
-//    private String getIwadPath(String section) {
-//        String pathStr = INI_FILE.get(section, "file");
-//        if(pathStr == null) {
-//            return null;
-//        }
-//        
-//        Path iwadPath = Paths.get(pathStr);
-//        if(iwadPath.isAbsolute()) {
-//            return iwadPath.toString();
-//        }
-//        
-//        return Paths.get(CONFIG_HOME, CONFIG_DIR_IWAD, iwadPath.toString()).toString();
-//    }
-//    
-//    private String getModFilePath(String section) {
-//        String pathStr = INI_FILE.get(section, "file");
-//        if(pathStr == null) {
-//            return null;
-//        }
-//        
-//        Path modPath = Paths.get(pathStr);
-//        if(modPath.isAbsolute()) {
-//            return modPath.toString();
-//        }
-//        
-//        return Paths.get(CONFIG_HOME, CONFIG_DIR_MODS, modPath.toString()).toString();
-//    }
-//    
-//    private String convertWorkingDirPath(String pathStr) {
-//        assert pathStr != null;
-//        
-//        Path modPath = Paths.get(pathStr);
-//        if(modPath.isAbsolute()) {
-//            return modPath.toString();
-//        }
-//        
-//        return Paths.get(CONFIG_HOME, CONFIG_DIR_MODS, modPath.toString()).toString();
-//    }
-    
     private String getAbsolutePath(String section, String key, String configSubDir) {
         String pathStr = INI_FILE.get(section, key);
         if(pathStr == null) {
@@ -641,20 +569,6 @@ public class LauncherFX extends Application {
     }
     
     private void loadWarpList() {
-//        String wadfolder = INI_FILE.get(selectedIwad, "wadfolder");
-//        switch (wadfolder) {
-//            case CONFIG_DIR_DOOM:
-//                populateWarpList(ULTIMATE_DOOM_WARP_LIST);
-//                break;
-//            case CONFIG_DIR_DOOM2:
-//                populateWarpList(DOOM2_WARP_LIST);
-//                break;
-//            case CONFIG_DIR_HERETIC:
-//                populateWarpList(HERETIC_SERPENT_WARP_LIST);
-//                break;
-//            default:
-//                break;
-//        }
         populateWarpList(selectedGame.warpList);
     }
     

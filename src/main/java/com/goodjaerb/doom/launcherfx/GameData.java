@@ -27,11 +27,13 @@ import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
  * @author goodjaerb<goodjaerb@gmail.com>
  */
 public class GameData {
+    private final String name;
     public final String wadfolder;
     public final List<String> skillList;
     public final List<WarpListItem> warpList;
     
-    private GameData(String wadfolder, List<String> skillList, List<WarpListItem> warpList) {
+    private GameData(String name, String wadfolder, List<String> skillList, List<WarpListItem> warpList) {
+        this.name = name;
         this.wadfolder = wadfolder;
         this.skillList = skillList;
         this.warpList = warpList;
@@ -42,6 +44,7 @@ public class GameData {
             String sha = calcSHA1(new File(iwadPath));
             for(Map.Entry<List<String>, GameData> entry : SHA_GAME_MAPPINGS.entrySet()) {
                 if(entry.getKey().contains(sha)) {
+                    System.out.println("'" + iwadPath + "' matched to " + entry.getValue().name);
                     return entry.getValue();
                 }
             }
@@ -317,7 +320,11 @@ public class GameData {
             "70192b8d5aba65c7e633a7c7bcfe7e3e90640c97", // Doom 2 Version 1.7a
             "78009057420b792eacff482021db6fe13b370dcc", // Doom 2 Version 1.7
             "6d559b7ceece4f5ad457415049711992370d520a", // Doom 2 Version 1.666
-            "a4ce5128d57cb129fdd1441c12b58245be55c8ce")); // Doom 2 Version 1.666g
+            "a4ce5128d57cb129fdd1441c12b58245be55c8ce", // Doom 2 Version 1.666g
+            "9fbc66aedef7fe3bae0986cdb9323d2b8db4c9d3", // TNT: Evilution Version 1.9
+            "4a65c8b960225505187c36040b41a40b152f8f3e", // TNT: Evilution, also Version 1.9 (rare). https://doomwiki.org/wiki/TNT.WAD
+            "90361e2a538d2388506657252ae41aceeb1ba360", // The Plutonia Experiment Version 1.9
+            "f131cbe1946d7fddb3caec4aa258c83399c21e60")); // The Plutonia Experiment, also Version 1.9 (rare). https://doomwiki.org/wiki/PLUTONIA.WAD
     
     private static final List<String> HERETIC_EXP_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
             "f489d479371df32f6d280a0cb23b59a35ba2b833")); // Heretic Version 1.3 (Shadow of the Serpent Riders)
@@ -333,14 +340,14 @@ public class GameData {
             "081f6a2024643b54ef4a436a85508539b6d20a1e", // Hexen: Deathkings of the Dark Citadel Version 1.1
             "c3065527d62b05a930fe75fe8181a64fb1982976")); // Hexen: Deathkings of the Dark Citadel Version 1.0
     
-    private static final GameData UNKNOWN_GAME_DATA = new GameData("unknown", Collections.EMPTY_LIST, Collections.EMPTY_LIST);
-    private static final GameData DOOM_GAME_DATA = new GameData("doom", DOOM_SKILL_LIST, DOOM_WARP_LIST);
-    private static final GameData ULTIMATE_DOOM_GAME_DATA = new GameData("doom", DOOM_SKILL_LIST, ULTIMATE_DOOM_WARP_LIST);
-    private static final GameData DOOM2_GAME_DATA = new GameData("doom2", DOOM_SKILL_LIST, DOOM2_WARP_LIST);
-    private static final GameData HERETIC_GAME_DATA = new GameData("heretic", HERETIC_SKILL_LIST, HERETIC_WARP_LIST);
-    private static final GameData HERETIC_EXP_GAME_DATA = new GameData("heretic", HERETIC_SKILL_LIST, HERETIC_EXP_WARP_LIST);
-//    private static final GameData HEXEN_GAME_DATA = new GameData("hexen", HEXEN_SKILL_LIST, HEXEN_WARP_LIST);
-//    private static final GameData HEXEN_EXP_GAME_DATA = new GameData("hexen", HEXEN_SKILL_LIST, HEXEN_EXP_WARP_LIST);
+    private static final GameData UNKNOWN_GAME_DATA = new GameData("UNKNOWN", "unknown", Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+    private static final GameData DOOM_GAME_DATA = new GameData("Doom", "doom", DOOM_SKILL_LIST, DOOM_WARP_LIST);
+    private static final GameData ULTIMATE_DOOM_GAME_DATA = new GameData("Ultimate Doom", "doom", DOOM_SKILL_LIST, ULTIMATE_DOOM_WARP_LIST);
+    private static final GameData DOOM2_GAME_DATA = new GameData("Doom II", "doom2", DOOM_SKILL_LIST, DOOM2_WARP_LIST);
+    private static final GameData HERETIC_GAME_DATA = new GameData("Heretic", "heretic", HERETIC_SKILL_LIST, HERETIC_WARP_LIST);
+    private static final GameData HERETIC_EXP_GAME_DATA = new GameData("Heretic: Shadow of the Serpent Riders", "heretic", HERETIC_SKILL_LIST, HERETIC_EXP_WARP_LIST);
+//    private static final GameData HEXEN_GAME_DATA = new GameData("Hexen", "hexen", HEXEN_SKILL_LIST, HEXEN_WARP_LIST);
+//    private static final GameData HEXEN_EXP_GAME_DATA = new GameData("Hexen: The Dark Citadel", "hexen", HEXEN_SKILL_LIST, HEXEN_EXP_WARP_LIST);
     
     private static final Map<List<String>, GameData> SHA_GAME_MAPPINGS = new HashMap<>();
     static {
