@@ -11,10 +11,11 @@ import java.nio.file.Paths;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 /**
@@ -25,6 +26,7 @@ public class LaunchItemPane extends BorderPane {
     public final String sectionName;
     
     private final Button launchButton;
+    private final Label nameLabel;
     private final Text descriptionArea;
     
     public LaunchItemPane(String sectionName, String name, String description, String img, boolean setDisable, EventHandler<ActionEvent> handler) throws MalformedURLException {
@@ -44,6 +46,9 @@ public class LaunchItemPane extends BorderPane {
             
             launchButton.setGraphic(icon);
         }
+        nameLabel = new Label(name);
+        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px");
+        
         descriptionArea = new Text(description);
         layoutPane();
     }
@@ -58,12 +63,16 @@ public class LaunchItemPane extends BorderPane {
         descriptionArea.minHeight(125);
         descriptionArea.maxHeight(170);
 
+        VBox vBox = new VBox();
+        vBox.setSpacing(2);
+        vBox.getChildren().add(nameLabel);
+        vBox.getChildren().add(descriptionArea);
+        
         setLeft(launchButton);
-        setCenter(descriptionArea);
+        setCenter(vBox);
         
         setMargin(launchButton, new Insets(4));
-        setMargin(descriptionArea, new Insets(12, 4, 4, 4));
-        setAlignment(descriptionArea, Pos.TOP_LEFT);
+        setMargin(vBox, new Insets(4, 4, 4, 0));
     }
     
     public void setButtonDisable(boolean b) {
