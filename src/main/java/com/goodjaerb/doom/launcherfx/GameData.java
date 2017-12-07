@@ -340,7 +340,7 @@ public class GameData {
             "081f6a2024643b54ef4a436a85508539b6d20a1e", // Hexen: Deathkings of the Dark Citadel Version 1.1
             "c3065527d62b05a930fe75fe8181a64fb1982976")); // Hexen: Deathkings of the Dark Citadel Version 1.0
     
-    private static final GameData UNKNOWN_GAME_DATA = new GameData("UNKNOWN", "unknown", Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+    private static final GameData UNKNOWN_GAME_DATA = new GameData("UNKNOWN", "unknown", Collections.emptyList(), Collections.emptyList());
     private static final GameData DOOM_GAME_DATA = new GameData("Doom", "doom", DOOM_SKILL_LIST, DOOM_WARP_LIST);
     private static final GameData ULTIMATE_DOOM_GAME_DATA = new GameData("Ultimate Doom", "doom", DOOM_SKILL_LIST, ULTIMATE_DOOM_WARP_LIST);
     private static final GameData DOOM2_GAME_DATA = new GameData("Doom II", "doom2", DOOM_SKILL_LIST, DOOM2_WARP_LIST);
