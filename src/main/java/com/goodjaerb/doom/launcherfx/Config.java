@@ -42,6 +42,9 @@ public class Config {
     public static final String TYPE_MOD = "mod";
     public static final String TYPE_IWAD = "iwad";
     
+    private static final String CONFIG_LAUNCHER_DATA_DIR_SECTION = "LauncherFXDataDir";
+    private static final String CONFIG_LAUNCHER_DATA_DIR_KEY = "launcher-data";
+    
     private static final Ini INI_FILE = new Ini();
     private static final Config INSTANCE = new Config();
     
@@ -73,20 +76,24 @@ public class Config {
     
     public void initializeConfig() throws IOException {
         FileSystem fs = FileSystems.getDefault();
-        Path configFile = fs.getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
+        Path configFilePath = fs.getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
 
-        createConfigFile(configFile);
+        if(!Files.exists(configFilePath)) {
+            createDefaultConfig(configFilePath);
+        }
 
-        INI_FILE.load(Files.newBufferedReader(configFile));
-        String datadir = INI_FILE.get("LauncherFXDataDir", "launcher-data");
+        INI_FILE.load(Files.newBufferedReader(configFilePath));
+        String datadir = INI_FILE.get(CONFIG_LAUNCHER_DATA_DIR_SECTION, CONFIG_LAUNCHER_DATA_DIR_KEY);
 
         if(datadir != null) {
             configHome = datadir;
-            configFile = fs.getPath(configHome, CONFIG_FILE);
-            createConfigFile(configFile);
+            configFilePath = fs.getPath(configHome, CONFIG_FILE);
+            if(!Files.exists(configFilePath)) {
+                createDefaultConfig(configFilePath);
+            }
 
             INI_FILE.clear();
-            INI_FILE.load(Files.newBufferedReader(configFile));
+            INI_FILE.load(Files.newBufferedReader(configFilePath));
         }
         else {
             configHome = USER_HOME + File.separator + CONFIG_DIR;
@@ -109,100 +116,100 @@ public class Config {
         }
     }
     
-    private void createConfigFile(Path configFile) throws IOException {
+    private void createDefaultConfig(Path configFilePath) throws IOException {
         //check that .launcherfx directory exists.
-        if(!Files.exists(configFile.getParent())) {
-            Files.createDirectory(configFile.getParent());
+        if(!Files.exists(configFilePath.getParent())) {
+            Files.createDirectory(configFilePath.getParent());
         }
         
         //check that launcherfx.ini file exists.
-        if(!Files.exists(configFile)) {
-            Files.createFile(configFile);
-
-            //initialize with example data.
-            try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(configFile, StandardOpenOption.WRITE))) {
-                writer.println("; A directory '" + CONFIG_DIR + "' will be created in the user's home directory. Within this directory will be another series of directories to store various wads and mods as described below. Also will be this '" + CONFIG_FILE + "' files.");
-                writer.println("; The directory structure will be as follows:");
-                writer.println("; <user home>/" + CONFIG_DIR + "/");
-                writer.println("; +-> " + DIR_IMAGES + "/");
-                writer.println("; +-> " + DIR_IWAD + "/");
-                writer.println("; +-> " + DIR_MODS + "/");
-                writer.println("; +-> " + DIR_WADS + "/");
-                writer.println("; |    +-> " + DIR_BOOM + "/\t\tUsed for wads requiring Boom-compatible editing extensions source ports.");
-                writer.println("; |         +-> " + DIR_DOOM + "/\t\tWads that require the iwad for Doom");
-                writer.println("; |         +-> " + DIR_DOOM2 + "/\t\tWads that require the iwad for Doom 2");
-                writer.println("; |    +-> " + DIR_LIMIT_REMOVING + "/\t\tUsed for wads requiring limit-removing source ports but no further extensions.");
-                writer.println("; |         +-> " + DIR_DOOM + "/\t\tWads that require the iwad for Doom");
-                writer.println("; |         +-> " + DIR_DOOM2 + "/\t\tWads that require the iwad for Doom 2");
-                writer.println("; |    +-> " + DIR_VANILLA + "/\t\tUsed for wads that do not require 'limit-removing' source ports.");
-                writer.println("; |         +-> " + DIR_DOOM + "/");
-                writer.println("; |         +-> " + DIR_DOOM2 + "/");
-                writer.println("; +-> " + CONFIG_FILE);
-                writer.println();
-                writer.println("; if you want to keep the above data structures in another location, uncomment the following two lines and give the absolute path to the location you want. Leave THIS ini here with this line in it, and copy the rest of your configuration below into the ini at your new location.");
-                writer.println("; The application will see this line pointing to the other location, then open the ini that is over there.");
-                writer.println("; [LauncherFXDataDir]");
-                writer.println("; launcher-data=/path/to/launcher/data");
-                writer.println();
-                writer.println("; A section describing a Doom source port. The section name may be referenced from other options.");
-                writer.println("; Use 'wadfolder=' in a port section to limit which wads folder to search for pwads. By default the application creates folders called 'boom', 'limit-removing', and 'vanilla'. If you need more you can create them and use the name in the ini. Optional. No value for wadfolder will assume all wads are legal.");
-                writer.println("; Each section must have a 'type=', defining each section as a 'port', 'mod', or 'iwad'");
-                writer.println("; Use quotes (\"...\") around the value for cmd if there are spaces in the path.");
-                writer.println("; If 'img=' is not an absolute path, the 'images' folder above will be checked for the image file. If defining an absolute path or path with subdirectories, use '\\' or '/' as the path separator. a single '\' will not parse well. Do not use quotes for 'img' even if there are spaces in the path.");
-                writer.println("; 'sort=' can be used to create an order of the ports/mods in the user interface. Optional. Sort order is undefined if not specified or if sorts are not all unique.");
-                writer.println("[Example1]");
-                writer.println("name=Example Source Port");
-                writer.println("desc=Describe the port and its features.");
-                writer.println("type=port");
-                writer.println("sort=1");
-                writer.println("wadfolder=limit-removing,vanilla");
-                writer.println("cmd=/path/to/run/port");
-                writer.println("img=/optional/path/to/image/for/button.png");
-                writer.println();
-                writer.println("; A section describing a mod that relies on a source port.");
-                writer.println("; Use the 'port=' field to define the source port(s) that can play this mod using the section name. Optional.");
-                writer.println("; Use 'iwad=' to list the iwads the mod is compatible with, separated by commas if more than one, again using section names defining the iwads. Optional.");
-                writer.println("[Example2]");
-                writer.println("name=Mod Name");
-                writer.println("desc=Mod description.");
-                writer.println("type=mod");
-                writer.println("sort=2");
-                writer.println("port=Example1");
-                writer.println("iwad=Ultimate,Doom2");
-                writer.println("img=/optional/path/to/img.png");
-                writer.println();
-                writer.println("; A section describing a Total Conversion (TC) that relies on a source port.");
-                writer.println("; Use the 'port=' field to define the source port(s) that can play this mod using the section name.");
-                writer.println("; Use 'iwad=' to list the iwads the mod is compatible with, separated by commas if more than one, again using section names defining the iwads. Optional.");
-                writer.println("; Use 'cmd=' if you want the mod to appear in the menu as a means of direct launching. Optional. Use quotes (\"...\") around the value if there are spaces in the path.");
-                writer.println("; Use 'args=' if the mod has to run with a source port (defined in 'port=') and needs to pass extra parameters. Optional. Use quotes (\"...\") around individual argument values that have spaces in them.");
-                writer.println("; Use 'workingdir=' to point to the mod folder in the event you have to run with 'args=' that point to files in said working directory. Like for 'img=', if not an absolute path, the mods folder defined above will be used as the root of the given working directory. Do not use quotes for 'workingdir' even if there are spaces in the path.");
-                writer.println("; Use 'skipwads=true' if you don't want to be offered to load a pwad.");
-                writer.println("[Example2]");
-                writer.println("name=Mod Name");
-                writer.println("desc=Mod description.");
-                writer.println("type=tc");
-                writer.println("sort=3");
-                writer.println("port=Example1");
-                writer.println("iwad=Ultimate,Doom2");
-                writer.println("img=/optional/path/to/img.png");
-                writer.println();
-                writer.println("; Defines base iwad files required to play Doom. These files are to be stored in /<user home directory>/.launcherfx/iwad/. Do not use quotes for 'file' even if there are spaces in the path.");
-                writer.println("[Ultimate]");
-                writer.println("name=Ultimate Doom");
-                writer.println("type=iwad");
-                writer.println("file=doom.wad");
-                writer.println();
-                writer.println("[Doom2]");
-                writer.println("name=Doom II");
-                writer.println("type=iwad");
-                writer.println("file=doom2.wad");
-                writer.println();
-                writer.println("; Helper lists for warp= values.");
-                writer.println("; E1M1,E1M2,E1M3,E1M4,E1M5,E1M6,E1M7,E1M8,E1M9,E2M1,E2M2,E2M3,E2M4,E2M5,E2M6,E2M7,E2M8,E2M9,E3M1,E3M2,E3M3,E3M4,E3M5,E3M6,E3M7,E3M8,E3M9,E4M1,E4M2,E4M3,E4M4,E4M5,E4M6,E4M7,E4M8,E4M9");
-                writer.println("; MAP01,MAP02,MAP03,MAP04,MAP05,MAP06,MAP07,MAP08,MAP09,MAP10,MAP11,MAP12,MAP13,MAP14,MAP15,MAP16,MAP17,MAP18,MAP19,MAP20,MAP21,MAP22,MAP23,MAP24,MAP25,MAP26,MAP27,MAP28,MAP29,MAP30,MAP31,MAP32");
-                writer.flush();
-            }
+        if(!Files.exists(configFilePath)) {
+            Files.createFile(configFilePath);
+        }
+        
+        //initialize with example data.
+        try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(configFilePath, StandardOpenOption.WRITE))) {
+            writer.println("; A directory '" + CONFIG_DIR + "' will be created in the user's home directory. Within this directory will be another series of directories to store various wads and mods as described below. Also will be this '" + CONFIG_FILE + "' files.");
+            writer.println("; The directory structure will be as follows:");
+            writer.println("; <user home>/" + CONFIG_DIR + "/");
+            writer.println("; +-> " + DIR_IMAGES + "/");
+            writer.println("; +-> " + DIR_IWAD + "/");
+            writer.println("; +-> " + DIR_MODS + "/");
+            writer.println("; +-> " + DIR_WADS + "/");
+            writer.println("; |    +-> " + DIR_BOOM + "/\t\tUsed for wads requiring Boom-compatible editing extensions source ports.");
+            writer.println("; |         +-> " + DIR_DOOM + "/\t\tWads that require the iwad for Doom");
+            writer.println("; |         +-> " + DIR_DOOM2 + "/\t\tWads that require the iwad for Doom 2");
+            writer.println("; |    +-> " + DIR_LIMIT_REMOVING + "/\t\tUsed for wads requiring limit-removing source ports but no further extensions.");
+            writer.println("; |         +-> " + DIR_DOOM + "/\t\tWads that require the iwad for Doom");
+            writer.println("; |         +-> " + DIR_DOOM2 + "/\t\tWads that require the iwad for Doom 2");
+            writer.println("; |    +-> " + DIR_VANILLA + "/\t\tUsed for wads that do not require 'limit-removing' source ports.");
+            writer.println("; |         +-> " + DIR_DOOM + "/");
+            writer.println("; |         +-> " + DIR_DOOM2 + "/");
+            writer.println("; +-> " + CONFIG_FILE);
+            writer.println();
+            writer.println("; if you want to keep the above data structures in another location, uncomment the following two lines and give the absolute path to the location you want. Leave THIS ini here with this line in it, and copy the rest of your configuration below into the ini at your new location.");
+            writer.println("; The application will see this line pointing to the other location, then open the ini that is over there.");
+            writer.println("; [LauncherFXDataDir]");
+            writer.println("; launcher-data=/path/to/launcher/data");
+            writer.println();
+            writer.println("; A section describing a Doom source port. The section name may be referenced from other options.");
+            writer.println("; Use 'wadfolder=' in a port section to limit which wads folder to search for pwads. By default the application creates folders called 'boom', 'limit-removing', and 'vanilla'. If you need more you can create them and use the name in the ini. Optional. No value for wadfolder will assume all wads are legal.");
+            writer.println("; Each section must have a 'type=', defining each section as a 'port', 'mod', or 'iwad'");
+            writer.println("; Use quotes (\"...\") around the value for cmd if there are spaces in the path.");
+            writer.println("; If 'img=' is not an absolute path, the 'images' folder above will be checked for the image file. If defining an absolute path or path with subdirectories, use '\\' or '/' as the path separator. a single '\' will not parse well. Do not use quotes for 'img' even if there are spaces in the path.");
+            writer.println("; 'sort=' can be used to create an order of the ports/mods in the user interface. Optional. Sort order is undefined if not specified or if sorts are not all unique.");
+            writer.println("[Example1]");
+            writer.println("name=Example Source Port");
+            writer.println("desc=Describe the port and its features.");
+            writer.println("type=port");
+            writer.println("sort=1");
+            writer.println("wadfolder=limit-removing,vanilla");
+            writer.println("cmd=/path/to/run/port");
+            writer.println("img=/optional/path/to/image/for/button.png");
+            writer.println();
+            writer.println("; A section describing a mod that relies on a source port.");
+            writer.println("; Use the 'port=' field to define the source port(s) that can play this mod using the section name. Optional.");
+            writer.println("; Use 'iwad=' to list the iwads the mod is compatible with, separated by commas if more than one, again using section names defining the iwads. Optional.");
+            writer.println("[Example2]");
+            writer.println("name=Mod Name");
+            writer.println("desc=Mod description.");
+            writer.println("type=mod");
+            writer.println("sort=2");
+            writer.println("port=Example1");
+            writer.println("iwad=Ultimate,Doom2");
+            writer.println("img=/optional/path/to/img.png");
+            writer.println();
+            writer.println("; A section describing a Total Conversion (TC) that relies on a source port.");
+            writer.println("; Use the 'port=' field to define the source port(s) that can play this mod using the section name.");
+            writer.println("; Use 'iwad=' to list the iwads the mod is compatible with, separated by commas if more than one, again using section names defining the iwads. Optional.");
+            writer.println("; Use 'cmd=' if you want the mod to appear in the menu as a means of direct launching. Optional. Use quotes (\"...\") around the value if there are spaces in the path.");
+            writer.println("; Use 'args=' if the mod has to run with a source port (defined in 'port=') and needs to pass extra parameters. Optional. Use quotes (\"...\") around individual argument values that have spaces in them.");
+            writer.println("; Use 'workingdir=' to point to the mod folder in the event you have to run with 'args=' that point to files in said working directory. Like for 'img=', if not an absolute path, the mods folder defined above will be used as the root of the given working directory. Do not use quotes for 'workingdir' even if there are spaces in the path.");
+            writer.println("; Use 'skipwads=true' if you don't want to be offered to load a pwad.");
+            writer.println("[Example2]");
+            writer.println("name=Mod Name");
+            writer.println("desc=Mod description.");
+            writer.println("type=tc");
+            writer.println("sort=3");
+            writer.println("port=Example1");
+            writer.println("iwad=Ultimate,Doom2");
+            writer.println("img=/optional/path/to/img.png");
+            writer.println();
+            writer.println("; Defines base iwad files required to play Doom. These files are to be stored in /<user home directory>/.launcherfx/iwad/. Do not use quotes for 'file' even if there are spaces in the path.");
+            writer.println("[Ultimate]");
+            writer.println("name=Ultimate Doom");
+            writer.println("type=iwad");
+            writer.println("file=doom.wad");
+            writer.println();
+            writer.println("[Doom2]");
+            writer.println("name=Doom II");
+            writer.println("type=iwad");
+            writer.println("file=doom2.wad");
+            writer.println();
+            writer.println("; Helper lists for warp= values.");
+            writer.println("; E1M1,E1M2,E1M3,E1M4,E1M5,E1M6,E1M7,E1M8,E1M9,E2M1,E2M2,E2M3,E2M4,E2M5,E2M6,E2M7,E2M8,E2M9,E3M1,E3M2,E3M3,E3M4,E3M5,E3M6,E3M7,E3M8,E3M9,E4M1,E4M2,E4M3,E4M4,E4M5,E4M6,E4M7,E4M8,E4M9");
+            writer.println("; MAP01,MAP02,MAP03,MAP04,MAP05,MAP06,MAP07,MAP08,MAP09,MAP10,MAP11,MAP12,MAP13,MAP14,MAP15,MAP16,MAP17,MAP18,MAP19,MAP20,MAP21,MAP22,MAP23,MAP24,MAP25,MAP26,MAP27,MAP28,MAP29,MAP30,MAP31,MAP32");
+            writer.flush();
         }
     }
 }
