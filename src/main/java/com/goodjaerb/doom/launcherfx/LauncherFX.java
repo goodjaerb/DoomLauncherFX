@@ -29,6 +29,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -43,8 +44,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
@@ -80,7 +85,7 @@ public class LauncherFX extends Application {
     
     public static final Ini INI_FILE = new Ini();
     
-    private final String CONFIG_HOME;
+    private String CONFIG_HOME;
     
     private TabPane tabPane;
     private Tab portsTab;
@@ -108,6 +113,10 @@ public class LauncherFX extends Application {
     private PWadListItem selectedPwad;
     
     public LauncherFX() throws IOException {
+        initializeConfig();
+    }
+    
+    private void initializeConfig() throws IOException {
         FileSystem fs = FileSystems.getDefault();
         Path configFile = fs.getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
 
@@ -244,73 +253,9 @@ public class LauncherFX extends Application {
     
     @Override
     public void start(Stage primaryStage) throws MalformedURLException {
-        Set<Entry<String, Section>> sortedSections = new TreeSet<>((Entry<String, Section> left, Entry<String, Section> right) -> {
-            Integer leftSort = left.getValue().get("sort", Integer.class);
-            Integer rightSort = right.getValue().get("sort", Integer.class);
-            
-            if(leftSort == null) {
-                return 1;
-            }
-            
-            if(rightSort == null) {
-                return -1;
-            }
-            
-            if(leftSort.equals(rightSort)) {
-                return 1;
-            }
-            
-            return leftSort.compareTo(rightSort);
-        });
-        sortedSections.addAll(INI_FILE.entrySet());
-        
         portsBox = new VBox();
         iwadsBox = new VBox();
         modsBox = new VBox();
-        
-        modsBox.getChildren().add(new LaunchItemPane(LaunchItemEventHandler.STANDARD_MOD_NAME, "Standard", "Run the selected Port/TC with no mods.", null, true, new LaunchItemEventHandler(LaunchItemEventHandler.STANDARD_MOD_NAME)));
-        
-        for(Entry<String, Section> iniEntry : sortedSections) {
-            System.out.println("Section=" + iniEntry.getKey());
-            String section = iniEntry.getKey();
-            String type = INI_FILE.get(section, "type");
-            
-            if(type != null) {
-                type = type.toLowerCase();
-                switch(type) {
-                    case TYPE_PORT:
-                    case TYPE_TC:
-                        portsBox.getChildren().add(new LaunchItemPane(
-                                section,
-                                INI_FILE.get(section, "name"),
-                                INI_FILE.get(section, "desc"),
-                                getAbsolutePath(section, "img", CONFIG_DIR_IMAGES),
-                                false,
-                                new LaunchItemEventHandler(section)));
-                        break;
-                    case TYPE_IWAD:
-                        iwadsBox.getChildren().add(new LaunchItemPane(
-                                section,
-                                INI_FILE.get(section, "name"),
-                                INI_FILE.get(section, "desc"),
-                                getAbsolutePath(section, "img", CONFIG_DIR_IMAGES),
-                                true,
-                                new LaunchItemEventHandler(section)));
-                        break;
-                    case TYPE_MOD:
-                        modsBox.getChildren().add(new LaunchItemPane(
-                                section,
-                                INI_FILE.get(section, "name"),
-                                INI_FILE.get(section, "desc"),
-                                getAbsolutePath(section, "img", CONFIG_DIR_IMAGES),
-                                true,
-                                new LaunchItemEventHandler(section)));
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
         
         EventHandler<ActionEvent> launchHandler = (event) -> {
             addArgsToProcess(INI_FILE.get(selectedPort, "args"));
@@ -396,23 +341,21 @@ public class LauncherFX extends Application {
                 Process p = processBuilder.start();
                 p.waitFor();
                 
-                doCancel();
+                reset();
             }
             catch (IOException | InterruptedException ex) {
                 Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                 new Alert(Alert.AlertType.ERROR, "An error occured accessing or running the program '" + processBuilder.command() + "'.", ButtonType.CLOSE).showAndWait();
-                doCancel();
+                reset();
             }
         };
         
         launchNowButton = new Button("Launch Now!");
-        launchNowButton.setDisable(true);
         launchNowButton.addEventHandler(ActionEvent.ACTION, launchHandler);
         
         cancelButton = new Button("Cancel");
-        cancelButton.setDisable(true);
         cancelButton.addEventHandler(ActionEvent.ACTION, (event) -> {
-            doCancel();
+            reset();
         });
         
         FlowPane buttonPane = new FlowPane(launchNowButton, cancelButton);
@@ -423,12 +366,10 @@ public class LauncherFX extends Application {
         pwadListView = new ListView<>();
         pwadListView.setMinSize(350, 450);
         pwadListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        pwadListView.setDisable(true);
         pwadListView.setCellFactory((ListView<PWadListItem> list) -> new PWadListCell());
         
         continueToWarpButton = new Button("Continue >>>");
         continueToWarpButton.setMinSize(200, 200);
-        continueToWarpButton.setDisable(true);
         continueToWarpButton.addEventHandler(ActionEvent.ACTION, (event) -> {
             selectedPwad = pwadListView.getSelectionModel().getSelectedItem();
             chooseWarp();
@@ -441,12 +382,10 @@ public class LauncherFX extends Application {
         
         warpListView = new ListView<>();
         warpListView.setMinSize(200, 450);
-        warpListView.setDisable(true);
         warpListView.setCellFactory((ListView<WarpListItem> list) -> new WarpListCell());
         
         launchButton = new Button("Launch!");
         launchButton.setMinSize(200, 200);
-        launchButton.setDisable(true);
         launchButton.addEventHandler(ActionEvent.ACTION, launchHandler);
         
         FlowPane warpPane = new FlowPane(Orientation.HORIZONTAL, warpListView, launchButton);
@@ -472,15 +411,130 @@ public class LauncherFX extends Application {
         tabPane.getTabs().add(pwadsTab);
         tabPane.getTabs().add(warpTab);
         
+        MenuItem fileMenuItemReloadIni = new MenuItem("Reload launcherfx.ini");
+        fileMenuItemReloadIni.addEventHandler(ActionEvent.ACTION, (event) -> {
+            try {
+                initializeConfig();
+                refreshFromIni();
+            } catch (IOException ex) {
+                Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+        MenuItem fileMenuItemExit = new MenuItem("Exit");
+        fileMenuItemExit.addEventHandler(ActionEvent.ACTION, (event) -> {
+            Platform.exit();
+        });
         
-        VBox root = new VBox(tabPane, buttonPane);
+        MenuItem menuSeparator = new SeparatorMenuItem();
+        
+        Menu fileMenu = new Menu("File", null, fileMenuItemReloadIni, menuSeparator, fileMenuItemExit);
+        MenuBar menuBar = new MenuBar(fileMenu);
+        
+        VBox root = new VBox(menuBar, tabPane, buttonPane);
         root.setMinSize(600, 550);
         Scene scene = new Scene(root, 600, 550);
+        
+        refreshFromIni();
         
         primaryStage.setTitle("LauncherFX");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
+    }
+    
+    private void refreshFromIni() throws MalformedURLException {
+        reset();
+        
+        Set<Entry<String, Section>> sortedSections = new TreeSet<>((Entry<String, Section> left, Entry<String, Section> right) -> {
+            Integer leftSort = left.getValue().get("sort", Integer.class);
+            Integer rightSort = right.getValue().get("sort", Integer.class);
+            
+            if(leftSort == null) {
+                return 1;
+            }
+            
+            if(rightSort == null) {
+                return -1;
+            }
+            
+            if(leftSort.equals(rightSort)) {
+                return 1;
+            }
+            
+            return leftSort.compareTo(rightSort);
+        });
+        sortedSections.addAll(INI_FILE.entrySet());
+        
+        portsBox.getChildren().clear();
+        iwadsBox.getChildren().clear();
+        modsBox.getChildren().clear();
+        modsBox.getChildren().add(new LaunchItemPane(LaunchItemEventHandler.STANDARD_MOD_NAME, "Standard", "Run the selected Port/TC with no mods.", null, true, new LaunchItemEventHandler(LaunchItemEventHandler.STANDARD_MOD_NAME)));
+        
+        for(Entry<String, Section> iniEntry : sortedSections) {
+            System.out.println("Section=" + iniEntry.getKey());
+            String section = iniEntry.getKey();
+            String type = INI_FILE.get(section, "type");
+            
+            if(type != null) {
+                type = type.toLowerCase();
+                switch(type) {
+                    case TYPE_PORT:
+                    case TYPE_TC:
+                        portsBox.getChildren().add(new LaunchItemPane(
+                                section,
+                                INI_FILE.get(section, "name"),
+                                INI_FILE.get(section, "desc"),
+                                getAbsolutePath(section, "img", CONFIG_DIR_IMAGES),
+                                false,
+                                new LaunchItemEventHandler(section)));
+                        break;
+                    case TYPE_IWAD:
+                        iwadsBox.getChildren().add(new LaunchItemPane(
+                                section,
+                                INI_FILE.get(section, "name"),
+                                INI_FILE.get(section, "desc"),
+                                getAbsolutePath(section, "img", CONFIG_DIR_IMAGES),
+                                true,
+                                new LaunchItemEventHandler(section)));
+                        break;
+                    case TYPE_MOD:
+                        modsBox.getChildren().add(new LaunchItemPane(
+                                section,
+                                INI_FILE.get(section, "name"),
+                                INI_FILE.get(section, "desc"),
+                                getAbsolutePath(section, "img", CONFIG_DIR_IMAGES),
+                                true,
+                                new LaunchItemEventHandler(section)));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+    
+    private void reset() {
+        continueToWarpButton.setDisable(true);
+        launchButton.setDisable(true);
+        launchNowButton.setDisable(true);
+        cancelButton.setDisable(true);
+        setItemsDisable(iwadsBox, true);
+        setItemsDisable(modsBox, true);
+        
+        pwadListView.setDisable(true);
+        pwadListView.getItems().clear();
+        warpListView.setDisable(true);
+        warpListView.getItems().clear();
+        
+        portsTab.setDisable(false);
+        iwadsTab.setDisable(false);
+        modsTab.setDisable(false);
+        pwadsTab.setDisable(false);
+        warpTab.setDisable(false);
+        
+        tabPane.getSelectionModel().select(portsTab);
+
+        processCommand = null;
     }
     
     private String getAbsolutePath(String section, String key, String configSubDir) {
@@ -721,30 +775,6 @@ public class LauncherFX extends Application {
         }
     }
     
-    private void doCancel() {
-        continueToWarpButton.setDisable(true);
-        launchButton.setDisable(true);
-        launchNowButton.setDisable(true);
-        cancelButton.setDisable(true);
-        setItemsDisable(iwadsBox, true);
-        setItemsDisable(modsBox, true);
-        
-        pwadListView.setDisable(true);
-        pwadListView.getItems().clear();
-        warpListView.setDisable(true);
-        warpListView.getItems().clear();
-        
-        portsTab.setDisable(false);
-        iwadsTab.setDisable(false);
-        modsTab.setDisable(false);
-        pwadsTab.setDisable(false);
-        warpTab.setDisable(false);
-        
-        tabPane.getSelectionModel().select(portsTab);
-
-        processCommand = null;
-    }
-    
     /**
      * Is the given IWAD defined to be compatible with the currently selected port/TC.
      * 
@@ -912,7 +942,7 @@ public class LauncherFX extends Application {
                             port = dialog.showAndWait().orElse(null);
                         }
                         if(port == null) {
-                            doCancel();
+                            reset();
                         }
                         else {
                             String myCmd = INI_FILE.get(port, "cmd");
