@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -53,7 +54,9 @@ import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import org.ini4j.Profile.Section;
 
 /**
@@ -62,6 +65,7 @@ import org.ini4j.Profile.Section;
  */
 public class LauncherFX extends Application {
     private final Config CONFIG = Config.getInstance();
+    private final String APP_NAME = "DoomLauncherFX";
     
     private TabPane tabPane;
     private Tab portsTab;
@@ -88,12 +92,8 @@ public class LauncherFX extends Application {
     private String selectedPort;
     private PWadListItem selectedPwad;
     
-    public LauncherFX() throws IOException {
-        CONFIG.initializeConfig();
-    }
-    
     @Override
-    public void start(Stage primaryStage) throws MalformedURLException {
+    public void start(Stage primaryStage) throws MalformedURLException, IOException {
         portsBox = new VBox();
         iwadsBox = new VBox();
         modsBox = new VBox();
@@ -255,10 +255,13 @@ public class LauncherFX extends Application {
         MenuItem fileMenuItemReloadIni = new MenuItem("Reload launcherfx.ini");
         fileMenuItemReloadIni.addEventHandler(ActionEvent.ACTION, (event) -> {
             try {
-                CONFIG.initializeConfig();
+                CONFIG.loadConfig();
                 refreshFromIni();
             } catch (IOException ex) {
                 Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                
+                Alert exceptionAlert = new Alert(Alert.AlertType.ERROR, "There was a problem loading the configuration file.\nMake sure you have a " + Config.CONFIG_FILE + " located in " + Config.USER_HOME + File.separator + Config.CONFIG_DIR + ", even if you use a custom data location.\nRestart the application to recreate it and if necessary point it to your custom directory.", ButtonType.OK);
+                exceptionAlert.showAndWait();
             }
         });
         MenuItem fileMenuItemExit = new MenuItem("Exit");
@@ -275,15 +278,65 @@ public class LauncherFX extends Application {
         root.setMinSize(600, 550);
         Scene scene = new Scene(root, 600, 550);
         
-        refreshFromIni();
-        
-        primaryStage.setTitle("LauncherFX");
+        primaryStage.setTitle(APP_NAME);
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
+        primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, (event) -> {
+            if(CONFIG.isFirstRun()) {
+                ButtonType homeButton = new ButtonType("Use Home Directory");
+                ButtonType otherButton = new ButtonType("Choose Other Directory");
+
+                Alert firstRunAlert = new Alert(Alert.AlertType.INFORMATION, "Would you like to initialize the configurtion in your User Home directory, or choose another location?", homeButton, otherButton, ButtonType.CANCEL);
+                firstRunAlert.setTitle(APP_NAME);
+                firstRunAlert.setHeaderText("Configuration Not Found.");
+
+                Optional<ButtonType> result = firstRunAlert.showAndWait();
+                if(!result.isPresent() || result.get() == ButtonType.CANCEL) {
+                    System.out.println("Cancelled configuration alert. Exiting.");
+                    Platform.exit();
+                }
+                else {
+                    if(result.get() == homeButton) {
+                        try {
+                            CONFIG.initializeConfig();
+                        } catch (IOException ex) {
+                            Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                    else if(result.get() == otherButton) {
+                        DirectoryChooser chooser = new DirectoryChooser();
+                        chooser.setInitialDirectory(FileSystems.getDefault().getPath(System.getProperty("user.home")).toFile());
+
+                        File dir = chooser.showDialog(primaryStage);
+                        if(dir == null) {
+                            System.out.println("No directory chosen. Exiting.");
+                            Platform.exit();
+                        }
+                        else {
+                            try {
+                                CONFIG.initializeConfig(dir.toPath());
+                            } catch (IOException ex) {
+                                Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                try {
+                    CONFIG.loadConfig();
+                } catch (IOException ex) {
+                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            refreshFromIni();
+        });
+        
         primaryStage.show();
     }
     
-    private void refreshFromIni() throws MalformedURLException {
+    private void refreshFromIni() {
         reset();
         
         Set<Entry<String, Section>> sortedSections = new TreeSet<>((Entry<String, Section> left, Entry<String, Section> right) -> {

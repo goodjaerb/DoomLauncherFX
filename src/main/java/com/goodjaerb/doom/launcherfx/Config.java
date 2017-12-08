@@ -12,6 +12,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +46,7 @@ public class Config {
     private static final String CONFIG_LAUNCHER_DATA_DIR_SECTION = "LauncherFXDataDir";
     private static final String CONFIG_LAUNCHER_DATA_DIR_KEY = "launcher-data";
     
+    private static final Path HOME_CONFIG_FILE_PATH = FileSystems.getDefault().getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
     private static final Ini INI_FILE = new Ini();
     private static final Config INSTANCE = new Config();
     
@@ -74,26 +76,55 @@ public class Config {
         return INI_FILE.entrySet();
     }
     
+    /**
+     * 
+     * @return true if config file exists in user.home. false otherwise.
+     */
+    public boolean isFirstRun() {
+        Path configFilePath = FileSystems.getDefault().getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
+        return !Files.exists(configFilePath);
+    }
+    
     public void initializeConfig() throws IOException {
+        initializeConfig(null);
+    }
+    
+    public void initializeConfig(Path configCustomPath) throws IOException {
         FileSystem fs = FileSystems.getDefault();
-        Path configFilePath = fs.getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
+        Path homeConfigFilePath = fs.getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);;
+        
+        if(configCustomPath == null) {
+            configHome = homeConfigFilePath.getParent().toString();
 
-        if(!Files.exists(configFilePath)) {
-            createDefaultConfig(configFilePath);
+            if(!Files.exists(homeConfigFilePath)) {
+                createDefaultConfig(homeConfigFilePath);
+            }
         }
-
-        INI_FILE.load(Files.newBufferedReader(configFilePath));
+        else {
+            configHome = configCustomPath.toString();
+            
+            if(!Files.exists(homeConfigFilePath)) {
+                createPointerConfig(homeConfigFilePath, configCustomPath);
+            }
+        }
+        loadConfig();
+    }
+    
+    public void loadConfig() throws IOException {
+        INI_FILE.load(Files.newBufferedReader(HOME_CONFIG_FILE_PATH));
         String datadir = INI_FILE.get(CONFIG_LAUNCHER_DATA_DIR_SECTION, CONFIG_LAUNCHER_DATA_DIR_KEY);
 
+        FileSystem fs = FileSystems.getDefault();
         if(datadir != null) {
             configHome = datadir;
-            configFilePath = fs.getPath(configHome, CONFIG_FILE);
-            if(!Files.exists(configFilePath)) {
-                createDefaultConfig(configFilePath);
+            
+            Path customConfigFilePath = fs.getPath(configHome, CONFIG_FILE);
+            if(!Files.exists(customConfigFilePath)) {
+                createDefaultConfig(customConfigFilePath);
             }
 
             INI_FILE.clear();
-            INI_FILE.load(Files.newBufferedReader(configFilePath));
+            INI_FILE.load(Files.newBufferedReader(customConfigFilePath));
         }
         else {
             configHome = USER_HOME + File.separator + CONFIG_DIR;
@@ -113,6 +144,25 @@ public class Config {
         };
         for(Path p : configDirs) {
             Files.createDirectories(p);
+        }
+    }
+    
+    private void createPointerConfig(Path configFilePath, Path pointToPath) throws IOException {        //check that .launcherfx directory exists.
+        if(!Files.exists(configFilePath.getParent())) {
+            Files.createDirectory(configFilePath.getParent());
+        }
+        
+        //check that launcherfx.ini file exists.
+        if(!Files.exists(configFilePath)) {
+            Files.createFile(configFilePath);
+        }
+        
+        //initialize with example data.
+        try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(configFilePath, StandardOpenOption.WRITE))) {
+            writer.println("; Be safe and use a forward slash / in your paths. Backslash \\ will not parse well.");
+            writer.println("[" + CONFIG_LAUNCHER_DATA_DIR_SECTION + "]");
+            writer.println(CONFIG_LAUNCHER_DATA_DIR_KEY + "=" + pointToPath.toString().replaceAll("\\\\", "/"));
+            writer.println();
         }
     }
     
@@ -149,8 +199,8 @@ public class Config {
             writer.println();
             writer.println("; if you want to keep the above data structures in another location, uncomment the following two lines and give the absolute path to the location you want. Leave THIS ini here with this line in it, and copy the rest of your configuration below into the ini at your new location.");
             writer.println("; The application will see this line pointing to the other location, then open the ini that is over there.");
-            writer.println("; [LauncherFXDataDir]");
-            writer.println("; launcher-data=/path/to/launcher/data");
+            writer.println("; [" + CONFIG_LAUNCHER_DATA_DIR_SECTION + "]");
+            writer.println("; " + CONFIG_LAUNCHER_DATA_DIR_KEY + "=/path/to/launcher/data");
             writer.println();
             writer.println("; A section describing a Doom source port. The section name may be referenced from other options.");
             writer.println("; Use 'wadfolder=' in a port section to limit which wads folder to search for pwads. By default the application creates folders called 'boom', 'limit-removing', and 'vanilla'. If you need more you can create them and use the name in the ini. Optional. No value for wadfolder will assume all wads are legal.");

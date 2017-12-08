@@ -8,6 +8,8 @@ package com.goodjaerb.doom.launcherfx.scene.control;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -29,7 +31,7 @@ public class LaunchItemPane extends BorderPane {
     private final Label nameLabel;
     private final Text descriptionArea;
     
-    public LaunchItemPane(String sectionName, String name, String description, String img, boolean setDisable, EventHandler<ActionEvent> handler) throws MalformedURLException {
+    public LaunchItemPane(String sectionName, String name, String description, String img, boolean setDisable, EventHandler<ActionEvent> handler) {
         this.sectionName = sectionName;
         
         launchButton = new Button(name);
@@ -39,10 +41,15 @@ public class LaunchItemPane extends BorderPane {
         if(img != null && Files.exists(Paths.get(img))) {
             launchButton.setText(null);
             
-            ImageView icon = new ImageView(Paths.get(img).toUri().toURL().toString());
-            icon.setPreserveRatio(true);
-            icon.setFitHeight(150);
-            icon.setFitWidth(150);
+            ImageView icon = null;
+            try {
+                icon = new ImageView(Paths.get(img).toUri().toURL().toString());
+                icon.setPreserveRatio(true);
+                icon.setFitHeight(150);
+                icon.setFitWidth(150);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(LaunchItemPane.class.getName()).log(Level.SEVERE, null, ex);
+            }
             
             launchButton.setGraphic(icon);
         }
