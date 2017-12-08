@@ -12,14 +12,12 @@ import com.goodjaerb.doom.launcherfx.scene.control.list.WarpListCell;
 import com.goodjaerb.doom.launcherfx.scene.control.list.WarpListItem;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -56,7 +54,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
 /**
@@ -64,28 +61,7 @@ import org.ini4j.Profile.Section;
  * @author goodjaerb
  */
 public class LauncherFX extends Application {
-    private static final String USER_HOME = System.getProperty("user.home");
-    private static final String CONFIG_DIR = ".launcherfx";
-    private static final String CONFIG_FILE = "launcherfx.ini";
-    
-    private static final String CONFIG_DIR_IMAGES = "images";
-    private static final String CONFIG_DIR_IWAD = "iwad";
-    private static final String CONFIG_DIR_MODS = "mods";
-    private static final String CONFIG_DIR_WADS = "wads";
-    private static final String CONFIG_DIR_BOOM = "boom";
-    private static final String CONFIG_DIR_LIMIT_REMOVING = "limit-removing";
-    private static final String CONFIG_DIR_VANILLA = "vanilla";
-    private static final String CONFIG_DIR_DOOM = "doom";
-    private static final String CONFIG_DIR_DOOM2 = "doom2";
-    
-    public static final String TYPE_PORT = "port";
-    public static final String TYPE_TC = "tc";
-    public static final String TYPE_MOD = "mod";
-    public static final String TYPE_IWAD = "iwad";
-    
-    public static final Ini INI_FILE = new Ini();
-    
-    private String CONFIG_HOME;
+    private final Config CONFIG = Config.getInstance();
     
     private TabPane tabPane;
     private Tab portsTab;
@@ -113,142 +89,7 @@ public class LauncherFX extends Application {
     private PWadListItem selectedPwad;
     
     public LauncherFX() throws IOException {
-        initializeConfig();
-    }
-    
-    private void initializeConfig() throws IOException {
-        FileSystem fs = FileSystems.getDefault();
-        Path configFile = fs.getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
-
-        createConfigFile(configFile);
-
-        INI_FILE.load(Files.newBufferedReader(configFile));
-        String datadir = INI_FILE.get("LauncherFXDataDir", "launcher-data");
-
-        if(datadir != null) {
-            CONFIG_HOME = datadir;
-            configFile = fs.getPath(CONFIG_HOME, CONFIG_FILE);
-            createConfigFile(configFile);
-
-            INI_FILE.clear();
-            INI_FILE.load(Files.newBufferedReader(configFile));
-        }
-        else {
-            CONFIG_HOME = USER_HOME + File.separator + CONFIG_DIR;
-        }
-
-        //create the directory structure
-        Path[] configDirs = {
-            fs.getPath(CONFIG_HOME, CONFIG_DIR_IMAGES),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR_IWAD),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR_MODS),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, CONFIG_DIR_BOOM, CONFIG_DIR_DOOM),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, CONFIG_DIR_BOOM, CONFIG_DIR_DOOM2),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, CONFIG_DIR_LIMIT_REMOVING, CONFIG_DIR_DOOM),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, CONFIG_DIR_LIMIT_REMOVING, CONFIG_DIR_DOOM2),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, CONFIG_DIR_VANILLA, CONFIG_DIR_DOOM),
-            fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, CONFIG_DIR_VANILLA, CONFIG_DIR_DOOM2),
-        };
-        for(Path p : configDirs) {
-            Files.createDirectories(p);
-        }
-    }
-    
-    private static void createConfigFile(Path configFile) throws IOException {
-        //check that .launcherfx directory exists.
-        if(!Files.exists(configFile.getParent())) {
-            Files.createDirectory(configFile.getParent());
-        }
-        
-        //check that launcherfx.ini file exists.
-        if(!Files.exists(configFile)) {
-            Files.createFile(configFile);
-
-            //initialize with example data.
-            try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(configFile, StandardOpenOption.WRITE))) {
-                writer.println("; A directory '" + CONFIG_DIR + "' will be created in the user's home directory. Within this directory will be another series of directories to store various wads and mods as described below. Also will be this '" + CONFIG_FILE + "' files.");
-                writer.println("; The directory structure will be as follows:");
-                writer.println("; <user home>/" + CONFIG_DIR + "/");
-                writer.println("; +-> " + CONFIG_DIR_IMAGES + "/");
-                writer.println("; +-> " + CONFIG_DIR_IWAD + "/");
-                writer.println("; +-> " + CONFIG_DIR_MODS + "/");
-                writer.println("; +-> " + CONFIG_DIR_WADS + "/");
-                writer.println("; |    +-> " + CONFIG_DIR_BOOM + "/\t\tUsed for wads requiring Boom-compatible editing extensions source ports.");
-                writer.println("; |         +-> " + CONFIG_DIR_DOOM + "/\t\tWads that require the iwad for Doom");
-                writer.println("; |         +-> " + CONFIG_DIR_DOOM2 + "/\t\tWads that require the iwad for Doom 2");
-                writer.println("; |    +-> " + CONFIG_DIR_LIMIT_REMOVING + "/\t\tUsed for wads requiring limit-removing source ports but no further extensions.");
-                writer.println("; |         +-> " + CONFIG_DIR_DOOM + "/\t\tWads that require the iwad for Doom");
-                writer.println("; |         +-> " + CONFIG_DIR_DOOM2 + "/\t\tWads that require the iwad for Doom 2");
-                writer.println("; |    +-> " + CONFIG_DIR_VANILLA + "/\t\tUsed for wads that do not require 'limit-removing' source ports.");
-                writer.println("; |         +-> " + CONFIG_DIR_DOOM + "/");
-                writer.println("; |         +-> " + CONFIG_DIR_DOOM2 + "/");
-                writer.println("; +-> " + CONFIG_FILE);
-                writer.println();
-                writer.println("; if you want to keep the above data structures in another location, uncomment the following two lines and give the absolute path to the location you want. Leave THIS ini here with this line in it, and copy the rest of your configuration below into the ini at your new location.");
-                writer.println("; The application will see this line pointing to the other location, then open the ini that is over there.");
-                writer.println("; [LauncherFXDataDir]");
-                writer.println("; launcher-data=/path/to/launcher/data");
-                writer.println();
-                writer.println("; A section describing a Doom source port. The section name may be referenced from other options.");
-                writer.println("; Use 'wadfolder=' in a port section to limit which wads folder to search for pwads. By default the application creates folders called 'boom', 'limit-removing', and 'vanilla'. If you need more you can create them and use the name in the ini. Optional. No value for wadfolder will assume all wads are legal.");
-                writer.println("; Each section must have a 'type=', defining each section as a 'port', 'mod', or 'iwad'");
-                writer.println("; Use quotes (\"...\") around the value for cmd if there are spaces in the path.");
-                writer.println("; If 'img=' is not an absolute path, the 'images' folder above will be checked for the image file. If defining an absolute path or path with subdirectories, use '\\' or '/' as the path separator. a single '\' will not parse well. Do not use quotes for 'img' even if there are spaces in the path.");
-                writer.println("; 'sort=' can be used to create an order of the ports/mods in the user interface. Optional. Sort order is undefined if not specified or if sorts are not all unique.");
-                writer.println("[Example1]");
-                writer.println("name=Example Source Port");
-                writer.println("desc=Describe the port and its features.");
-                writer.println("type=port");
-                writer.println("sort=1");
-                writer.println("wadfolder=limit-removing,vanilla");
-                writer.println("cmd=/path/to/run/port");
-                writer.println("img=/optional/path/to/image/for/button.png");
-                writer.println();
-                writer.println("; A section describing a mod that relies on a source port.");
-                writer.println("; Use the 'port=' field to define the source port(s) that can play this mod using the section name. Optional.");
-                writer.println("; Use 'iwad=' to list the iwads the mod is compatible with, separated by commas if more than one, again using section names defining the iwads. Optional.");
-                writer.println("[Example2]");
-                writer.println("name=Mod Name");
-                writer.println("desc=Mod description.");
-                writer.println("type=mod");
-                writer.println("sort=2");
-                writer.println("port=Example1");
-                writer.println("iwad=Ultimate,Doom2");
-                writer.println("img=/optional/path/to/img.png");
-                writer.println();
-                writer.println("; A section describing a Total Conversion (TC) that relies on a source port.");
-                writer.println("; Use the 'port=' field to define the source port(s) that can play this mod using the section name.");
-                writer.println("; Use 'iwad=' to list the iwads the mod is compatible with, separated by commas if more than one, again using section names defining the iwads. Optional.");
-                writer.println("; Use 'cmd=' if you want the mod to appear in the menu as a means of direct launching. Optional. Use quotes (\"...\") around the value if there are spaces in the path.");
-                writer.println("; Use 'args=' if the mod has to run with a source port (defined in 'port=') and needs to pass extra parameters. Optional. Use quotes (\"...\") around individual argument values that have spaces in them.");
-                writer.println("; Use 'workingdir=' to point to the mod folder in the event you have to run with 'args=' that point to files in said working directory. Like for 'img=', if not an absolute path, the mods folder defined above will be used as the root of the given working directory. Do not use quotes for 'workingdir' even if there are spaces in the path.");
-                writer.println("; Use 'skipwads=true' if you don't want to be offered to load a pwad.");
-                writer.println("[Example2]");
-                writer.println("name=Mod Name");
-                writer.println("desc=Mod description.");
-                writer.println("type=tc");
-                writer.println("sort=3");
-                writer.println("port=Example1");
-                writer.println("iwad=Ultimate,Doom2");
-                writer.println("img=/optional/path/to/img.png");
-                writer.println();
-                writer.println("; Defines base iwad files required to play Doom. These files are to be stored in /<user home directory>/.launcherfx/iwad/. Do not use quotes for 'file' even if there are spaces in the path.");
-                writer.println("[Ultimate]");
-                writer.println("name=Ultimate Doom");
-                writer.println("type=iwad");
-                writer.println("file=doom.wad");
-                writer.println();
-                writer.println("[Doom2]");
-                writer.println("name=Doom II");
-                writer.println("type=iwad");
-                writer.println("file=doom2.wad");
-                writer.println();
-                writer.println("; Helper lists for warp= values.");
-                writer.println("; E1M1,E1M2,E1M3,E1M4,E1M5,E1M6,E1M7,E1M8,E1M9,E2M1,E2M2,E2M3,E2M4,E2M5,E2M6,E2M7,E2M8,E2M9,E3M1,E3M2,E3M3,E3M4,E3M5,E3M6,E3M7,E3M8,E3M9,E4M1,E4M2,E4M3,E4M4,E4M5,E4M6,E4M7,E4M8,E4M9");
-                writer.println("; MAP01,MAP02,MAP03,MAP04,MAP05,MAP06,MAP07,MAP08,MAP09,MAP10,MAP11,MAP12,MAP13,MAP14,MAP15,MAP16,MAP17,MAP18,MAP19,MAP20,MAP21,MAP22,MAP23,MAP24,MAP25,MAP26,MAP27,MAP28,MAP29,MAP30,MAP31,MAP32");
-                writer.flush();
-            }
-        }
+        CONFIG.initializeConfig();
     }
     
     @Override
@@ -258,7 +99,7 @@ public class LauncherFX extends Application {
         modsBox = new VBox();
         
         EventHandler<ActionEvent> launchHandler = (event) -> {
-            addArgsToProcess(INI_FILE.get(selectedPort, "args"));
+            addArgsToProcess(CONFIG.get(selectedPort, "args"));
             
             List<PWadListItem> selectedPwadItems = pwadListView.getSelectionModel().getSelectedItems();
             if(selectedPwadItems.size() == 1) {
@@ -322,9 +163,9 @@ public class LauncherFX extends Application {
             }
             
             File workingDir = null;
-            String type = INI_FILE.get(selectedPort, "type");
-            if(TYPE_MOD.equals(type) || TYPE_TC.equals(type)) {
-                String workingDirStr = getAbsolutePath(selectedPort, "workingdir", CONFIG_DIR_MODS);
+            String type = CONFIG.get(selectedPort, "type");
+            if(Config.TYPE_MOD.equals(type) || Config.TYPE_TC.equals(type)) {
+                String workingDirStr = getAbsolutePath(selectedPort, "workingdir", Config.DIR_MODS);
                 if(workingDirStr != null) {
                     workingDir = new File(workingDirStr);
                 }
@@ -414,7 +255,7 @@ public class LauncherFX extends Application {
         MenuItem fileMenuItemReloadIni = new MenuItem("Reload launcherfx.ini");
         fileMenuItemReloadIni.addEventHandler(ActionEvent.ACTION, (event) -> {
             try {
-                initializeConfig();
+                CONFIG.initializeConfig();
                 refreshFromIni();
             } catch (IOException ex) {
                 Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
@@ -463,7 +304,7 @@ public class LauncherFX extends Application {
             
             return leftSort.compareTo(rightSort);
         });
-        sortedSections.addAll(INI_FILE.entrySet());
+        sortedSections.addAll(CONFIG.entrySet());
         
         portsBox.getChildren().clear();
         iwadsBox.getChildren().clear();
@@ -473,36 +314,36 @@ public class LauncherFX extends Application {
         for(Entry<String, Section> iniEntry : sortedSections) {
             System.out.println("Section=" + iniEntry.getKey());
             String section = iniEntry.getKey();
-            String type = INI_FILE.get(section, "type");
+            String type = CONFIG.get(section, "type");
             
             if(type != null) {
                 type = type.toLowerCase();
                 switch(type) {
-                    case TYPE_PORT:
-                    case TYPE_TC:
+                    case Config.TYPE_PORT:
+                    case Config.TYPE_TC:
                         portsBox.getChildren().add(new LaunchItemPane(
                                 section,
-                                INI_FILE.get(section, "name"),
-                                INI_FILE.get(section, "desc"),
-                                getAbsolutePath(section, "img", CONFIG_DIR_IMAGES),
+                                CONFIG.get(section, "name"),
+                                CONFIG.get(section, "desc"),
+                                getAbsolutePath(section, "img", Config.DIR_IMAGES),
                                 false,
                                 new LaunchItemEventHandler(section)));
                         break;
-                    case TYPE_IWAD:
+                    case Config.TYPE_IWAD:
                         iwadsBox.getChildren().add(new LaunchItemPane(
                                 section,
-                                INI_FILE.get(section, "name"),
-                                INI_FILE.get(section, "desc"),
-                                getAbsolutePath(section, "img", CONFIG_DIR_IMAGES),
+                                CONFIG.get(section, "name"),
+                                CONFIG.get(section, "desc"),
+                                getAbsolutePath(section, "img", Config.DIR_IMAGES),
                                 true,
                                 new LaunchItemEventHandler(section)));
                         break;
-                    case TYPE_MOD:
+                    case Config.TYPE_MOD:
                         modsBox.getChildren().add(new LaunchItemPane(
                                 section,
-                                INI_FILE.get(section, "name"),
-                                INI_FILE.get(section, "desc"),
-                                getAbsolutePath(section, "img", CONFIG_DIR_IMAGES),
+                                CONFIG.get(section, "name"),
+                                CONFIG.get(section, "desc"),
+                                getAbsolutePath(section, "img", Config.DIR_IMAGES),
                                 true,
                                 new LaunchItemEventHandler(section)));
                         break;
@@ -538,7 +379,7 @@ public class LauncherFX extends Application {
     }
     
     private String getAbsolutePath(String section, String key, String configSubDir) {
-        String pathStr = INI_FILE.get(section, key);
+        String pathStr = CONFIG.get(section, key);
         if(pathStr == null) {
             return null;
         }
@@ -547,7 +388,7 @@ public class LauncherFX extends Application {
         if(path.isAbsolute()) {
             return path.toString();
         }
-        return Paths.get(CONFIG_HOME, configSubDir, path.toString()).toString();
+        return Paths.get(CONFIG.getConfigHome(), configSubDir, path.toString()).toString();
     }
     
     private void chooseIwad() {
@@ -562,7 +403,7 @@ public class LauncherFX extends Application {
         setItemsDisable(iwadsBox, false);
         
         for(Node launchItem : iwadsBox.getChildren()) {
-            if(isIwadCompatible(INI_FILE.get(selectedPort, "iwad"), ((LaunchItemPane)launchItem).sectionName)) {
+            if(isIwadCompatible(CONFIG.get(selectedPort, "iwad"), ((LaunchItemPane)launchItem).sectionName)) {
                 ((LaunchItemPane)launchItem).setButtonDisable(false);
             }
             else {
@@ -583,7 +424,7 @@ public class LauncherFX extends Application {
         setItemsDisable(modsBox, false);
         
         for(Node launchItem : modsBox.getChildren()) {
-            if(isModCompatible(INI_FILE.get(((LaunchItemPane)launchItem).sectionName))) {
+            if(isModCompatible(CONFIG.get(((LaunchItemPane)launchItem).sectionName))) {
                 ((LaunchItemPane)launchItem).setButtonDisable(false);
             }
             else {
@@ -630,7 +471,7 @@ public class LauncherFX extends Application {
         ObservableList<WarpListItem> olist = FXCollections.observableArrayList(list);
         
         String warp;
-        String tcWarp = INI_FILE.get(selectedPort, "warp");
+        String tcWarp = CONFIG.get(selectedPort, "warp");
         if(tcWarp == null) {
             warp = selectedPwad.warp;
         }
@@ -655,7 +496,7 @@ public class LauncherFX extends Application {
     }
     
     private void loadPwadList() throws IOException {
-        String skipWads = INI_FILE.get(selectedPort, "skipwads");
+        String skipWads = CONFIG.get(selectedPort, "skipwads");
         if("true".equals(skipWads)) {
             selectedPwad = PWadListItem.NO_PWAD;
             chooseWarp();
@@ -664,12 +505,12 @@ public class LauncherFX extends Application {
             SortedSet<PWadListItem> pwadList = new TreeSet<>();
             pwadList.add(PWadListItem.NO_PWAD);
             
-            String gameWadFolder = selectedGame.wadfolder;//INI_FILE.get(selectedIwad, "wadfolder");
-            String portCompatibleFolders = INI_FILE.get(selectedPort, "wadfolder");
+            String gameWadFolder = selectedGame.wadfolder;//CONFIG.get(selectedIwad, "wadfolder");
+            String portCompatibleFolders = CONFIG.get(selectedPort, "wadfolder");
             if(portCompatibleFolders == null) {
                 // parse all folders.
                 FileSystem fs = FileSystems.getDefault();
-                Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS);
+                Path wadBasePath = fs.getPath(CONFIG.getConfigHome(), Config.DIR_WADS);
                 Files.list(wadBasePath).forEach((path) -> {
                     if(Files.isDirectory(path)) {
                         try {
@@ -685,7 +526,7 @@ public class LauncherFX extends Application {
                 String[] splitPortFolders = portCompatibleFolders.split(",");
                 for(String wadDir : splitPortFolders) {
                     FileSystem fs = FileSystems.getDefault();
-                    Path wadBasePath = fs.getPath(CONFIG_HOME, CONFIG_DIR_WADS, wadDir);
+                    Path wadBasePath = fs.getPath(CONFIG.getConfigHome(), Config.DIR_WADS, wadDir);
                     addFilesToPwadList(wadBasePath.resolve(gameWadFolder), pwadList);
                 }
             }
@@ -704,7 +545,7 @@ public class LauncherFX extends Application {
                         theWadSet.add(new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file));
                     }
                     else if(filename.endsWith(".deh")) {
-                        String ignore = INI_FILE.get(file.getFileName().toString(), "ignore");
+                        String ignore = CONFIG.get(file.getFileName().toString(), "ignore");
                         if(ignore == null || !"true".equals(ignore)) {
                             theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file));
                         }
@@ -723,7 +564,7 @@ public class LauncherFX extends Application {
     private PWadListItem handlePwad(Path pwadPath) {
         String filename = pwadPath.getFileName().toString();
 
-        Section pwadSection = INI_FILE.get(filename);
+        Section pwadSection = CONFIG.get(filename);
         if(pwadSection != null) {
             String ignore = pwadSection.get("ignore");
             if(ignore != null && "true".equals(ignore)) {
@@ -782,7 +623,7 @@ public class LauncherFX extends Application {
      * @return 
      */
     private boolean isIwadCompatible(String supportedIwadList, String iwadSectionName) {
-        String supportedPorts = INI_FILE.get(iwadSectionName, "port");
+        String supportedPorts = CONFIG.get(iwadSectionName, "port");
         if(supportedPorts != null) {
             String[] splitPorts = supportedPorts.split(",");
             for(String port : splitPorts) {
@@ -902,7 +743,7 @@ public class LauncherFX extends Application {
         
         @Override
         public void handle(ActionEvent e) {
-            Section mySection = INI_FILE.get(sectionName);
+            Section mySection = CONFIG.get(sectionName);
             String myType = "mod";
             if(mySection != null) {
                 myType = mySection.get("type");
@@ -945,7 +786,7 @@ public class LauncherFX extends Application {
                             reset();
                         }
                         else {
-                            String myCmd = INI_FILE.get(port, "cmd");
+                            String myCmd = CONFIG.get(port, "cmd");
 
                             if(myCmd != null) {
                                 processCommand = new ArrayList<>();
@@ -959,7 +800,7 @@ public class LauncherFX extends Application {
                     break;
                 case "mod":
                     if(mySection != null && mySection.get("file") != null) {
-                        addArgsToProcess("-file " + getAbsolutePath(sectionName, "file", CONFIG_DIR_MODS));
+                        addArgsToProcess("-file " + getAbsolutePath(sectionName, "file", Config.DIR_MODS));
                     }
                     
                     try {
@@ -969,7 +810,7 @@ public class LauncherFX extends Application {
                     }
                     break;
                 case "iwad":
-                    String iwadPath = getAbsolutePath(sectionName, "file", CONFIG_DIR_IWAD);
+                    String iwadPath = getAbsolutePath(sectionName, "file", Config.DIR_IWAD);
                     addArgsToProcess("-iwad " + iwadPath);
 
                     selectedIwad = sectionName;
