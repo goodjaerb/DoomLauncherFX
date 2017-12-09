@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.goodjaerb.doom.launcherfx;
+package com.goodjaerb.doom.launcherfx.config;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,8 +14,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
@@ -50,7 +53,10 @@ public class Config {
     private static final Ini INI_FILE = new Ini();
     private static final Config INSTANCE = new Config();
     
-    private static String configHome;
+    private final Set<Port> PORTS = new TreeSet<>();
+    
+    private String configHome;
+    
     
     private Config() {
         
@@ -74,6 +80,19 @@ public class Config {
     
     public Set<Map.Entry<String, Section>> entrySet() {
         return INI_FILE.entrySet();
+    }
+    
+    public Collection<Port> getPorts() {
+        return Collections.unmodifiableCollection(PORTS);
+    }
+    
+    public Port getPort(String sectionName) {
+        for(Port p : PORTS) {
+            if(p.sectionName().equals(sectionName)) {
+                return p;
+            }
+        }
+        return null;
     }
     
     /**
@@ -144,6 +163,18 @@ public class Config {
         };
         for(Path p : configDirs) {
             Files.createDirectories(p);
+        }
+        
+        parseIni();
+    }
+    
+    private void parseIni() {
+        PORTS.clear();
+        for(Section section : INI_FILE.values()) {
+            String type = section.get("type");
+            if(TYPE_PORT.equals(type) || TYPE_TC.equals(type)) {
+                PORTS.add(new Port(section));
+            }
         }
     }
     

@@ -5,6 +5,7 @@
  */
 package com.goodjaerb.doom.launcherfx.scene.control;
 
+import com.goodjaerb.doom.launcherfx.config.Port;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -57,6 +58,40 @@ public class LaunchItemPane extends BorderPane {
         nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px");
         
         descriptionArea = new Text(description);
+        layoutPane();
+    }
+    
+    public LaunchItemPane(Port p, EventHandler<ActionEvent> handler) {
+        sectionName = null;// i don't want to have to set this once i'm done converting to new config classes.
+        
+        launchButton = new Button();
+        launchButton.textProperty().bind(p.valueProperty(Port.Field.NAME));
+        launchButton.addEventHandler(ActionEvent.ACTION, handler);
+        
+        nameLabel = new Label();
+        nameLabel.textProperty().bind(p.valueProperty(Port.Field.NAME));
+        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px");
+        
+        descriptionArea = new Text();
+        descriptionArea.textProperty().bind(p.valueProperty(Port.Field.DESC));
+        
+        String img = p.get(Port.Field.IMG);
+        if(img != null && Files.exists(Paths.get(img))) {
+            launchButton.setText(null);
+            
+            ImageView icon = null;
+            try {
+                icon = new ImageView(Paths.get(img).toUri().toURL().toString());
+                icon.setPreserveRatio(true);
+                icon.setFitHeight(150);
+                icon.setFitWidth(150);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(LaunchItemPane.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            launchButton.setGraphic(icon);
+        }
+        
         layoutPane();
     }
     
