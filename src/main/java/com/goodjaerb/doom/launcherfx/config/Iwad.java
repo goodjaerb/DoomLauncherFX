@@ -5,27 +5,18 @@
  */
 package com.goodjaerb.doom.launcherfx.config;
 
+import org.ini4j.Profile;
+
 /**
  *
  * @author goodjaerb<goodjaerb@gmail.com>
  */
-public enum Field {
-    NAME,
-    DESC,
-    TYPE,
-    IWAD,
-    FILE,
-    WARP,
-    SKIPWADS,
-    WADFOLDER,
-    PORT,
-    WORKINGDIR,
-    CMD,
-    ARGS,
-    IMG,
-    AUTHOR;
-
-    String iniKey() {
-        return name().toLowerCase();
+public class Iwad extends IniConfigurable {
+    
+    Iwad(Profile.Section iniSection) {
+        super(iniSection, 
+                Field.NAME,
+                Field.TYPE,
+                Field.FILE);
     }
 }

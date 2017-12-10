@@ -27,43 +27,43 @@ import javafx.scene.text.Text;
  * @author goodjaerb
  */
 public class LaunchItemPane extends BorderPane {
-    public final String sectionName;
+//    public final String sectionName;
     
     private final Button launchButton;
     private final Label nameLabel;
     private final Text descriptionArea;
     
-    public LaunchItemPane(String sectionName, String name, String description, String img, boolean setDisable, EventHandler<ActionEvent> handler) {
-        this.sectionName = sectionName;
-        
-        launchButton = new Button(name);
-        launchButton.addEventHandler(ActionEvent.ACTION, handler);
-        launchButton.setDisable(setDisable);
-        
-        if(img != null && Files.exists(Paths.get(img))) {
-            launchButton.setText(null);
-            
-            ImageView icon = null;
-            try {
-                icon = new ImageView(Paths.get(img).toUri().toURL().toString());
-                icon.setPreserveRatio(true);
-                icon.setFitHeight(150);
-                icon.setFitWidth(150);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(LaunchItemPane.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            launchButton.setGraphic(icon);
-        }
-        nameLabel = new Label(name);
-        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px");
-        
-        descriptionArea = new Text(description);
-        layoutPane();
-    }
+//    public LaunchItemPane(String sectionName, String name, String description, String img, boolean setDisable, EventHandler<ActionEvent> handler) {
+//        this.sectionName = sectionName;
+//        
+//        launchButton = new Button(name);
+//        launchButton.addEventHandler(ActionEvent.ACTION, handler);
+//        launchButton.setDisable(setDisable);
+//        
+//        if(img != null && Files.exists(Paths.get(img))) {
+//            launchButton.setText(null);
+//            
+//            ImageView icon = null;
+//            try {
+//                icon = new ImageView(Paths.get(img).toUri().toURL().toString());
+//                icon.setPreserveRatio(true);
+//                icon.setFitHeight(150);
+//                icon.setFitWidth(150);
+//            } catch (MalformedURLException ex) {
+//                Logger.getLogger(LaunchItemPane.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//            
+//            launchButton.setGraphic(icon);
+//        }
+//        nameLabel = new Label(name);
+//        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px");
+//        
+//        descriptionArea = new Text(description);
+//        layoutPane();
+//    }
     
     public LaunchItemPane(IniConfigurable item, EventHandler<ActionEvent> handler) {
-        sectionName = null;// i don't want to have to set this once i'm done converting to new config classes.
+//        sectionName = null;// i don't want to have to set this once i'm done converting to new config classes.
 
         launchButton = new Button();
         launchButton.textProperty().bind(item.valueProperty(Field.NAME));

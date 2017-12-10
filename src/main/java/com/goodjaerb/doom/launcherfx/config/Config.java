@@ -16,8 +16,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
@@ -26,6 +24,13 @@ import org.ini4j.Profile.Section;
  * @author goodjaerb<goodjaerb@gmail.com>
  */
 public class Config {
+    public enum Type {
+        PORT, TC, MOD, IWAD, PWAD;
+        
+        public String value() {
+            return name().toLowerCase();
+        }
+    }
     public static final String USER_HOME = System.getProperty("user.home");
     public static final String CONFIG_DIR = ".launcherfx";
     public static final String CONFIG_FILE = "launcherfx.ini";
@@ -40,10 +45,10 @@ public class Config {
     public static final String DIR_DOOM = "doom";
     public static final String DIR_DOOM2 = "doom2";
     
-    public static final String TYPE_PORT = "port";
-    public static final String TYPE_TC = "tc";
-    public static final String TYPE_MOD = "mod";
-    public static final String TYPE_IWAD = "iwad";
+//    public static final String TYPE_PORT = "port";
+//    public static final String TYPE_TC = "tc";
+//    public static final String TYPE_MOD = "mod";
+//    public static final String TYPE_IWAD = "iwad";
     
     private static final String CONFIG_LAUNCHER_DATA_DIR_SECTION = "LauncherFXDataDir";
     private static final String CONFIG_LAUNCHER_DATA_DIR_KEY = "launcher-data";
@@ -52,7 +57,7 @@ public class Config {
     private static final Ini INI_FILE = new Ini();
     private static final Config INSTANCE = new Config();
     
-    private final List<Port> PORTS = new ArrayList<>();
+    private final List<IniConfigurable> CONFIGURABLES = new ArrayList<>();
     
     private String configHome;
     
@@ -69,26 +74,29 @@ public class Config {
         return configHome;
     }
     
-    public String get(String sectionName, String key) {
-        return INI_FILE.get(sectionName, key);
+    public List<IniConfigurable> getConfigurables() {
+        return Collections.unmodifiableList(CONFIGURABLES);
     }
     
-    public Section get(String sectionName) {
-        return INI_FILE.get(sectionName);
-    }
+//    public String get(IniConfigurable c, Field f) {
+//        return INI_FILE.get(c.sectionName(), f.iniKey());
+//    }
     
-    public Set<Map.Entry<String, Section>> entrySet() {
-        return INI_FILE.entrySet();
-    }
-    
-    public List<Port> getPorts() {
-        return Collections.unmodifiableList(PORTS);
-    }
+//    public List<Port> getPorts() {
+//        List<Port> ports = new ArrayList<>();
+//        for(IniConfigurable ic : CONFIGURABLES) {
+//            Type type = ic.getType();
+//            if(type == Type.PORT || type == Type.TC) {
+//                ports.add((Port)ic);
+//            }
+//        }
+//        return ports;
+//    }
     
     public Port getPort(String sectionName) {
-        for(Port p : PORTS) {
-            if(p.sectionName().equals(sectionName)) {
-                return p;
+        for(IniConfigurable ic : CONFIGURABLES) {
+            if(ic.sectionName().equals(sectionName)) {
+                return (Port)ic;
             }
         }
         return null;
@@ -168,11 +176,25 @@ public class Config {
     }
     
     private void parseIni() {
-        PORTS.clear();
+        CONFIGURABLES.clear();
         for(Section section : INI_FILE.values()) {
-            String type = section.get(Field.TYPE.iniKey());
-            if(TYPE_PORT.equals(type) || TYPE_TC.equals(type)) {
-                PORTS.add(new Port(section));
+            Type type = Type.valueOf(section.get(Field.TYPE.iniKey()));
+            if(null != type) switch (type) {
+                case PORT:
+                case TC:
+                    CONFIGURABLES.add(new Port(section));
+                    break;
+                case IWAD:
+                    CONFIGURABLES.add(new Iwad(section));
+                    break;
+                case MOD:
+                    CONFIGURABLES.add(new Mod(section));
+                    break;
+                case PWAD:
+                    CONFIGURABLES.add(new Pwad(section));
+                    break;
+                default:
+                    break;
             }
         }
     }

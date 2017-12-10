@@ -22,17 +22,19 @@ public abstract class IniConfigurable {
     IniConfigurable(Section iniSection, Field... fields) {
         this.iniSection = iniSection;
         this.fieldMap = new EnumMap(Field.class);
-
-        for(Field f : fields) {
-            String value = iniSection.get(f.iniKey());
-            if(value != null) {
-                fieldMap.put(f, new ReadOnlyStringWrapper(value));
+        
+        if(iniSection != null) {
+            for(Field f : fields) {
+                String value = iniSection.get(f.iniKey());
+                if(value != null) {
+                    fieldMap.put(f, new ReadOnlyStringWrapper(value));
+                }
             }
         }
     }
     
     final String sectionName() {
-        return iniSection.getName();
+        return iniSection == null ? null : iniSection.getName();
     }
     
     public final void set(Field f, String value) {
@@ -48,9 +50,14 @@ public abstract class IniConfigurable {
         ReadOnlyStringWrapper w = fieldMap.get(f);
         return (w == null || w.getValue() == null) ? ifNull : w.getValue();
     }
+    
     public final Integer getInt(Field f, Integer ifNull) {
         ReadOnlyStringWrapper w = fieldMap.get(f);
         return (w == null || w.getValue() == null) ? ifNull : Integer.parseInt(w.getValue());
+    }
+    
+    public final Config.Type getType() {
+        return Config.Type.valueOf(fieldMap.get(Field.TYPE).getValue());
     }
     
     public final ReadOnlyStringProperty valueProperty(Field f) {
