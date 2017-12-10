@@ -6,6 +6,7 @@
 package com.goodjaerb.doom.launcherfx;
 
 import com.goodjaerb.doom.launcherfx.config.Config;
+import com.goodjaerb.doom.launcherfx.config.Field;
 import com.goodjaerb.doom.launcherfx.config.Port;
 import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListItem;
 import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListCell;
@@ -101,7 +102,7 @@ public class LauncherFX extends Application {
         modsBox = new VBox();
         
         EventHandler<ActionEvent> launchHandler = (event) -> {
-            addArgsToProcess(selectedPort.get(Port.Field.ARGS));//CONFIG.get(selectedPort, "args"));
+            addArgsToProcess(selectedPort.get(Field.ARGS));//CONFIG.get(selectedPort, "args"));
             
             List<PWadListItem> selectedPwadItems = pwadListView.getSelectionModel().getSelectedItems();
             if(selectedPwadItems.size() == 1) {
@@ -165,9 +166,9 @@ public class LauncherFX extends Application {
             }
             
             File workingDir = null;
-            String type = selectedPort.get(Port.Field.TYPE);//CONFIG.get(selectedPort, "type");
+            String type = selectedPort.get(Field.TYPE);//CONFIG.get(selectedPort, "type");
             if(Config.TYPE_MOD.equals(type) || Config.TYPE_TC.equals(type)) {
-                String workingDirStr = getAbsolutePath(selectedPort.get(Port.Field.WORKINGDIR), Config.DIR_MODS);
+                String workingDirStr = getAbsolutePath(selectedPort.get(Field.WORKINGDIR), Config.DIR_MODS);
                 if(workingDirStr != null) {
                     workingDir = new File(workingDirStr);
                 }
@@ -346,7 +347,6 @@ public class LauncherFX extends Application {
     
     private void refreshFromIni() {
         reset();
-        refreshPorts();
         
         Set<Entry<String, Section>> sortedSections = new TreeSet<>((Entry<String, Section> left, Entry<String, Section> right) -> {
             Integer leftSort = left.getValue().get("sort", Integer.class);
@@ -372,6 +372,8 @@ public class LauncherFX extends Application {
         iwadsBox.getChildren().clear();
         modsBox.getChildren().clear();
         modsBox.getChildren().add(new LaunchItemPane(LaunchItemEventHandler.STANDARD_MOD_NAME, "Standard", "Run the selected Port/TC with no mods.", null, true, new LaunchItemEventHandler(LaunchItemEventHandler.STANDARD_MOD_NAME)));
+        
+        refreshPorts();
         
         for(Entry<String, Section> iniEntry : sortedSections) {
             System.out.println("Section=" + iniEntry.getKey());
@@ -478,7 +480,7 @@ public class LauncherFX extends Application {
         setItemsDisable(iwadsBox, false);
         
         for(Node launchItem : iwadsBox.getChildren()) {
-            if(isIwadCompatible(selectedPort.get(Port.Field.IWAD), ((LaunchItemPane)launchItem).sectionName)) {
+            if(isIwadCompatible(selectedPort.get(Field.IWAD), ((LaunchItemPane)launchItem).sectionName)) {
                 ((LaunchItemPane)launchItem).setButtonDisable(false);
             }
             else {
@@ -546,7 +548,7 @@ public class LauncherFX extends Application {
         ObservableList<WarpListItem> olist = FXCollections.observableArrayList(list);
         
         String warp;
-        String tcWarp = selectedPort.get(Port.Field.WARP);//CONFIG.get(selectedPort, "warp");
+        String tcWarp = selectedPort.get(Field.WARP);//CONFIG.get(selectedPort, "warp");
         if(tcWarp == null) {
             warp = selectedPwad.warp;
         }
@@ -571,7 +573,7 @@ public class LauncherFX extends Application {
     }
     
     private void loadPwadList() throws IOException {
-        String skipWads = selectedPort.get(Port.Field.SKIPWADS);//CONFIG.get(selectedPort, "skipwads");
+        String skipWads = selectedPort.get(Field.SKIPWADS);//CONFIG.get(selectedPort, "skipwads");
         if("true".equals(skipWads)) {
             selectedPwad = PWadListItem.NO_PWAD;
             chooseWarp();
@@ -581,7 +583,7 @@ public class LauncherFX extends Application {
             pwadList.add(PWadListItem.NO_PWAD);
             
             String gameWadFolder = selectedGame.wadfolder;//CONFIG.get(selectedIwad, "wadfolder");
-            String portCompatibleFolders = selectedPort.get(Port.Field.WADFOLDER);//CONFIG.get(selectedPort, "wadfolder");
+            String portCompatibleFolders = selectedPort.get(Field.WADFOLDER);//CONFIG.get(selectedPort, "wadfolder");
             if(portCompatibleFolders == null) {
                 // parse all folders.
                 FileSystem fs = FileSystems.getDefault();
@@ -822,10 +824,10 @@ public class LauncherFX extends Application {
 //                myType = mySection.get("type");
 //            }
 
-            switch(port.get(Port.Field.TYPE)) {
+            switch(port.get(Field.TYPE)) {
                 case Config.TYPE_PORT:
 //                    if(mySection != null) {
-                        String portCmd = port.get(Port.Field.CMD);
+                        String portCmd = port.get(Field.CMD);
                         if(portCmd != null) {
                             processCommand = new ArrayList<>();
                             addArgsToProcess(portCmd);
@@ -837,7 +839,7 @@ public class LauncherFX extends Application {
                     break;
                 case Config.TYPE_TC:
 //                    if(mySection != null) {
-                        String portStr = port.get(Port.Field.PORT);
+                        String portStr = port.get(Field.PORT);
                         String[] splitPort = portStr.split(",");
                         if(splitPort.length == 1) {
                             portStr = splitPort[0];
@@ -859,7 +861,7 @@ public class LauncherFX extends Application {
                             reset();
                         }
                         else {
-                            String tcCmd = CONFIG.getPort(portStr).get(Port.Field.CMD);//CONFIG.get(portStr, "cmd");
+                            String tcCmd = CONFIG.getPort(portStr).get(Field.CMD);//CONFIG.get(portStr, "cmd");
 
                             if(tcCmd != null) {
                                 processCommand = new ArrayList<>();

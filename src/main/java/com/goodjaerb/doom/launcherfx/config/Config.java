@@ -12,7 +12,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.Collections;
@@ -171,7 +170,7 @@ public class Config {
     private void parseIni() {
         PORTS.clear();
         for(Section section : INI_FILE.values()) {
-            String type = section.get("type");
+            String type = section.get(Field.TYPE.iniKey());
             if(TYPE_PORT.equals(type) || TYPE_TC.equals(type)) {
                 PORTS.add(new Port(section));
             }

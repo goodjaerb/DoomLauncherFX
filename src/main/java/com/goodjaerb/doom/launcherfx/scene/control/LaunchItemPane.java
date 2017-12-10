@@ -5,7 +5,8 @@
  */
 package com.goodjaerb.doom.launcherfx.scene.control;
 
-import com.goodjaerb.doom.launcherfx.config.Port;
+import com.goodjaerb.doom.launcherfx.config.Field;
+import com.goodjaerb.doom.launcherfx.config.LaunchItem;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -61,21 +62,21 @@ public class LaunchItemPane extends BorderPane {
         layoutPane();
     }
     
-    public LaunchItemPane(Port p, EventHandler<ActionEvent> handler) {
+    public LaunchItemPane(LaunchItem item, EventHandler<ActionEvent> handler) {
         sectionName = null;// i don't want to have to set this once i'm done converting to new config classes.
-        
+
         launchButton = new Button();
-        launchButton.textProperty().bind(p.valueProperty(Port.Field.NAME));
+        launchButton.textProperty().bind(item.valueProperty(Field.NAME));
         launchButton.addEventHandler(ActionEvent.ACTION, handler);
         
         nameLabel = new Label();
-        nameLabel.textProperty().bind(p.valueProperty(Port.Field.NAME));
+        nameLabel.textProperty().bind(item.valueProperty(Field.NAME));
         nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px");
         
         descriptionArea = new Text();
-        descriptionArea.textProperty().bind(p.valueProperty(Port.Field.DESC));
+        descriptionArea.textProperty().bind(item.valueProperty(Field.DESC));
         
-        String img = p.get(Port.Field.IMG);
+        String img = item.get(Field.IMG);
         if(img != null && Files.exists(Paths.get(img))) {
             launchButton.setText(null);
             
