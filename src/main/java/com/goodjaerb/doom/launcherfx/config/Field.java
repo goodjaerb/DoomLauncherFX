@@ -13,7 +13,6 @@ public enum Field {
     NAME,
     DESC,
     TYPE,
-    SORT,
     IWAD,
     WARP,
     SKIPWADS,

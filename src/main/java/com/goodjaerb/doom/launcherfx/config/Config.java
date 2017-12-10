@@ -13,11 +13,11 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
@@ -52,7 +52,7 @@ public class Config {
     private static final Ini INI_FILE = new Ini();
     private static final Config INSTANCE = new Config();
     
-    private final Set<Port> PORTS = new TreeSet<>();
+    private final List<Port> PORTS = new ArrayList<>();
     
     private String configHome;
     
@@ -81,8 +81,8 @@ public class Config {
         return INI_FILE.entrySet();
     }
     
-    public Collection<Port> getPorts() {
-        return Collections.unmodifiableCollection(PORTS);
+    public List<Port> getPorts() {
+        return Collections.unmodifiableList(PORTS);
     }
     
     public Port getPort(String sectionName) {
@@ -237,12 +237,10 @@ public class Config {
             writer.println("; Each section must have a 'type=', defining each section as a 'port', 'mod', or 'iwad'");
             writer.println("; Use quotes (\"...\") around the value for cmd if there are spaces in the path.");
             writer.println("; If 'img=' is not an absolute path, the 'images' folder above will be checked for the image file. If defining an absolute path or path with subdirectories, use '\\' or '/' as the path separator. a single '\' will not parse well. Do not use quotes for 'img' even if there are spaces in the path.");
-            writer.println("; 'sort=' can be used to create an order of the ports/mods in the user interface. Optional. Sort order is undefined if not specified or if sorts are not all unique.");
             writer.println("[Example1]");
             writer.println("name=Example Source Port");
             writer.println("desc=Describe the port and its features.");
             writer.println("type=port");
-            writer.println("sort=1");
             writer.println("wadfolder=limit-removing,vanilla");
             writer.println("cmd=/path/to/run/port");
             writer.println("img=/optional/path/to/image/for/button.png");
@@ -254,7 +252,6 @@ public class Config {
             writer.println("name=Mod Name");
             writer.println("desc=Mod description.");
             writer.println("type=mod");
-            writer.println("sort=2");
             writer.println("port=Example1");
             writer.println("iwad=Ultimate,Doom2");
             writer.println("img=/optional/path/to/img.png");
@@ -270,7 +267,6 @@ public class Config {
             writer.println("name=Mod Name");
             writer.println("desc=Mod description.");
             writer.println("type=tc");
-            writer.println("sort=3");
             writer.println("port=Example1");
             writer.println("iwad=Ultimate,Doom2");
             writer.println("img=/optional/path/to/img.png");

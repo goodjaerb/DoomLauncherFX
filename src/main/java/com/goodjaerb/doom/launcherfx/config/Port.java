@@ -13,14 +13,13 @@ import org.ini4j.Profile.Section;
  * 
  * @author goodjaerb<goodjaerb@gmail.com>
  */
-public class Port extends LaunchItem {
+public class Port extends IniConfigurable {
     
     Port(Section iniSection) {
         super(iniSection, 
                 Field.NAME,
                 Field.DESC,
                 Field.TYPE,
-                Field.SORT,
                 Field.IWAD,
                 Field.WARP,
                 Field.WADFOLDER,

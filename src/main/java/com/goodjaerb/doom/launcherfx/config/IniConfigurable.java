@@ -14,7 +14,7 @@ import org.ini4j.Profile.Section;
  *
  * @author goodjaerb<goodjaerb@gmail.com>
  */
-abstract class IniConfigurable {
+public abstract class IniConfigurable {
     
     private final EnumMap<Field, ReadOnlyStringWrapper> fieldMap;
     private final Section iniSection;
@@ -33,6 +33,10 @@ abstract class IniConfigurable {
     
     final String sectionName() {
         return iniSection.getName();
+    }
+    
+    public final void set(Field f, String value) {
+        fieldMap.get(f).setValue(value);
     }
     
     public final String get(Field f) {

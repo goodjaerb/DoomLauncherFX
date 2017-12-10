@@ -348,25 +348,25 @@ public class LauncherFX extends Application {
     private void refreshFromIni() {
         reset();
         
-        Set<Entry<String, Section>> sortedSections = new TreeSet<>((Entry<String, Section> left, Entry<String, Section> right) -> {
-            Integer leftSort = left.getValue().get("sort", Integer.class);
-            Integer rightSort = right.getValue().get("sort", Integer.class);
-            
-            if(leftSort == null) {
-                return 1;
-            }
-            
-            if(rightSort == null) {
-                return -1;
-            }
-            
-            if(leftSort.equals(rightSort)) {
-                return 1;
-            }
-            
-            return leftSort.compareTo(rightSort);
-        });
-        sortedSections.addAll(CONFIG.entrySet());
+//        Set<Entry<String, Section>> sortedSections = new TreeSet<>((Entry<String, Section> left, Entry<String, Section> right) -> {
+//            Integer leftSort = left.getValue().get("sort", Integer.class);
+//            Integer rightSort = right.getValue().get("sort", Integer.class);
+//            
+//            if(leftSort == null) {
+//                return 1;
+//            }
+//            
+//            if(rightSort == null) {
+//                return -1;
+//            }
+//            
+//            if(leftSort.equals(rightSort)) {
+//                return 1;
+//            }
+//            
+//            return leftSort.compareTo(rightSort);
+//        });
+//        sortedSections.addAll(CONFIG.entrySet());
         
         portsBox.getChildren().clear();
         iwadsBox.getChildren().clear();
@@ -375,7 +375,7 @@ public class LauncherFX extends Application {
         
         refreshPorts();
         
-        for(Entry<String, Section> iniEntry : sortedSections) {
+        for(Entry<String, Section> iniEntry : CONFIG.entrySet()) {
             System.out.println("Section=" + iniEntry.getKey());
             String section = iniEntry.getKey();
             String type = CONFIG.get(section, "type");

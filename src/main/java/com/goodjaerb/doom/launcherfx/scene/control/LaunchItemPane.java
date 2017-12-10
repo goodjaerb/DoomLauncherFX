@@ -6,7 +6,7 @@
 package com.goodjaerb.doom.launcherfx.scene.control;
 
 import com.goodjaerb.doom.launcherfx.config.Field;
-import com.goodjaerb.doom.launcherfx.config.LaunchItem;
+import com.goodjaerb.doom.launcherfx.config.IniConfigurable;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -62,7 +62,7 @@ public class LaunchItemPane extends BorderPane {
         layoutPane();
     }
     
-    public LaunchItemPane(LaunchItem item, EventHandler<ActionEvent> handler) {
+    public LaunchItemPane(IniConfigurable item, EventHandler<ActionEvent> handler) {
         sectionName = null;// i don't want to have to set this once i'm done converting to new config classes.
 
         launchButton = new Button();
