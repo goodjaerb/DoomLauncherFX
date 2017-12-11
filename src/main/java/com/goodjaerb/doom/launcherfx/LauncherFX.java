@@ -7,10 +7,7 @@ package com.goodjaerb.doom.launcherfx;
 
 import com.goodjaerb.doom.launcherfx.config.Config;
 import com.goodjaerb.doom.launcherfx.config.Field;
-import com.goodjaerb.doom.launcherfx.config.IniConfigurable;
-import com.goodjaerb.doom.launcherfx.config.Iwad;
-import com.goodjaerb.doom.launcherfx.config.Mod;
-import com.goodjaerb.doom.launcherfx.config.Port;
+import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
 import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListItem;
 import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListCell;
 import com.goodjaerb.doom.launcherfx.scene.control.LaunchItemPane;
@@ -26,7 +23,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -63,7 +59,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import org.ini4j.Profile.Section;
 
 /**
  *
@@ -94,8 +89,8 @@ public class LauncherFX extends Application {
     
     private List<String> processCommand;
     private GameData selectedGame;
-    private Iwad selectedIwad;
-    private Port selectedPort;
+    private IniConfigurableItem selectedIwad;
+    private IniConfigurableItem selectedPort;
     private PWadListItem selectedPwad;
     
     @Override
@@ -169,13 +164,10 @@ public class LauncherFX extends Application {
             }
             
             File workingDir = null;
-//            Config.Type type = selectedPort.getType();//String type = selectedPort.get(Field.TYPE);//CONFIG.get(selectedPort, "type");
-//            if(Config.TYPE_MOD.equals(type) || Config.TYPE_TC.equals(type)) {
-                String workingDirStr = getAbsolutePath(selectedPort.get(Field.WORKINGDIR), Config.DIR_MODS);
-                if(workingDirStr != null) {
-                    workingDir = new File(workingDirStr);
-                }
-//            }
+            String workingDirStr = getAbsolutePath(selectedPort.get(Field.WORKINGDIR), Config.DIR_MODS);
+            if(workingDirStr != null) {
+                workingDir = new File(workingDirStr);
+            }
             if(workingDir == null) {
                 workingDir = new File(processCommand.get(0)).getParentFile();
             }
@@ -275,13 +267,6 @@ public class LauncherFX extends Application {
             Platform.exit();
         });
         
-//        MenuItem fileMenuEditPortTest = new MenuItem("Edit Port Test");
-//        fileMenuEditPortTest.addEventHandler(ActionEvent.ACTION, (event) -> {
-//            Port p = CONFIG.getPorts().get(0);
-//            p.set(Field.NAME, "changed!");
-//            System.out.println(CONFIG.get(p, Field.NAME));
-//        });
-        
         MenuItem menuSeparator = new SeparatorMenuItem();
         
         Menu fileMenu = new Menu("File", null, fileMenuItemReloadIni, menuSeparator, fileMenuItemExit);
@@ -349,72 +334,30 @@ public class LauncherFX extends Application {
         primaryStage.show();
     }
     
-//    private void refreshPorts() {
-//        for(Port p : CONFIG.getPorts()) {
-//            portsBox.getChildren().add(new LaunchItemPane(p, new LaunchItemEventHandler(p)));
-//        }
-//    }
-    
     private void refreshFromIni() {
-        reset();
-        
-//        Set<Entry<String, Section>> sortedSections = new TreeSet<>((Entry<String, Section> left, Entry<String, Section> right) -> {
-//            Integer leftSort = left.getValue().get("sort", Integer.class);
-//            Integer rightSort = right.getValue().get("sort", Integer.class);
-//            
-//            if(leftSort == null) {
-//                return 1;
-//            }
-//            
-//            if(rightSort == null) {
-//                return -1;
-//            }
-//            
-//            if(leftSort.equals(rightSort)) {
-//                return 1;
-//            }
-//            
-//            return leftSort.compareTo(rightSort);
-//        });
-//        sortedSections.addAll(CONFIG.entrySet());
-        
         portsBox.getChildren().clear();
         iwadsBox.getChildren().clear();
         modsBox.getChildren().clear();
-        modsBox.getChildren().add(new LaunchItemPane(Mod.STANDARD_MOD, new LaunchItemEventHandler(Mod.STANDARD_MOD)));
         
-//        refreshPorts();
-        
-        for(IniConfigurable ic : CONFIG.getConfigurables()) {
+        for(IniConfigurableItem ic : CONFIG.getConfigurables()) {
             Config.Type type = ic.getType();
             
             switch(type) {
                 case PORT:
                 case TC:
-                    portsBox.getChildren().add(new LaunchItemPane(p, new LaunchItemEventHandler(p)));
+                    portsBox.getChildren().add(new LaunchItemPane(ic, getAbsolutePath(ic.get(Field.IMG), Config.DIR_IMAGES), new LaunchItemEventHandler(ic)));
                     break;
-                case Config.TYPE_IWAD:
-                    iwadsBox.getChildren().add(new LaunchItemPane(
-                            section,
-                            CONFIG.get(section, "name"),
-                            CONFIG.get(section, "desc"),
-                            getAbsolutePath(section, "img", Config.DIR_IMAGES),
-                            true,
-                            new LaunchItemEventHandler(section)));
+                case IWAD:
+                    iwadsBox.getChildren().add(new LaunchItemPane(ic, getAbsolutePath(ic.get(Field.IMG), Config.DIR_IMAGES), new LaunchItemEventHandler(ic)));
                     break;
-                case Config.TYPE_MOD:
-                    modsBox.getChildren().add(new LaunchItemPane(
-                            section,
-                            CONFIG.get(section, "name"),
-                            CONFIG.get(section, "desc"),
-                            getAbsolutePath(section, "img", Config.DIR_IMAGES),
-                            true,
-                            new LaunchItemEventHandler(section)));
+                case MOD:
+                    modsBox.getChildren().add(new LaunchItemPane(ic, getAbsolutePath(ic.get(Field.IMG), Config.DIR_IMAGES), new LaunchItemEventHandler(ic)));
                     break;
                 default:
                     break;
             }
         }
+        reset();
     }
     
     private void reset() {
@@ -453,20 +396,6 @@ public class LauncherFX extends Application {
         return Paths.get(CONFIG.getConfigHome(), configSubDir, path.toString()).toString();
     }
     
-    //to be replaced with the above version
-//    private String getAbsolutePath(String section, String key, String configSubDir) {
-//        String pathStr = CONFIG.get(section, key);
-//        if(pathStr == null) {
-//            return null;
-//        }
-//        
-//        Path path = Paths.get(pathStr);
-//        if(path.isAbsolute()) {
-//            return path.toString();
-//        }
-//        return Paths.get(CONFIG.getConfigHome(), configSubDir, path.toString()).toString();
-//    }
-    
     private void chooseIwad() {
         portsTab.setDisable(true);
         iwadsTab.setDisable(false);
@@ -479,7 +408,7 @@ public class LauncherFX extends Application {
         setItemsDisable(iwadsBox, false);
         
         for(Node launchItem : iwadsBox.getChildren()) {
-            if(isIwadCompatible(selectedPort.get(Field.IWAD), ((LaunchItemPane)launchItem).sectionName)) {
+            if(isIwadCompatible(selectedPort.get(Field.IWAD), ((LaunchItemPane)launchItem).configurableItem)) {
                 ((LaunchItemPane)launchItem).setButtonDisable(false);
             }
             else {
@@ -500,7 +429,7 @@ public class LauncherFX extends Application {
         setItemsDisable(modsBox, false);
         
         for(Node launchItem : modsBox.getChildren()) {
-            if(isModCompatible(CONFIG.get(((LaunchItemPane)launchItem).sectionName))) {
+            if(isModCompatible(((LaunchItemPane)launchItem).configurableItem)) {
                 ((LaunchItemPane)launchItem).setButtonDisable(false);
             }
             else {
@@ -547,7 +476,7 @@ public class LauncherFX extends Application {
         ObservableList<WarpListItem> olist = FXCollections.observableArrayList(list);
         
         String warp;
-        String tcWarp = selectedPort.get(Field.WARP);//CONFIG.get(selectedPort, "warp");
+        String tcWarp = selectedPort.get(Field.WARP);
         if(tcWarp == null) {
             warp = selectedPwad.warp;
         }
@@ -621,7 +550,8 @@ public class LauncherFX extends Application {
                         theWadSet.add(new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file));
                     }
                     else if(filename.endsWith(".deh")) {
-                        String ignore = CONFIG.get(file.getFileName().toString(), "ignore");
+                        IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(file.getFileName().toString());
+                        String ignore = (pwadItem == null) ? null : pwadItem.get(Field.IGNORE);
                         if(ignore == null || !"true".equals(ignore)) {
                             theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file));
                         }
@@ -640,27 +570,27 @@ public class LauncherFX extends Application {
     private PWadListItem handlePwad(Path pwadPath) {
         String filename = pwadPath.getFileName().toString();
 
-        Section pwadSection = CONFIG.get(filename);
-        if(pwadSection != null) {
-            String ignore = pwadSection.get("ignore");
+        IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(filename);
+        if(pwadItem != null) {
+            String ignore = pwadItem.get(Field.IGNORE);
             if(ignore != null && "true".equals(ignore)) {
                 return null;
             }
             else {
-                String name = pwadSection.get("name") + " (" + filename + ")";
-                String author = pwadSection.get("author");
+                String name = pwadItem.get(Field.NAME) + " (" + filename + ")";
+                String author = pwadItem.get(Field.AUTHOR);
                 if(author != null) {
                     name += " by " + author;
                 }
 
                 PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, name, pwadPath);
 
-                String warp = pwadSection.get("warp");
+                String warp = pwadItem.get(Field.WARP);
                 if(warp != null) {
                     item.warp = warp;
                 }
 
-                String args = pwadSection.get("args");
+                String args = pwadItem.get(Field.ARGS);
                 if(args != null) {
                     item.args = args.replace("%WADPATH%", pwadPath.getParent().toString());
                 }
@@ -698,12 +628,12 @@ public class LauncherFX extends Application {
      * @param iwadSection
      * @return 
      */
-    private boolean isIwadCompatible(String supportedIwadList, String iwadSectionName) {
-        String supportedPorts = CONFIG.get(iwadSectionName, "port");
+    private boolean isIwadCompatible(String supportedIwadList, IniConfigurableItem iwadItem) {
+        String supportedPorts = iwadItem.get(Field.PORT);
         if(supportedPorts != null) {
             String[] splitPorts = supportedPorts.split(",");
             for(String port : splitPorts) {
-                if(port.equals(selectedPort)) {
+                if(port.equals(selectedPort.sectionName())) {
                     return true;
                 }
             }
@@ -716,7 +646,7 @@ public class LauncherFX extends Application {
 
             String[] splitIwads = supportedIwadList.split(",");
             for(String iwad : splitIwads) {
-                if(iwad.equals(iwadSectionName)) {
+                if(iwad.equals(iwadItem.sectionName())) {
                     return true;
                 }
             }
@@ -731,21 +661,16 @@ public class LauncherFX extends Application {
      * @param modSection
      * @return 
      */
-    private boolean isModCompatible(Section modSection) {
-        if(modSection == null) {
-            // the standard mod (i hope).
-            return true;
-        }
-        
+    private boolean isModCompatible(IniConfigurableItem modItem) {
         boolean isSelectedPortCompatible = false;
-        String requiredPort = modSection.get("port");
+        String requiredPort = modItem.get(Field.PORT);
         if(requiredPort == null) {
             isSelectedPortCompatible = true;
         }
         else {
             String[] splitPorts = requiredPort.split(",");
             for(String port : splitPorts) {
-                if(port.equals(selectedPort)) {
+                if(port.equals(selectedPort.sectionName())) {
                     isSelectedPortCompatible = true;
                     break;
                 }
@@ -753,7 +678,7 @@ public class LauncherFX extends Application {
         }
 
         boolean isSelectedIwadCompatible = false;
-        String requiredIwad = modSection.get("iwad");
+        String requiredIwad = modItem.get(Field.IWAD);
         if(requiredIwad == null) {
             isSelectedIwadCompatible = true;
         }
@@ -761,7 +686,7 @@ public class LauncherFX extends Application {
             String [] splitIwads = requiredIwad.split(",");
 
             for(String iwad : splitIwads) {
-                if(iwad.equals(selectedIwad)) {
+                if(iwad.equals(selectedIwad.sectionName())) {
                     isSelectedIwadCompatible = true;
                     break;
                 }
@@ -809,35 +734,26 @@ public class LauncherFX extends Application {
     }
     
     private class LaunchItemEventHandler implements EventHandler<ActionEvent> {
-        private final IniConfigurable ic;
+        private final IniConfigurableItem ic;
         
-        public LaunchItemEventHandler(IniConfigurable ic) {
+        public LaunchItemEventHandler(IniConfigurableItem ic) {
             this.ic = ic;
         }
         
         @Override
         public void handle(ActionEvent e) {
-//            Section mySection = CONFIG.get(sectionName);
-//            String myType = "mod";
-//            if(mySection != null) {
-//                myType = mySection.get("type");
-//            }
-
             switch(ic.getType()) {
                 case PORT:
-//                    if(mySection != null) {
                         String portCmd = ic.get(Field.CMD);
                         if(portCmd != null) {
                             processCommand = new ArrayList<>();
                             addArgsToProcess(portCmd);
                             
-                            selectedPort = (Port)ic;
+                            selectedPort = ic;
                             chooseIwad();
                         }
-//                    }
                     break;
                 case TC:
-//                    if(mySection != null) {
                         String portStr = ic.get(Field.PORT);
                         String[] splitPort = portStr.split(",");
                         if(splitPort.length == 1) {
@@ -860,20 +776,18 @@ public class LauncherFX extends Application {
                             reset();
                         }
                         else {
-                            String tcCmd = CONFIG.getPort(portStr).get(Field.CMD);//CONFIG.get(portStr, "cmd");
+                            String tcCmd = CONFIG.getConfigurableByName(portStr).get(Field.CMD);//CONFIG.get(portStr, "cmd");
 
                             if(tcCmd != null) {
                                 processCommand = new ArrayList<>();
                                 addArgsToProcess(tcCmd);
 
-                                selectedPort = (Port)ic;
+                                selectedPort = ic;
                             }
                             chooseIwad();
                         }
-//                    }
                     break;
                 case MOD:
-//                    if(mySection != null && mySection.get("file") != null) {
                     if(ic.get(Field.FILE) != null) {
                         addArgsToProcess("-file " + getAbsolutePath(ic.get(Field.FILE), Config.DIR_MODS));
                     }
@@ -888,7 +802,7 @@ public class LauncherFX extends Application {
                     String iwadPath = getAbsolutePath(ic.get(Field.FILE), Config.DIR_IWAD);
                     addArgsToProcess("-iwad " + iwadPath);
 
-                    selectedIwad = (Iwad)ic;
+                    selectedIwad = ic;
                     selectedGame = GameData.getGameData(iwadPath);
                     chooseMod();
                     break;
@@ -897,95 +811,4 @@ public class LauncherFX extends Application {
             }
         }
     }
-    
-//    private class LaunchItemEventHandler implements EventHandler<ActionEvent> {
-//        public static final String STANDARD_MOD_NAME = "THE_SPECIAL_NAME_FOR_THE_STANDARD_MOD_BUTTON";
-//                
-//        private final String sectionName;
-//        
-//        public LaunchItemEventHandler(String sectionName) {
-//            this.sectionName = sectionName;
-//        }
-//        
-//        @Override
-//        public void handle(ActionEvent e) {
-//            Section mySection = CONFIG.get(sectionName);
-//            String myType = "mod";
-//            if(mySection != null) {
-//                myType = mySection.get("type");
-//            }
-//
-//            switch(myType) {
-////                case "port":
-////                    if(mySection != null) {
-////                        String myCmd = mySection.get("cmd");
-////                        if(myCmd != null) {
-////                            processCommand = new ArrayList<>();
-////                            addArgsToProcess(myCmd);
-////                            
-////                            selectedPort = sectionName;
-////                            chooseIwad();
-////                        }
-////                    }
-////                    break;
-////                case "tc":
-////                    if(mySection != null) {
-////                        String port = mySection.get("port");
-////                        String[] splitPort = port.split(",");
-////                        if(splitPort.length == 1) {
-////                            port = splitPort[0];
-////                        }
-////                        else {
-////                            ChoiceDialog<String> dialog = new ChoiceDialog<>(splitPort[0], splitPort);
-////                            dialog.setTitle("Select Port");
-////                            dialog.setHeaderText("Select the Source Port you would like to open this TC with.");
-////                            dialog.setContentText("Source Port:");
-////                            dialog.setResultConverter((buttonType) -> {
-////                                if(buttonType == ButtonType.OK) {
-////                                    return dialog.getSelectedItem();
-////                                }
-////                                return null;
-////                            });
-////                            port = dialog.showAndWait().orElse(null);
-////                        }
-////                        if(port == null) {
-////                            reset();
-////                        }
-////                        else {
-////                            String myCmd = CONFIG.get(port, "cmd");
-////
-////                            if(myCmd != null) {
-////                                processCommand = new ArrayList<>();
-////                                addArgsToProcess(myCmd);
-////
-////                                selectedPort = sectionName;
-////                            }
-////                            chooseIwad();
-////                        }
-////                    }
-////                    break;
-//                case "mod":
-//                    if(mySection != null && mySection.get("file") != null) {
-//                        addArgsToProcess("-file " + getAbsolutePath(sectionName, "file", Config.DIR_MODS));
-//                    }
-//                    
-//                    try {
-//                        choosePwad();
-//                    } catch (IOException ex) {
-//                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-//                    }
-//                    break;
-//                case "iwad":
-//                    String iwadPath = getAbsolutePath(sectionName, "file", Config.DIR_IWAD);
-//                    addArgsToProcess("-iwad " + iwadPath);
-//
-//                    selectedIwad = sectionName;
-//                    selectedGame = GameData.getGameData(iwadPath);
-//                    chooseMod();
-//                    break;
-//                default:
-//                    break;
-//            }
-//        }
-//    }
 }

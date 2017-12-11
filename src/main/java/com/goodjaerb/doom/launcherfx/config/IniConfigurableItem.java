@@ -14,17 +14,17 @@ import org.ini4j.Profile.Section;
  *
  * @author goodjaerb<goodjaerb@gmail.com>
  */
-public abstract class IniConfigurable {
+public final class IniConfigurableItem {
     
     private final EnumMap<Field, ReadOnlyStringWrapper> fieldMap;
     private final Section iniSection;
     
-    IniConfigurable(Section iniSection, Field... fields) {
+    IniConfigurableItem(Section iniSection) {
         this.iniSection = iniSection;
-        this.fieldMap = new EnumMap(Field.class);
+        this.fieldMap = new EnumMap<>(Field.class);
         
         if(iniSection != null) {
-            for(Field f : fields) {
+            for(Field f : Field.values()) {
                 String value = iniSection.get(f.iniKey());
                 if(value != null) {
                     fieldMap.put(f, new ReadOnlyStringWrapper(value));
@@ -33,7 +33,7 @@ public abstract class IniConfigurable {
         }
     }
     
-    final String sectionName() {
+    public final String sectionName() {
         return iniSection == null ? null : iniSection.getName();
     }
     
@@ -57,7 +57,7 @@ public abstract class IniConfigurable {
     }
     
     public final Config.Type getType() {
-        return Config.Type.valueOf(fieldMap.get(Field.TYPE).getValue());
+        return Config.Type.valueOf(fieldMap.get(Field.TYPE).getValue().toUpperCase());
     }
     
     public final ReadOnlyStringProperty valueProperty(Field f) {

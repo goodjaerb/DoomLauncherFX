@@ -45,11 +45,6 @@ public class Config {
     public static final String DIR_DOOM = "doom";
     public static final String DIR_DOOM2 = "doom2";
     
-//    public static final String TYPE_PORT = "port";
-//    public static final String TYPE_TC = "tc";
-//    public static final String TYPE_MOD = "mod";
-//    public static final String TYPE_IWAD = "iwad";
-    
     private static final String CONFIG_LAUNCHER_DATA_DIR_SECTION = "LauncherFXDataDir";
     private static final String CONFIG_LAUNCHER_DATA_DIR_KEY = "launcher-data";
     
@@ -57,7 +52,7 @@ public class Config {
     private static final Ini INI_FILE = new Ini();
     private static final Config INSTANCE = new Config();
     
-    private final List<IniConfigurable> CONFIGURABLES = new ArrayList<>();
+    private final List<IniConfigurableItem> CONFIGURABLES = new ArrayList<>();
     
     private String configHome;
     
@@ -74,29 +69,14 @@ public class Config {
         return configHome;
     }
     
-    public List<IniConfigurable> getConfigurables() {
+    public List<IniConfigurableItem> getConfigurables() {
         return Collections.unmodifiableList(CONFIGURABLES);
     }
     
-//    public String get(IniConfigurable c, Field f) {
-//        return INI_FILE.get(c.sectionName(), f.iniKey());
-//    }
-    
-//    public List<Port> getPorts() {
-//        List<Port> ports = new ArrayList<>();
-//        for(IniConfigurable ic : CONFIGURABLES) {
-//            Type type = ic.getType();
-//            if(type == Type.PORT || type == Type.TC) {
-//                ports.add((Port)ic);
-//            }
-//        }
-//        return ports;
-//    }
-    
-    public Port getPort(String sectionName) {
-        for(IniConfigurable ic : CONFIGURABLES) {
+    public IniConfigurableItem getConfigurableByName(String sectionName) {
+        for(IniConfigurableItem ic : CONFIGURABLES) {
             if(ic.sectionName().equals(sectionName)) {
-                return (Port)ic;
+                return ic;
             }
         }
         return null;
@@ -178,23 +158,9 @@ public class Config {
     private void parseIni() {
         CONFIGURABLES.clear();
         for(Section section : INI_FILE.values()) {
-            Type type = Type.valueOf(section.get(Field.TYPE.iniKey()));
-            if(null != type) switch (type) {
-                case PORT:
-                case TC:
-                    CONFIGURABLES.add(new Port(section));
-                    break;
-                case IWAD:
-                    CONFIGURABLES.add(new Iwad(section));
-                    break;
-                case MOD:
-                    CONFIGURABLES.add(new Mod(section));
-                    break;
-                case PWAD:
-                    CONFIGURABLES.add(new Pwad(section));
-                    break;
-                default:
-                    break;
+            Type type = Type.valueOf(section.get(Field.TYPE.iniKey()).toUpperCase());
+            if(null != type) {
+                CONFIGURABLES.add(new IniConfigurableItem(section));
             }
         }
     }

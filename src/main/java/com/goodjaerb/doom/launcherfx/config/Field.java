@@ -23,7 +23,8 @@ public enum Field {
     CMD,
     ARGS,
     IMG,
-    AUTHOR;
+    AUTHOR,
+    IGNORE;
 
     String iniKey() {
         return name().toLowerCase();
