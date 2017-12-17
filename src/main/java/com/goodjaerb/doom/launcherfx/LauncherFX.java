@@ -8,6 +8,7 @@ package com.goodjaerb.doom.launcherfx;
 import com.goodjaerb.doom.launcherfx.config.Config;
 import com.goodjaerb.doom.launcherfx.config.Field;
 import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
+import com.goodjaerb.doom.launcherfx.scene.control.LaunchButton;
 import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListItem;
 import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListCell;
 import com.goodjaerb.doom.launcherfx.scene.control.LaunchItemPane;
@@ -21,6 +22,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -65,7 +67,7 @@ import javafx.stage.WindowEvent;
  * @author goodjaerb
  */
 public class LauncherFX extends Application {
-    private final Config CONFIG = Config.getInstance();
+    private static final Config CONFIG = Config.getInstance();
     private final String APP_NAME = "DoomLauncherFX";
     
     private TabPane tabPane;
@@ -82,25 +84,30 @@ public class LauncherFX extends Application {
     private ListView<PWadListItem> pwadListView;
     private ListView<WarpListItem> warpListView;
         
-    private Button continueToWarpButton;
+//    private Button continueToWarpButton;
     private Button launchNowButton; // the button on the bottom of the window.
-    private Button launchButton; // the button on the last tab.
+//    private Button launchButton; // the button on the last tab.
     private Button cancelButton;
     
     private List<String> processCommand;
     private GameData selectedGame;
     private IniConfigurableItem selectedIwad;
     private IniConfigurableItem selectedPort;
+    private List<IniConfigurableItem> selectedMods;
     private PWadListItem selectedPwad;
     
     @Override
     public void start(Stage primaryStage) throws MalformedURLException, IOException {
+        selectedGame = GameData.UNKNOWN_GAME_DATA;
+        selectedMods = new ArrayList<>();
+        selectedPwad = PWadListItem.NO_PWAD;
+        
         portsBox = new VBox();
         iwadsBox = new VBox();
         modsBox = new VBox();
         
         EventHandler<ActionEvent> launchHandler = (event) -> {
-            addArgsToProcess(selectedPort.get(Field.ARGS));//CONFIG.get(selectedPort, "args"));
+            addArgsToProcess(selectedPort.get(Field.ARGS));
             
             List<PWadListItem> selectedPwadItems = pwadListView.getSelectionModel().getSelectedItems();
             if(selectedPwadItems.size() == 1) {
@@ -207,14 +214,19 @@ public class LauncherFX extends Application {
         pwadListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         pwadListView.setCellFactory((ListView<PWadListItem> list) -> new PWadListCell());
         
-        continueToWarpButton = new Button("Continue >>>");
-        continueToWarpButton.setMinSize(200, 200);
-        continueToWarpButton.addEventHandler(ActionEvent.ACTION, (event) -> {
-            selectedPwad = pwadListView.getSelectionModel().getSelectedItem();
-            chooseWarp();
-        });
+//        continueToWarpButton = new Button("Continue >>>");
+//        continueToWarpButton.setMinSize(200, 200);
+//        continueToWarpButton.addEventHandler(ActionEvent.ACTION, (event) -> {
+//            if(pwadListView.getSelectionModel().getSelectedItems().size() == 1 && pwadListView.getSelectionModel().getSelectedItem().type == PWadListItem.Type.WAD) {
+//                selectedPwad = pwadListView.getSelectionModel().getSelectedItem();
+//            }
+//            else {
+//                selectedPwad = PWadListItem.NO_PWAD;
+//            }
+//            chooseWarp();
+//        });
         
-        FlowPane pwadPane = new FlowPane(Orientation.HORIZONTAL, pwadListView, continueToWarpButton);
+        FlowPane pwadPane = new FlowPane(Orientation.HORIZONTAL, pwadListView);//, continueToWarpButton);
         pwadPane.setAlignment(Pos.CENTER);
         pwadPane.setPadding(new Insets(8));
         pwadPane.setHgap(8);
@@ -223,11 +235,11 @@ public class LauncherFX extends Application {
         warpListView.setMinSize(200, 450);
         warpListView.setCellFactory((ListView<WarpListItem> list) -> new WarpListCell());
         
-        launchButton = new Button("Launch!");
-        launchButton.setMinSize(200, 200);
-        launchButton.addEventHandler(ActionEvent.ACTION, launchHandler);
+//        launchButton = new Button("Launch!");
+//        launchButton.setMinSize(200, 200);
+//        launchButton.addEventHandler(ActionEvent.ACTION, launchHandler);
         
-        FlowPane warpPane = new FlowPane(Orientation.HORIZONTAL, warpListView, launchButton);
+        FlowPane warpPane = new FlowPane(Orientation.HORIZONTAL, warpListView);//, launchButton);
         warpPane.setAlignment(Pos.CENTER);
         warpPane.setPadding(new Insets(8));
         warpPane.setHgap(8);
@@ -345,13 +357,13 @@ public class LauncherFX extends Application {
             switch(type) {
                 case PORT:
                 case TC:
-                    portsBox.getChildren().add(new LaunchItemPane(ic, getAbsolutePath(ic.get(Field.IMG), Config.DIR_IMAGES), new LaunchItemEventHandler(ic)));
+                    portsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic)));
                     break;
                 case IWAD:
-                    iwadsBox.getChildren().add(new LaunchItemPane(ic, getAbsolutePath(ic.get(Field.IMG), Config.DIR_IMAGES), new LaunchItemEventHandler(ic)));
+                    iwadsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic)));
                     break;
                 case MOD:
-                    modsBox.getChildren().add(new LaunchItemPane(ic, getAbsolutePath(ic.get(Field.IMG), Config.DIR_IMAGES), new LaunchItemEventHandler(ic)));
+                    modsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic)));
                     break;
                 default:
                     break;
@@ -361,31 +373,31 @@ public class LauncherFX extends Application {
     }
     
     private void reset() {
-        continueToWarpButton.setDisable(true);
-        launchButton.setDisable(true);
+//        continueToWarpButton.setDisable(true);
+//        launchButton.setDisable(true);
         launchNowButton.setDisable(true);
         cancelButton.setDisable(true);
-        setItemsDisable(iwadsBox, true);
-        setItemsDisable(modsBox, true);
+//        setItemsDisable(iwadsBox, true);
+//        setItemsDisable(modsBox, true);
         
-        pwadListView.setDisable(true);
+//        pwadListView.setDisable(true);
         pwadListView.getItems().clear();
-        warpListView.setDisable(true);
+//        warpListView.setDisable(true);
         warpListView.getItems().clear();
         
         portsTab.setDisable(false);
         iwadsTab.setDisable(false);
         modsTab.setDisable(false);
-        pwadsTab.setDisable(false);
-        warpTab.setDisable(false);
+        pwadsTab.setDisable(true);
+        warpTab.setDisable(true);
         
         tabPane.getSelectionModel().select(portsTab);
 
         processCommand = null;
     }
     
-    private String getAbsolutePath(String pathStr, String configSubDir) {
-        if(pathStr == null) {
+    public static String getAbsolutePath(String pathStr, String configSubDir) {
+        if(pathStr == null || "".equals(pathStr)) {
             return null;
         }
         
@@ -396,80 +408,86 @@ public class LauncherFX extends Application {
         return Paths.get(CONFIG.getConfigHome(), configSubDir, path.toString()).toString();
     }
     
-    private void chooseIwad() {
-        portsTab.setDisable(true);
-        iwadsTab.setDisable(false);
-        modsTab.setDisable(true);
-        pwadsTab.setDisable(true);
-        warpTab.setDisable(true);
-        
-        cancelButton.setDisable(false);
-        tabPane.getSelectionModel().select(iwadsTab);
-        setItemsDisable(iwadsBox, false);
-        
-        for(Node launchItem : iwadsBox.getChildren()) {
-            if(isIwadCompatible(selectedPort.get(Field.IWAD), ((LaunchItemPane)launchItem).configurableItem)) {
-                ((LaunchItemPane)launchItem).setButtonDisable(false);
-            }
-            else {
-                ((LaunchItemPane)launchItem).setButtonDisable(true);
-            }
-        }
-    }
-    
-    private void chooseMod() {
-        portsTab.setDisable(true);
-        iwadsTab.setDisable(true);
-        modsTab.setDisable(false);
-        pwadsTab.setDisable(true);
-        warpTab.setDisable(true);
-
-        launchNowButton.setDisable(false);
-        tabPane.getSelectionModel().select(modsTab);
-        setItemsDisable(modsBox, false);
-        
-        for(Node launchItem : modsBox.getChildren()) {
-            if(isModCompatible(((LaunchItemPane)launchItem).configurableItem)) {
-                ((LaunchItemPane)launchItem).setButtonDisable(false);
-            }
-            else {
-                ((LaunchItemPane)launchItem).setButtonDisable(true);
-            }
-        }
-    }
-    
-    private void choosePwad() throws IOException {
-        portsTab.setDisable(true);
-        iwadsTab.setDisable(true);
-        modsTab.setDisable(true);
-        pwadsTab.setDisable(false);
-        warpTab.setDisable(true);
-        
-        continueToWarpButton.setDisable(false);
-        launchNowButton.setDisable(false);
-        tabPane.getSelectionModel().select(pwadsTab);
-        pwadListView.setDisable(false);
-        
-        loadPwadList();
-    }
-    
-    private void chooseWarp() {
-        portsTab.setDisable(true);
-        iwadsTab.setDisable(true);
-        modsTab.setDisable(true);
-        pwadsTab.setDisable(true);
-        warpTab.setDisable(false);
-        
-        launchButton.setDisable(false);
-        launchNowButton.setDisable(false);
-        tabPane.getSelectionModel().select(warpTab);
-        warpListView.setDisable(false);
-        
-        loadWarpList();
-    }
+//    private void chooseIwad() {
+//        portsTab.setDisable(true);
+//        iwadsTab.setDisable(false);
+//        modsTab.setDisable(true);
+//        pwadsTab.setDisable(true);
+//        warpTab.setDisable(true);
+//        
+//        cancelButton.setDisable(false);
+//        tabPane.getSelectionModel().select(iwadsTab);
+//        setItemsDisable(iwadsBox, false);
+//        
+//        for(Node launchItem : iwadsBox.getChildren()) {
+//            if(isIwadCompatible(selectedPort.get(Field.IWAD), ((LaunchItemPane)launchItem).configurableItem)) {
+//                ((LaunchItemPane)launchItem).setButtonDisable(false);
+//            }
+//            else {
+//                ((LaunchItemPane)launchItem).setButtonDisable(true);
+//            }
+//        }
+//    }
+//    
+//    private void chooseMod() {
+//        portsTab.setDisable(true);
+//        iwadsTab.setDisable(true);
+//        modsTab.setDisable(false);
+//        pwadsTab.setDisable(true);
+//        warpTab.setDisable(true);
+//
+//        launchNowButton.setDisable(false);
+//        tabPane.getSelectionModel().select(modsTab);
+//        setItemsDisable(modsBox, false);
+//        
+//        for(Node launchItem : modsBox.getChildren()) {
+//            if(isModCompatible(((LaunchItemPane)launchItem).configurableItem)) {
+//                ((LaunchItemPane)launchItem).setButtonDisable(false);
+//            }
+//            else {
+//                ((LaunchItemPane)launchItem).setButtonDisable(true);
+//            }
+//        }
+//    }
+//    
+//    private void choosePwad() throws IOException {
+//        portsTab.setDisable(true);
+//        iwadsTab.setDisable(true);
+//        modsTab.setDisable(true);
+//        pwadsTab.setDisable(false);
+//        warpTab.setDisable(true);
+//        
+////        continueToWarpButton.setDisable(false);
+//        launchNowButton.setDisable(false);
+//        tabPane.getSelectionModel().select(pwadsTab);
+//        pwadListView.setDisable(false);
+//        
+//        loadPwadList();
+//    }
+//    
+//    private void chooseWarp() {
+//        portsTab.setDisable(true);
+//        iwadsTab.setDisable(true);
+//        modsTab.setDisable(true);
+//        pwadsTab.setDisable(true);
+//        warpTab.setDisable(false);
+//        
+////        launchButton.setDisable(false);
+//        launchNowButton.setDisable(false);
+//        tabPane.getSelectionModel().select(warpTab);
+//        warpListView.setDisable(false);
+//        
+//        loadWarpList();
+//    }
     
     private void loadWarpList() {
-        populateWarpList(selectedGame.warpList);
+        if(selectedGame == GameData.UNKNOWN_GAME_DATA) {
+            warpTab.setDisable(true);
+        }
+        else {
+            warpTab.setDisable(false);
+            populateWarpList(selectedGame.warpList);
+        }
     }
     
     private void populateWarpList(List<WarpListItem> list) {
@@ -500,42 +518,52 @@ public class LauncherFX extends Application {
         warpListView.getSelectionModel().select(selectThis);
     }
     
-    private void loadPwadList() throws IOException {
-        String skipWads = selectedPort.get(Field.SKIPWADS);//CONFIG.get(selectedPort, "skipwads");
-        if("true".equals(skipWads)) {
-            selectedPwad = PWadListItem.NO_PWAD;
-            chooseWarp();
-        }
-        else {
+    private void loadPwadList() {
+        pwadsTab.setDisable(true);
+        if(selectedPort != null && selectedGame != GameData.UNKNOWN_GAME_DATA) {
             SortedSet<PWadListItem> pwadList = new TreeSet<>();
             pwadList.add(PWadListItem.NO_PWAD);
-            
-            String gameWadFolder = selectedGame.wadfolder;//CONFIG.get(selectedIwad, "wadfolder");
-            String portCompatibleFolders = selectedPort.get(Field.WADFOLDER);//CONFIG.get(selectedPort, "wadfolder");
-            if(portCompatibleFolders == null) {
-                // parse all folders.
-                FileSystem fs = FileSystems.getDefault();
-                Path wadBasePath = fs.getPath(CONFIG.getConfigHome(), Config.DIR_WADS);
-                Files.list(wadBasePath).forEach((path) -> {
-                    if(Files.isDirectory(path)) {
-                        try {
-                            addFilesToPwadList(path.resolve(gameWadFolder), pwadList);
-                        }
-                        catch (IOException ex) {
-                            Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                });
+
+            String skipWads = selectedPort.get(Field.SKIPWADS);//CONFIG.get(selectedPort, "skipwads");
+            if("true".equals(skipWads)) {
+//                pwadListView.setDisable(true);
+                selectedPwad = PWadListItem.NO_PWAD;
+    //            chooseWarp();
             }
             else {
-                String[] splitPortFolders = portCompatibleFolders.split(",");
-                for(String wadDir : splitPortFolders) {
-                    FileSystem fs = FileSystems.getDefault();
-                    Path wadBasePath = fs.getPath(CONFIG.getConfigHome(), Config.DIR_WADS, wadDir);
-                    addFilesToPwadList(wadBasePath.resolve(gameWadFolder), pwadList);
+                pwadsTab.setDisable(false);
+//                pwadListView.setDisable(false);
+
+                try {
+                    String gameWadFolder = selectedGame.wadfolder;//CONFIG.get(selectedIwad, "wadfolder");
+                    String portCompatibleFolders = selectedPort.get(Field.WADFOLDER);//CONFIG.get(selectedPort, "wadfolder");
+                    if(portCompatibleFolders == null) {
+                            // parse all folders.
+                            FileSystem fs = FileSystems.getDefault();
+                            Path wadBasePath = fs.getPath(CONFIG.getConfigHome(), Config.DIR_WADS);
+                            Files.list(wadBasePath).forEach((path) -> {
+                                if(Files.isDirectory(path)) {
+                                    try {
+                                        addFilesToPwadList(path.resolve(gameWadFolder), pwadList);
+                                    }
+                                    catch (IOException ex) {
+                                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                }
+                            });
+                    }
+                    else {
+                        String[] splitPortFolders = portCompatibleFolders.split(",");
+                        for(String wadDir : splitPortFolders) {
+                            FileSystem fs = FileSystems.getDefault();
+                            Path wadBasePath = fs.getPath(CONFIG.getConfigHome(), Config.DIR_WADS, wadDir);
+                            addFilesToPwadList(wadBasePath.resolve(gameWadFolder), pwadList);
+                        }
+                    }
+                } catch (IOException ex) {
+                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-        
             pwadListView.setItems(FXCollections.observableArrayList(pwadList));
             pwadListView.getSelectionModel().select(PWadListItem.NO_PWAD);
         }
@@ -725,6 +753,13 @@ public class LauncherFX extends Application {
             }
         }
     }
+    
+    private void markLaunchButton(VBox launchItemsBox, LaunchButton button) {
+        for(Node child : launchItemsBox.getChildren()) {
+            LaunchItemPane itemPane = (LaunchItemPane)child;
+            itemPane.getLaunchButton().setCheckmarkVisible(button.equals(itemPane.getLaunchButton()));
+        }
+    }
 
     /**
      * @param args the command line arguments
@@ -742,15 +777,22 @@ public class LauncherFX extends Application {
         
         @Override
         public void handle(ActionEvent e) {
+            LaunchButton myButton = (LaunchButton)e.getSource();
             switch(ic.getType()) {
                 case PORT:
                         String portCmd = ic.get(Field.CMD);
                         if(portCmd != null) {
-                            processCommand = new ArrayList<>();
-                            addArgsToProcess(portCmd);
+//                            processCommand = new ArrayList<>();
+//                            addArgsToProcess(portCmd);
                             
                             selectedPort = ic;
-                            chooseIwad();
+                            markLaunchButton(portsBox, myButton);
+                            //check other mod/iwad/source compatibilities.
+                            loadPwadList();
+//                            ImageView icon = new ImageView("images/checkmark.png");
+//                            myButton.setGraphic(icon);
+//                            myButton.setCheckmark(true);
+//                            chooseIwad();
                         }
                     break;
                 case TC:
@@ -773,38 +815,67 @@ public class LauncherFX extends Application {
                             portStr = dialog.showAndWait().orElse(null);
                         }
                         if(portStr == null) {
-                            reset();
+//                            reset();
                         }
                         else {
-                            String tcCmd = CONFIG.getConfigurableByName(portStr).get(Field.CMD);//CONFIG.get(portStr, "cmd");
+                            String tcCmd = CONFIG.getConfigurableByName(portStr).get(Field.CMD);
 
-                            if(tcCmd != null) {
-                                processCommand = new ArrayList<>();
-                                addArgsToProcess(tcCmd);
+                            if(tcCmd == null) {
+                                new Alert(Alert.AlertType.ERROR, "No command set for port.", ButtonType.CLOSE).showAndWait();
+                            }
+                            else {
+//                                processCommand = new ArrayList<>();
+//                                addArgsToProcess(tcCmd);
 
                                 selectedPort = ic;
+                                markLaunchButton(portsBox, myButton);
+                                //check other mod/iwad/source compatibilities.
+                                loadPwadList();
+                                loadWarpList();
                             }
-                            chooseIwad();
+//                            chooseIwad();
                         }
                     break;
                 case MOD:
-                    if(ic.get(Field.FILE) != null) {
-                        addArgsToProcess("-file " + getAbsolutePath(ic.get(Field.FILE), Config.DIR_MODS));
-                    }
+//                    if(ic.get(Field.FILE) != null) {
+//                        addArgsToProcess("-file " + getAbsolutePath(ic.get(Field.FILE), Config.DIR_MODS));
+//                    }
                     
-                    try {
-                        choosePwad();
-                    } catch (IOException ex) {
-                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+//                    try {
+//                        choosePwad();
+//                    } catch (IOException ex) {
+//                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
+                    myButton.toggleCheckmark();
+                    if(myButton.isChecked()) {
+                        selectedMods.add(ic);
                     }
+                    else {
+                        selectedMods.remove(ic);
+                    }
+                    //check other mod/iwad/source compatibilities.
                     break;
                 case IWAD:
                     String iwadPath = getAbsolutePath(ic.get(Field.FILE), Config.DIR_IWAD);
-                    addArgsToProcess("-iwad " + iwadPath);
+//                    addArgsToProcess("-iwad " + iwadPath);
 
                     selectedIwad = ic;
-                    selectedGame = GameData.getGameData(iwadPath);
-                    chooseMod();
+                    try {
+                        selectedGame = GameData.getGameData(iwadPath);
+    //                    chooseMod();
+                        markLaunchButton(iwadsBox, myButton);
+                        //check other mod/iwad/source compatibilities.
+                        loadPwadList();
+                        loadWarpList();
+                    } 
+                    catch (IOException ex) {
+                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                        new Alert(Alert.AlertType.ERROR, "IWAD file not found.", ButtonType.CLOSE).showAndWait();
+                    } 
+                    catch (NoSuchAlgorithmException ex) {
+                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                        new Alert(Alert.AlertType.ERROR, "Error occured detecting game.", ButtonType.CLOSE).showAndWait();
+                    }
                     break;
                 default:
                     break;

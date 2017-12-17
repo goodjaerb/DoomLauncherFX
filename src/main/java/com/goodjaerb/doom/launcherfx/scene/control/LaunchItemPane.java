@@ -5,19 +5,14 @@
  */
 package com.goodjaerb.doom.launcherfx.scene.control;
 
+import com.goodjaerb.doom.launcherfx.LauncherFX;
+import com.goodjaerb.doom.launcherfx.config.Config;
 import com.goodjaerb.doom.launcherfx.config.Field;
 import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -29,16 +24,20 @@ import javafx.scene.text.Text;
 public class LaunchItemPane extends BorderPane {
     public final IniConfigurableItem configurableItem;
     
-    private final Button launchButton;
+    private final LaunchButton launchButton;
     private final Label nameLabel;
     private final Text descriptionArea;
     
-    public LaunchItemPane(IniConfigurableItem item, String imgPathStr, EventHandler<ActionEvent> handler) {
+    public LaunchItemPane(IniConfigurableItem item, EventHandler<ActionEvent> handler) {
         this.configurableItem = item;
         
-        launchButton = new Button();
+        launchButton = new LaunchButton(LauncherFX.getAbsolutePath(item.get(Field.IMG), Config.DIR_IMAGES));
         launchButton.textProperty().bind(item.valueProperty(Field.NAME));
         launchButton.addEventHandler(ActionEvent.ACTION, handler);
+        
+        item.valueProperty(Field.IMG).addListener((observable, oldValue, newValue) -> {
+            launchButton.setIcon(LauncherFX.getAbsolutePath(newValue, Config.DIR_IMAGES));
+        });
         
         nameLabel = new Label();
         nameLabel.textProperty().bind(item.valueProperty(Field.NAME));
@@ -47,21 +46,15 @@ public class LaunchItemPane extends BorderPane {
         descriptionArea = new Text();
         descriptionArea.textProperty().bind(item.valueProperty(Field.DESC));
         
-        if(imgPathStr != null && Files.exists(Paths.get(imgPathStr))) {
-            ImageView icon = null;
-            try {
-                icon = new ImageView(Paths.get(imgPathStr).toUri().toURL().toString());
-                icon.setPreserveRatio(true);
-                icon.setFitHeight(150);
-                icon.setFitWidth(150);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(LaunchItemPane.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            launchButton.setGraphic(icon);
-        }
-        
         layoutPane();
+    }
+    
+    public LaunchButton getLaunchButton() {
+        return launchButton;
+    }
+    
+    public void setButtonDisable(boolean b) {
+        launchButton.setDisable(b);
     }
     
     private void layoutPane() {
@@ -84,9 +77,5 @@ public class LaunchItemPane extends BorderPane {
         
         setMargin(launchButton, new Insets(4));
         setMargin(vBox, new Insets(4, 4, 4, 0));
-    }
-    
-    public void setButtonDisable(boolean b) {
-        launchButton.setDisable(b);
     }
 }

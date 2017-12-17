@@ -61,6 +61,11 @@ public final class IniConfigurableItem {
     }
     
     public final ReadOnlyStringProperty valueProperty(Field f) {
-        return fieldMap.get(f).getReadOnlyProperty();
+        ReadOnlyStringWrapper wrapper = fieldMap.get(f);
+        if(wrapper == null) {
+            wrapper = new ReadOnlyStringWrapper("");
+            fieldMap.put(f, wrapper);
+        }
+        return wrapper.getReadOnlyProperty();
     }
 }
