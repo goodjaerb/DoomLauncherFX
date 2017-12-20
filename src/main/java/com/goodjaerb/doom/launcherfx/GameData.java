@@ -18,8 +18,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 
 /**
@@ -27,6 +25,10 @@ import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
  * @author goodjaerb<goodjaerb@gmail.com>
  */
 public class GameData {
+    public enum Game {
+        DOOM, ULTIMATE, DOOM2, HERETIC, HEXEN;
+    }
+    
     private final String name;
     public final String wadfolder;
     public final List<String> skillList;

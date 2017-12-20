@@ -16,6 +16,7 @@ public enum Field {
     IWAD,
     FILE,
     WARP,
+    GAME,
     SKIPWADS,
     WADFOLDER,
     PORT,
