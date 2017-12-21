@@ -40,8 +40,12 @@ public final class IniConfigurableItem {
         }
     }
     
+    /**
+     * returns this items section name as defined in the ini file, or the empty string in the case of EMPTY_ITEM.
+     * @return 
+     */
     public final String sectionName() {
-        return iniSection == null ? null : iniSection.getName();
+        return iniSection == null ? "" : iniSection.getName();
     }
     
     public final void set(Field f, String value) {
@@ -91,6 +95,9 @@ public final class IniConfigurableItem {
     
     public final void setEnabled(boolean b) {
         enabledProperty.set(b);
+        if(!b) {
+            selectedProperty.set(b);
+        }
     }
     
     public final boolean isEnabled() {

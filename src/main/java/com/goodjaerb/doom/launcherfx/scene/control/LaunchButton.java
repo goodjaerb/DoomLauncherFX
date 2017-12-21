@@ -22,12 +22,16 @@ import javafx.scene.layout.StackPane;
  */
 public final class LaunchButton extends Button {
     
+    private final Label label;
     private final ImageView icon;
     private final ImageView checkmarkView;
     private final StackPane graphicStack;
     
     public LaunchButton(String imgPathStr) {
         super();
+        label = new Label();
+        label.textProperty().bind(textProperty());
+        
         icon = new ImageView();
         icon.setPreserveRatio(true);
         icon.setFitHeight(150);
@@ -40,9 +44,6 @@ public final class LaunchButton extends Button {
         checkmarkView.setFitWidth(150);
         checkmarkView.setVisible(false);
         
-        Label label = new Label();
-        label.textProperty().bind(textProperty());
-        
         graphicStack = new StackPane();
         graphicStack.getChildren().add(label);
         graphicStack.getChildren().add(icon);
@@ -51,10 +52,16 @@ public final class LaunchButton extends Button {
         setGraphic(graphicStack);
     }
     
+    
     void setIcon(String imgPathStr) {
-        if(imgPathStr != null && Files.exists(Paths.get(imgPathStr))) {
+        if(imgPathStr == null || !Files.exists(Paths.get(imgPathStr))) {
+            icon.setImage(null);
+            label.setVisible(true);
+        }
+        else {
             try {
                 icon.setImage(new Image(Paths.get(imgPathStr).toUri().toURL().toString()));
+                label.setVisible(false);
             } catch (MalformedURLException ex) {
                 Logger.getLogger(LaunchItemPane.class.getName()).log(Level.SEVERE, null, ex);
             }

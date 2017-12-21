@@ -5,6 +5,8 @@
  */
 package com.goodjaerb.doom.launcherfx.scene.control.list;
 
+import java.util.Objects;
+
 /**
  *
  * @author goodjaerb<goodjaerb@gmail.com>
@@ -30,6 +32,28 @@ public class WarpListItem implements Comparable<WarpListItem> {
             return 1;
         }
         return this.display.compareToIgnoreCase(other.display);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 29 * hash + Objects.hashCode(this.display);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final WarpListItem other = (WarpListItem) obj;
+        return Objects.equals(this.display, other.display);
     }
 
     @Override
