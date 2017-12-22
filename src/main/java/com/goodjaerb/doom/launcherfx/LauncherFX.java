@@ -88,7 +88,7 @@ public class LauncherFX extends Application {
 //    private Button continueToWarpButton;
     private Button launchNowButton; // the button on the bottom of the window.
 //    private Button launchButton; // the button on the last tab.
-    private Button cancelButton;
+    private Button clearSelectionsButton;
     
     private List<IniConfigurableItem> portsList;
     private List<IniConfigurableItem> iwadsList;
@@ -214,19 +214,19 @@ public class LauncherFX extends Application {
             catch (IOException | InterruptedException ex) {
                 Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                 new Alert(Alert.AlertType.ERROR, "An error occured accessing or running the program '" + processBuilder.command() + "'.", ButtonType.CLOSE).showAndWait();
-                reset();
+//                reset();
             }
         };
         
         launchNowButton = new Button("Launch Now!");
         launchNowButton.addEventHandler(ActionEvent.ACTION, launchHandler);
         
-        cancelButton = new Button("Cancel");
-        cancelButton.addEventHandler(ActionEvent.ACTION, (event) -> {
+        clearSelectionsButton = new Button("Clear Selections");
+        clearSelectionsButton.addEventHandler(ActionEvent.ACTION, (event) -> {
             reset();
         });
         
-        FlowPane buttonPane = new FlowPane(launchNowButton, cancelButton);
+        FlowPane buttonPane = new FlowPane(launchNowButton, clearSelectionsButton);
         buttonPane.setAlignment(Pos.CENTER);
         buttonPane.setPadding(new Insets(4));
         buttonPane.setHgap(8);
@@ -981,73 +981,109 @@ public class LauncherFX extends Application {
             LaunchButton myButton = (LaunchButton)e.getSource();
             switch(ic.getType()) {
                 case PORT:
-                        selectedPort.setSelected(false);
-                        if(selectedPort == ic) {
-                            selectedPort = IniConfigurableItem.EMPTY_ITEM;
-                        }
-                        else {
-                            String portCmd = ic.get(Field.CMD);
-                            if(portCmd != null) {
-                                processCommand = new ArrayList<>();
-                                addArgsToProcess(portCmd);
+                    selectedPort.setSelected(false);
+                    if(selectedPort == ic) {
+                        selectedPort = IniConfigurableItem.EMPTY_ITEM;
+                    }
+                    else {
+                        String portCmd = ic.get(Field.CMD);
+                        if(portCmd != null) {
+                            processCommand = new ArrayList<>();
+                            addArgsToProcess(portCmd);
 
-                                selectedPort = ic;
-                                selectedPort.setSelected(true);
-    //                            markLaunchButton(portsBox, myButton);
-                                //check other mod/iwad/source compatibilities.
-    //                            ImageView icon = new ImageView("images/checkmark.png");
-    //                            myButton.setGraphic(icon);
-    //                            myButton.setCheckmark(true);
-    //                            chooseIwad();
-                            }
+                            selectedPort = ic;
+                            selectedPort.setSelected(true);
+//                            markLaunchButton(portsBox, myButton);
+                            //check other mod/iwad/source compatibilities.
+//                            ImageView icon = new ImageView("images/checkmark.png");
+//                            myButton.setGraphic(icon);
+//                            myButton.setCheckmark(true);
+//                            chooseIwad();
                         }
-                        applyPortCompatibilites();
-                        loadPwadList();
-                        loadWarpList();
+                    }
+                    applyPortCompatibilites();
+                    loadPwadList();
+                    loadWarpList();
                     break;
                 case TC:
+                    selectedPort.setSelected(false);
+                    if(selectedPort == ic) {
+                        selectedPort = IniConfigurableItem.EMPTY_ITEM;
+                    }
+                    else {
+                        IniConfigurableItem portToUse = null;
+                        
                         String portStr = ic.get(Field.PORT);
                         String[] splitPort = portStr.split(",");
                         if(splitPort.length == 1) {
-                            portStr = splitPort[0];
+//                            portStr = splitPort[0];
+                            portToUse = CONFIG.getConfigurableByName(splitPort[0]);
                         }
                         else {
-                            ChoiceDialog<String> dialog = new ChoiceDialog<>(splitPort[0], splitPort);
-                            dialog.setTitle("Select Port");
-                            dialog.setHeaderText("Select the Source Port you would like to open this TC with.");
-                            dialog.setContentText("Source Port:");
-                            dialog.setResultConverter((buttonType) -> {
-                                if(buttonType == ButtonType.OK) {
-                                    return dialog.getSelectedItem();
+                            List<String> validChoices = new ArrayList<>();
+                            for(String portSectionName : splitPort) {
+                                if(CONFIG.getConfigurableByName(portSectionName) != null) {
+                                    validChoices.add(portSectionName);
                                 }
-                                return null;
-                            });
-                            portStr = dialog.showAndWait().orElse(null);
+                            }
+                            
+                            if(validChoices.isEmpty()) {
+                                portToUse = null;
+//                                portStr = null;
+                            }
+                            else if(validChoices.size() == 1) {
+                                portToUse = CONFIG.getConfigurableByName(validChoices.get(0));
+//                                portStr = validChoices.get(0);
+                            }
+                            else {
+                                ChoiceDialog<String> dialog = new ChoiceDialog<>(validChoices.get(0), validChoices);
+                                dialog.setTitle("Select Port");
+                                dialog.setHeaderText("Select the Source Port you would like to open this TC with.");
+                                dialog.setContentText("Source Port:");
+                                dialog.setResultConverter((buttonType) -> {
+                                    if(buttonType == ButtonType.OK) {
+                                        return dialog.getSelectedItem();
+                                    }
+                                    return null;
+                                });
+                                String portChosen = dialog.showAndWait().orElse(null);
+                                if(portChosen == null) {
+                                    portToUse = IniConfigurableItem.EMPTY_ITEM;
+                                }
+                                else {
+                                    portToUse = CONFIG.getConfigurableByName(portChosen);
+                                }
+//                                portStr = dialog.showAndWait().orElse(null);
+                            }
                         }
-                        if(portStr == null) {
+//                        if(portStr == null) {
+                        if(portToUse == null) {
+                            new Alert(Alert.AlertType.ERROR, "No valid source port defined for '" + ic.get(Field.NAME) + "'.", ButtonType.CLOSE).showAndWait();
 //                            reset();
                         }
                         else {
-                            String tcCmd = CONFIG.getConfigurableByName(portStr).get(Field.CMD);
+                            String tcCmd = portToUse.get(Field.CMD);
+//                            String tcCmd = CONFIG.getConfigurableByName(portStr).get(Field.CMD);
 
                             if(tcCmd == null) {
                                 new Alert(Alert.AlertType.ERROR, "No command set for port.", ButtonType.CLOSE).showAndWait();
+                                selectedPort = IniConfigurableItem.EMPTY_ITEM;
                             }
                             else {
                                 processCommand = new ArrayList<>();
                                 addArgsToProcess(tcCmd);
 
-                                selectedPort.setSelected(false);
                                 selectedPort = ic;
                                 selectedPort.setSelected(true);
 //                                markLaunchButton(portsBox, myButton);
                                 //check other mod/iwad/source compatibilities.
-                                applyPortCompatibilites();
-                                loadPwadList();
-                                loadWarpList();
                             }
-//                            chooseIwad();
                         }
+//                            chooseIwad();
+                    }
+                    applyPortCompatibilites();
+                    loadPwadList();
+                    loadWarpList();
                     break;
                 case MOD:
 //                    if(ic.get(Field.FILE) != null) {
