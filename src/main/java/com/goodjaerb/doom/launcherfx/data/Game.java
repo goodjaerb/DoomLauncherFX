@@ -47,17 +47,13 @@ public enum Game {
     }
     
     public static Game getGameData(String iwadPath) throws IOException, NoSuchAlgorithmException {
-//        try {
-            String sha = calcSHA1(new File(iwadPath));
-            for(Map.Entry<List<String>, Game> entry : SHA_GAME_MAPPINGS.entrySet()) {
-                if(entry.getKey().contains(sha)) {
-                    System.out.println("'" + iwadPath + "' matched to " + entry.getValue().name);
-                    return entry.getValue();
-                }
+        String sha = calcSHA1(new File(iwadPath));
+        for(Map.Entry<List<String>, Game> entry : SHA_GAME_MAPPINGS.entrySet()) {
+            if(entry.getKey().contains(sha)) {
+                System.out.println("'" + iwadPath + "' matched to " + entry.getValue().name);
+                return entry.getValue();
             }
-//        } catch (IOException | NoSuchAlgorithmException ex) {
-//            Logger.getLogger(GameData.class.getName()).log(Level.SEVERE, null, ex);
-//        }
+        }
         return UNKNOWN_GAME;
     }
     

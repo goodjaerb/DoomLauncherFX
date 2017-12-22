@@ -97,7 +97,7 @@ public class Config {
     
     public void initializeConfig(Path configCustomPath) throws IOException {
         FileSystem fs = FileSystems.getDefault();
-        Path homeConfigFilePath = fs.getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);;
+        Path homeConfigFilePath = fs.getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
         
         if(configCustomPath == null) {
             configHome = homeConfigFilePath.getParent().toString();
