@@ -522,6 +522,7 @@ public class LauncherFX extends Application {
 //    }
     
     private void applyPortCompatibilites() {
+        List<IniConfigurableItem> enabledIwadsList = new ArrayList<>(iwadsList);
         String portSupportedIwads = selectedPort.get(Field.IWAD);
         for(IniConfigurableItem iwad : iwadsList) {
             iwad.setEnabled(true);
@@ -530,7 +531,14 @@ public class LauncherFX extends Application {
             if((iwadSupportedPorts != null && !iwadSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase()))
                     || (portSupportedIwads != null && !portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
                 iwad.setEnabled(false);
+                enabledIwadsList.remove(iwad);
             }
+        }
+        
+        if(enabledIwadsList.size() == 1) {
+            System.out.println("Only one supported iwad available. Auto-selecting it.");
+            enabledIwadsList.get(0).setSelected(true);
+            selectedIwad = enabledIwadsList.get(0);
         }
 
         for(IniConfigurableItem mod : modsList) {
@@ -1011,7 +1019,7 @@ public class LauncherFX extends Application {
                         selectedPort = IniConfigurableItem.EMPTY_ITEM;
                     }
                     else {
-                        IniConfigurableItem portToUse = null;
+                        IniConfigurableItem portToUse;
                         
                         String portStr = ic.get(Field.PORT);
                         String[] splitPort = portStr.split(",");
