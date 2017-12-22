@@ -5,6 +5,7 @@
  */
 package com.goodjaerb.doom.launcherfx;
 
+import com.goodjaerb.doom.launcherfx.data.Game;
 import com.goodjaerb.doom.launcherfx.config.Config;
 import com.goodjaerb.doom.launcherfx.config.Field;
 import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
@@ -95,7 +96,7 @@ public class LauncherFX extends Application {
     private List<IniConfigurableItem> selectedModsList;
     
     private List<String> processCommand;
-    private GameData selectedGame = GameData.UNKNOWN_GAME_DATA;
+    private Game selectedGame = Game.UNKNOWN_GAME;
     private IniConfigurableItem selectedIwad = IniConfigurableItem.EMPTY_ITEM;
     private IniConfigurableItem selectedPort = IniConfigurableItem.EMPTY_ITEM;
     private PWadListItem selectedPwad = PWadListItem.NO_PWAD;
@@ -673,7 +674,7 @@ public class LauncherFX extends Application {
 //    }
     
     private void loadWarpList() {
-        if(selectedGame == GameData.UNKNOWN_GAME_DATA) {
+        if(selectedGame == Game.UNKNOWN_GAME) {
             warpTab.setDisable(true);
         }
         else {
@@ -720,7 +721,7 @@ public class LauncherFX extends Application {
     private void loadPwadList() {
         pwadsTab.setDisable(true);
         pwadListView.getItems().clear();
-        if(selectedPort != null && selectedPort != IniConfigurableItem.EMPTY_ITEM && selectedGame != GameData.UNKNOWN_GAME_DATA) {
+        if(selectedPort != null && selectedPort != IniConfigurableItem.EMPTY_ITEM && selectedGame != Game.UNKNOWN_GAME) {
             SortedSet<PWadListItem> pwadList = new TreeSet<>();
             pwadList.add(PWadListItem.NO_PWAD);
 
@@ -1076,45 +1077,49 @@ public class LauncherFX extends Application {
 
                     selectedIwad.setSelected(false);
                     try {
-                        selectedGame = GameData.getGameData(iwadPath);
-                        if(selectedGame == GameData.UNKNOWN_GAME_DATA && ic.get(Field.GAME) != null) {
-                            GameData.Game compatibleGame = GameData.Game.valueOf(ic.get(Field.GAME).toUpperCase());
-                            switch(compatibleGame) {
-                                case DOOM:
-                                    selectedGame = GameData.DOOM_GAME_DATA;
-                                    break;
-                                case DOOM2:
-                                    selectedGame = GameData.DOOM2_GAME_DATA;
-                                    break;
-                                case HERETIC:
-                                    selectedGame = GameData.HERETIC_GAME_DATA;
-                                    break;
-                                case HERETIC_EXP:
-                                    selectedGame = GameData.HERETIC_EXP_GAME_DATA;
-                                    break;
-                                case ULTIMATE:
-                                    selectedGame = GameData.ULTIMATE_DOOM_GAME_DATA;
-                                    break;
-                                default:
-                            }
-                        }
-    //                    chooseMod();
-//                        markLaunchButton(iwadsBox, myButton);
-                        selectedIwad = ic;
-                        selectedIwad.setSelected(true);
-                        //check other mod/iwad/source compatibilities.
-                        applyIwadCompatibilities();
-                        loadPwadList();
-                        loadWarpList();
+                        selectedGame = Game.getGameData(iwadPath);
                     } 
                     catch (IOException ex) {
                         Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                         new Alert(Alert.AlertType.ERROR, "IWAD file not found.", ButtonType.CLOSE).showAndWait();
+                        selectedGame = Game.UNKNOWN_GAME;
                     } 
                     catch (NoSuchAlgorithmException ex) {
                         Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                         new Alert(Alert.AlertType.ERROR, "Error occured detecting game.", ButtonType.CLOSE).showAndWait();
+                        selectedGame = Game.UNKNOWN_GAME;
                     }
+                    
+                    if(selectedGame == Game.UNKNOWN_GAME && ic.get(Field.GAME) != null) {
+                        selectedGame = Game.valueOf(ic.get(Field.GAME).toUpperCase());
+//                            Game compatibleGame = Game.valueOf(ic.get(Field.GAME).toUpperCase());
+//                            switch(compatibleGame) {
+//                                case DOOM:
+//                                    selectedGame = Game.DOOM_GAME_DATA;
+//                                    break;
+//                                case DOOM2:
+//                                    selectedGame = Game.DOOM2_GAME_DATA;
+//                                    break;
+//                                case HERETIC:
+//                                    selectedGame = Game.HERETIC_GAME_DATA;
+//                                    break;
+//                                case HERETIC_EXP:
+//                                    selectedGame = Game.HERETIC_EXP_GAME_DATA;
+//                                    break;
+//                                case ULTIMATE:
+//                                    selectedGame = Game.ULTIMATE_DOOM_GAME_DATA;
+//                                    break;
+//                                default:
+//                            }
+                    }
+//                    chooseMod();
+//                        markLaunchButton(iwadsBox, myButton);
+                    selectedIwad = ic;
+                    selectedIwad.setSelected(true);
+                    //check other mod/iwad/source compatibilities.
+                    applyIwadCompatibilities();
+                    loadPwadList();
+                    loadWarpList();
                     break;
                 default:
                     break;
