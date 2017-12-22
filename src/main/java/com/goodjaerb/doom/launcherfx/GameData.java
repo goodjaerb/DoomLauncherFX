@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
  */
 public class GameData {
     public enum Game {
-        DOOM, ULTIMATE, DOOM2, HERETIC, HEXEN;
+        DOOM, ULTIMATE, DOOM2, HERETIC, HERETIC_EXP;//, HEXEN, HEXEN_EXP;
     }
     
     private final String name;
@@ -349,7 +349,7 @@ public class GameData {
     public static final GameData HERETIC_GAME_DATA = new GameData("Heretic", "heretic", HERETIC_SKILL_LIST, HERETIC_WARP_LIST);
     public static final GameData HERETIC_EXP_GAME_DATA = new GameData("Heretic: Shadow of the Serpent Riders", "heretic", HERETIC_SKILL_LIST, HERETIC_EXP_WARP_LIST);
 //    public static final GameData HEXEN_GAME_DATA = new GameData("Hexen", "hexen", HEXEN_SKILL_LIST, HEXEN_WARP_LIST);
-//    public static final GameData HEXEN_EXP_GAME_DATA = new GameData("Hexen: The Dark Citadel", "hexen", HEXEN_SKILL_LIST, HEXEN_EXP_WARP_LIST);
+//    public static final GameData HEXEN_EXP_GAME_DATA = new GameData("Hexen: Deathkings of the Dark Citadel", "hexen", HEXEN_SKILL_LIST, HEXEN_EXP_WARP_LIST);
     
     private static final Map<List<String>, GameData> SHA_GAME_MAPPINGS = new HashMap<>();
     static {

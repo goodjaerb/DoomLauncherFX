@@ -1087,9 +1087,9 @@ public class LauncherFX extends Application {
                                     selectedGame = GameData.DOOM2_GAME_DATA;
                                     break;
                                 case HERETIC:
-                                    selectedGame = GameData.HERETIC_EXP_GAME_DATA;
+                                    selectedGame = GameData.HERETIC_GAME_DATA;
                                     break;
-                                case HEXEN:
+                                case HERETIC_EXP:
                                     selectedGame = GameData.HERETIC_EXP_GAME_DATA;
                                     break;
                                 case ULTIMATE:
