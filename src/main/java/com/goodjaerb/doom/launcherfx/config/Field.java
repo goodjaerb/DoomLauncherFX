@@ -20,7 +20,6 @@ public enum Field {
     SKIPWADS,
     WADFOLDER,
     PORT,
-    MODDIR,
     CMD,
     ARGS,
     IMG,

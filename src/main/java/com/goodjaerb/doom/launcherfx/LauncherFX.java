@@ -32,6 +32,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -116,13 +118,13 @@ public class LauncherFX extends Application {
             addArgsToProcess("-iwad " + iwadPath);
             
             String portArgs = selectedPort.get(Field.ARGS);
-            if(selectedPort.get(Field.MODDIR) == null) {
-                addArgsToProcess(portArgs);
+            Matcher m = Pattern.compile("\"(.*?)\"").matcher(portArgs);
+            while(m.find()) {
+                String group = m.group(1);
+                String absPath = getAbsolutePath(group, Config.DIR_MODS);
+                portArgs = portArgs.replace(group, absPath);
             }
-            else {
-                String resolvedPortArgs = portArgs.replaceAll("([^\\s]*?((\\.deh)|(\\.wad)|(\\.pk3)))", "\"" + CONFIG.getConfigHome() + "\\" + File.separator + Config.DIR_MODS + "\\" + File.separator + selectedPort.get(Field.MODDIR) + "\\" + File.separator + "$1\"");
-                addArgsToProcess(resolvedPortArgs);
-            }
+            addArgsToProcess(portArgs);
             
             for(IniConfigurableItem mod : selectedModsList) {
                 if(mod.get(Field.FILE) != null) {
