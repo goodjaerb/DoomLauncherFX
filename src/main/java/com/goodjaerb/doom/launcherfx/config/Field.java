@@ -24,6 +24,7 @@ public enum Field {
     ARGS,
     IMG,
     AUTHOR,
+    TXT,
     IGNORE;
 
     String iniKey() {

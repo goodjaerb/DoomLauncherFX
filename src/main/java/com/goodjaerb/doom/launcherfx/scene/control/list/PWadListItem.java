@@ -12,22 +12,24 @@ import java.nio.file.Path;
  * @author goodjaerb<goodjaerb@gmail.com>
  */
 public class PWadListItem implements Comparable<PWadListItem> {
-    public static final PWadListItem NO_PWAD = new PWadListItem(PWadListItem.Type.WAD, "No PWAD.", null);
+    public static final PWadListItem NO_PWAD = new PWadListItem(PWadListItem.Type.WAD, "No PWAD.", null, null);
     
     public enum Type {
-        WAD, TXT, DEH
+        WAD, TXT, DEH;
     }
     public final Type type;
-    public final String display;
+    public String display;
     public final Path path;
+    public String txt;
     public String warp;
     public String args;
 
-    public PWadListItem(Type type, String display, Path path) {
+    public PWadListItem(Type type, String display, Path path, String txt) {
         this.type = type;
         this.display = display;
         this.path = path;
         this.warp = "";
+        this.txt = txt;
     }
 
     @Override
@@ -40,10 +42,9 @@ public class PWadListItem implements Comparable<PWadListItem> {
         }
         return this.display.compareToIgnoreCase(other.display);
     }
-
+    
     @Override
     public String toString() {
         return display;
     }
-    
 }

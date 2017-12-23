@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -94,6 +95,7 @@ public class LauncherFX extends Application {
     private List<IniConfigurableItem> iwadsList;
     private List<IniConfigurableItem> modsList;
     private List<IniConfigurableItem> selectedModsList;
+    private List<Path> removeFromWadList;
     
     private List<String> processCommand;
     private Game selectedGame = Game.UNKNOWN_GAME;
@@ -107,7 +109,7 @@ public class LauncherFX extends Application {
         iwadsList = new ArrayList<>();
         modsList = new ArrayList<>();
         selectedModsList = new ArrayList<>();
-        
+        removeFromWadList = new ArrayList<>();
         
         portsBox = new VBox();
         iwadsBox = new VBox();
@@ -632,6 +634,7 @@ public class LauncherFX extends Application {
     private void loadPwadList() {
         pwadsTab.setDisable(true);
         pwadListView.getItems().clear();
+        removeFromWadList.clear();
         if(selectedPort != null && selectedPort != IniConfigurableItem.EMPTY_ITEM && selectedGame != Game.UNKNOWN_GAME) {
             SortedSet<PWadListItem> pwadList = new TreeSet<>();
             pwadList.add(PWadListItem.NO_PWAD);
@@ -647,19 +650,19 @@ public class LauncherFX extends Application {
                     String gameWadFolder = selectedGame.wadfolder;
                     String portCompatibleFolders = selectedPort.get(Field.WADFOLDER);
                     if(portCompatibleFolders == null) {
-                            // parse all folders.
-                            FileSystem fs = FileSystems.getDefault();
-                            Path wadBasePath = fs.getPath(CONFIG.getConfigHome(), Config.DIR_WADS);
-                            Files.list(wadBasePath).forEach((path) -> {
-                                if(Files.isDirectory(path)) {
-                                    try {
-                                        addFilesToPwadList(path.resolve(gameWadFolder), pwadList);
-                                    }
-                                    catch (IOException ex) {
-                                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-                                    }
+                        // parse all folders.
+                        FileSystem fs = FileSystems.getDefault();
+                        Path wadBasePath = fs.getPath(CONFIG.getConfigHome(), Config.DIR_WADS);
+                        Files.list(wadBasePath).forEach((path) -> {
+                            if(Files.isDirectory(path)) {
+                                try {
+                                    addFilesToPwadList(path.resolve(gameWadFolder), pwadList);
                                 }
-                            });
+                                catch (IOException ex) {
+                                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
+                        });
                     }
                     else {
                         String[] splitPortFolders = portCompatibleFolders.split(",");
@@ -673,6 +676,15 @@ public class LauncherFX extends Application {
                     Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            for(Path toRemove : removeFromWadList) {
+                Iterator<PWadListItem> i = pwadList.iterator();
+                while(i.hasNext()) {
+                    PWadListItem item = i.next();
+                    if(item.path != null && item.path.equals(toRemove)) {
+                        i.remove();
+                    }
+                }
+            }
             pwadListView.setItems(FXCollections.observableArrayList(pwadList));
             pwadListView.getSelectionModel().select(PWadListItem.NO_PWAD);
         }
@@ -684,13 +696,13 @@ public class LauncherFX extends Application {
                 String filename = file.getFileName().toString().toLowerCase();
                 if(Files.isRegularFile(file)) {
                     if(filename.endsWith(".txt")) {
-                        theWadSet.add(new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file));
+                        theWadSet.add(new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file, null));
                     }
                     else if(filename.endsWith(".deh")) {
                         IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(file.getFileName().toString());
                         String ignore = (pwadItem == null) ? null : pwadItem.get(Field.IGNORE);
                         if(ignore == null || !"true".equals(ignore)) {
-                            theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file));
+                            theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file, null));
                         }
                     }
                     else if(filename.endsWith(".wad")) {
@@ -714,13 +726,34 @@ public class LauncherFX extends Application {
                 return null;
             }
             else {
-                String name = pwadItem.get(Field.NAME) + " (" + filename + ")";
+                String name = pwadItem.get(Field.NAME);
+                if(name == null) {
+                    name = filename;
+                }
+                else {
+                    name += " (" + filename + ")";
+                }
+                
+                String txt = pwadItem.get(Field.TXT);
+                if(txt != null) {
+                    name += " (.txt)";
+                    removeFromWadList.add(pwadPath.resolveSibling(txt));
+                }
+                else {
+                    Path txtPath = pwadPath.resolveSibling(filename.replace((".wad"), ".txt"));
+                    if(Files.exists(txtPath)) {
+                        name += (" (.txt)");
+                        txt = txtPath.getFileName().toString();
+                        removeFromWadList.add(txtPath);
+                    }
+                }
+                
                 String author = pwadItem.get(Field.AUTHOR);
                 if(author != null) {
                     name += " by " + author;
                 }
 
-                PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, name, pwadPath);
+                PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, name, pwadPath, txt);
 
                 String warp = pwadItem.get(Field.WARP);
                 if(warp != null) {
@@ -749,12 +782,19 @@ public class LauncherFX extends Application {
             }
         }
         else {
-            PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, pwadPath.getFileName().toString(), pwadPath);
+            PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, pwadPath.getFileName().toString(), pwadPath, null);
             
             //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
             Path dehPath = pwadPath.resolveSibling(filename.replace(".wad", ".deh"));
             if(Files.exists(dehPath)) {
                 item.args = "-deh \"" + dehPath.toString() + "\" -file \"" + pwadPath.toString() + "\"";
+            }
+            
+            Path txtPath = pwadPath.resolveSibling(filename.replace((".wad"), ".txt"));
+            if(Files.exists(txtPath)) {
+                item.display += " (.txt)";
+                item.txt = txtPath.getFileName().toString();
+                removeFromWadList.add(txtPath);
             }
             return item;
         }

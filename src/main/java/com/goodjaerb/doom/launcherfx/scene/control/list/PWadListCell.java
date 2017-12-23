@@ -23,9 +23,14 @@ public class PWadListCell extends ListCell<PWadListItem> {
     public PWadListCell() {
         addEventHandler(MouseEvent.MOUSE_CLICKED, (javafx.scene.input.MouseEvent event) -> {
             PWadListItem item = getItem();
-            if (item != null && item.type == PWadListItem.Type.TXT && event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+            if (item != null && (item.type == PWadListItem.Type.TXT || item.txt != null) && event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
                 try {
-                    new TextViewer(item.path).showAndWait();
+                    if(item.type == PWadListItem.Type.TXT) {
+                        new TextViewer(item.path).showAndWait();
+                    }
+                    else if(item.txt != null) {
+                        new TextViewer(item.path.getParent().resolve(item.txt)).showAndWait();
+                    }
                 } catch (IOException ex) {
                     Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                 }
