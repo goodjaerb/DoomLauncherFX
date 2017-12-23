@@ -116,11 +116,13 @@ public class LauncherFX extends Application {
             addArgsToProcess("-iwad " + iwadPath);
             
             String portArgs = selectedPort.get(Field.ARGS);
-            if(selectedPort.get(Field.MODDIR) != null) {
-                String portPath = getAbsolutePath(selectedPort.get(Field.MODDIR), Config.DIR_MODS);
-                portArgs = portArgs.replace("%MODPATH%", portPath);
+            if(selectedPort.get(Field.MODDIR) == null) {
+                addArgsToProcess(portArgs);
             }
-            addArgsToProcess(portArgs);
+            else {
+                String resolvedPortArgs = portArgs.replaceAll("([^\\s]*?((\\.deh)|(\\.wad)|(\\.pk3)))", "\"" + CONFIG.getConfigHome() + "\\" + File.separator + Config.DIR_MODS + "\\" + File.separator + selectedPort.get(Field.MODDIR) + "\\" + File.separator + "$1\"");
+                addArgsToProcess(resolvedPortArgs);
+            }
             
             for(IniConfigurableItem mod : selectedModsList) {
                 if(mod.get(Field.FILE) != null) {
@@ -500,8 +502,9 @@ public class LauncherFX extends Application {
         for(IniConfigurableItem mod : modsList) {
             mod.setEnabled(true);
 
+            String modSupportedGames = mod.get(Field.GAME);
             String modSupportedIwads = mod.get(Field.IWAD);
-            if(modSupportedIwads != null && !modSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase())) {
+            if((modSupportedIwads != null && !modSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase()) || (modSupportedGames != null && !modSupportedGames.toUpperCase().contains(selectedGame.name())))) {
                 mod.setEnabled(false);
             }
         }
@@ -721,6 +724,9 @@ public class LauncherFX extends Application {
                 String[] splitArgs = args.split(" ");
                 String longArg = "";
                 for(String arg : splitArgs) {
+                    if(arg.isEmpty()) {
+                        continue;
+                    }
                     if(!longArg.isEmpty()) {
                         longArg += " " + arg;
                     }
@@ -865,25 +871,30 @@ public class LauncherFX extends Application {
                     String iwadPath = getAbsolutePath(ic.get(Field.FILE), Config.DIR_IWAD);
 
                     selectedIwad.setSelected(false);
-                    try {
-                        selectedGame = Game.getGameData(iwadPath);
-                    } 
-                    catch (IOException ex) {
-                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-                        new Alert(Alert.AlertType.ERROR, "IWAD file not found.", ButtonType.CLOSE).showAndWait();
-                        selectedGame = Game.UNKNOWN_GAME;
-                    } 
-                    catch (NoSuchAlgorithmException ex) {
-                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-                        new Alert(Alert.AlertType.ERROR, "Error occured detecting game.", ButtonType.CLOSE).showAndWait();
-                        selectedGame = Game.UNKNOWN_GAME;
+                    if(selectedIwad == ic) {
+                        selectedIwad = IniConfigurableItem.EMPTY_ITEM;
                     }
-                    
-                    if(selectedGame == Game.UNKNOWN_GAME && ic.get(Field.GAME) != null) {
-                        selectedGame = Game.valueOf(ic.get(Field.GAME).toUpperCase());
+                    else {
+                        try {
+                            selectedGame = Game.getGameData(iwadPath);
+                        } 
+                        catch (IOException ex) {
+                            Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                            new Alert(Alert.AlertType.ERROR, "IWAD file not found.", ButtonType.CLOSE).showAndWait();
+                            selectedGame = Game.UNKNOWN_GAME;
+                        } 
+                        catch (NoSuchAlgorithmException ex) {
+                            Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                            new Alert(Alert.AlertType.ERROR, "Error occured detecting game.", ButtonType.CLOSE).showAndWait();
+                            selectedGame = Game.UNKNOWN_GAME;
+                        }
+
+                        if(selectedGame == Game.UNKNOWN_GAME && ic.get(Field.GAME) != null) {
+                            selectedGame = Game.valueOf(ic.get(Field.GAME).toUpperCase());
+                        }
+                        selectedIwad = ic;
+                        selectedIwad.setSelected(true);
                     }
-                    selectedIwad = ic;
-                    selectedIwad.setSelected(true);
                     applyIwadCompatibilities();
                     loadPwadList();
                     loadWarpList();
