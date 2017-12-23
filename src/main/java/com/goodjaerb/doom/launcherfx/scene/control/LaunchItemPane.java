@@ -30,7 +30,7 @@ public class LaunchItemPane extends BorderPane {
     private final Text descriptionArea;
 
     public LaunchItemPane(IniConfigurableItem item, EventHandler<ActionEvent> handler) {
-        launchButton = new LaunchButton(LauncherFX.getAbsolutePath(item.get(Field.IMG), Config.DIR_IMAGES));
+        launchButton = new LaunchButton(LauncherFX.resolvePathRelativeToConfig(item.get(Field.IMG), Config.DIR_IMAGES));
         launchButton.textProperty().bind(item.valueProperty(Field.NAME));
         launchButton.addEventHandler(ActionEvent.ACTION, handler);
 
@@ -44,7 +44,7 @@ public class LaunchItemPane extends BorderPane {
         });
 
         configurableItem.valueProperty(Field.IMG).addListener((observable, oldValue, newValue) -> {
-            launchButton.setIcon(LauncherFX.getAbsolutePath(newValue, Config.DIR_IMAGES));
+            launchButton.setIcon(LauncherFX.resolvePathRelativeToConfig(newValue, Config.DIR_IMAGES));
         });
 
         nameLabel = new Label();

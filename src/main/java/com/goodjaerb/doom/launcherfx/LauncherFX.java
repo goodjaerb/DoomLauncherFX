@@ -114,21 +114,23 @@ public class LauncherFX extends Application {
         modsBox = new VBox();
         
         EventHandler<ActionEvent> launchHandler = (event) -> {
-            String iwadPath = getAbsolutePath(selectedIwad.get(Field.FILE), Config.DIR_IWAD);
+            String iwadPath = resolvePathRelativeToConfig(selectedIwad.get(Field.FILE), Config.DIR_IWAD);
             addArgsToProcess("-iwad " + iwadPath);
             
             String portArgs = selectedPort.get(Field.ARGS);
-            Matcher m = Pattern.compile("\"(.*?)\"").matcher(portArgs);
-            while(m.find()) {
-                String group = m.group(1);
-                String absPath = getAbsolutePath(group, Config.DIR_MODS);
-                portArgs = portArgs.replace(group, absPath);
+            if(portArgs != null) {
+                Matcher m = Pattern.compile("\"(.*?)\"").matcher(portArgs);
+                while(m.find()) {
+                    String group = m.group(1);
+                    String absPath = resolvePathRelativeToConfig(group, Config.DIR_MODS);
+                    portArgs = portArgs.replace(group, absPath);
+                }
+                addArgsToProcess(portArgs);
             }
-            addArgsToProcess(portArgs);
             
             for(IniConfigurableItem mod : selectedModsList) {
                 if(mod.get(Field.FILE) != null) {
-                    addArgsToProcess("-file " + getAbsolutePath(mod.get(Field.FILE), Config.DIR_MODS));
+                    addArgsToProcess("-file " + resolvePathRelativeToConfig(mod.get(Field.FILE), Config.DIR_MODS));
                 }
             }
             
@@ -448,7 +450,40 @@ public class LauncherFX extends Application {
         selectedModsList.clear();
     }
     
-    public static String getAbsolutePath(String pathStr, String configSubDir) {
+    /**
+     * If pathStr is a relative path, it will be resolved to an absolute path stemming from
+     * the subdir configSubDir of configHome.
+     * 
+     * If pathStr is absolute, it is returned unchanged.
+     * 
+     * @param pathStr
+     * @param configSubDir
+     * @return 
+     */
+    public static String resolvePathRelativeToConfig(String pathStr, String configSubDir) {
+        return resolveRelativePathToAbsolute(pathStr, Paths.get(CONFIG.getConfigHome(), configSubDir).toString());
+//        if(pathStr == null || "".equals(pathStr)) {
+//            return null;
+//        }
+//        
+//        Path path = Paths.get(pathStr);
+//        if(path.isAbsolute()) {
+//            return path.toString();
+//        }
+//        return Paths.get(CONFIG.getConfigHome(), configSubDir, path.toString()).toString();
+    }
+    
+    /**
+     * If pathStr is a relative path, it will be resolved to an absolute path with the parent
+     * of parentStr.
+     * 
+     * If pathStr is absolute, it is returned unchanged.
+     * 
+     * @param pathStr
+     * @param parentStr
+     * @return 
+     */
+    public static String resolveRelativePathToAbsolute(String pathStr, String parentStr) {
         if(pathStr == null || "".equals(pathStr)) {
             return null;
         }
@@ -457,7 +492,7 @@ public class LauncherFX extends Application {
         if(path.isAbsolute()) {
             return path.toString();
         }
-        return Paths.get(CONFIG.getConfigHome(), configSubDir, path.toString()).toString();
+        return Paths.get(parentStr, path.toString()).toString();
     }
     
     private void applyPortCompatibilites() {
@@ -694,7 +729,14 @@ public class LauncherFX extends Application {
 
                 String args = pwadItem.get(Field.ARGS);
                 if(args != null) {
-                    item.args = args.replace("%WADPATH%", pwadPath.getParent().toString());
+                    Matcher m = Pattern.compile("\"(.*?)\"").matcher(args);
+                    while(m.find()) {
+                        String group = m.group(1);
+                        String absPath = resolveRelativePathToAbsolute(group, pwadPath.getParent().toString());
+                        args = args.replace(group, absPath);
+                    }
+                    item.args = args;
+//                    item.args = args.replace("%WADPATH%", pwadPath.getParent().toString());
                 }
                 else {
                     //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
@@ -870,7 +912,7 @@ public class LauncherFX extends Application {
                     applyModCompatiblities();
                     break;
                 case IWAD:
-                    String iwadPath = getAbsolutePath(ic.get(Field.FILE), Config.DIR_IWAD);
+                    String iwadPath = resolvePathRelativeToConfig(ic.get(Field.FILE), Config.DIR_IWAD);
 
                     selectedIwad.setSelected(false);
                     if(selectedIwad == ic) {
