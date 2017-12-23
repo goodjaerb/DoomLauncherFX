@@ -49,6 +49,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
@@ -85,6 +86,7 @@ public class LauncherFX extends Application {
     private VBox iwadsBox;
     private VBox modsBox;
     
+    private CheckBox showHiddenPwadItemsCheckBox;
     private ListView<PWadListItem> pwadListView;
     private ListView<WarpListItem> warpListView;
         
@@ -213,12 +215,13 @@ public class LauncherFX extends Application {
             try {
                 Process p = processBuilder.start();
                 p.waitFor();
-                
-                processCommand = processCommand.subList(0, 1);
             }
             catch (IOException | InterruptedException ex) {
                 Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                 new Alert(Alert.AlertType.ERROR, "An error occured accessing or running the program '" + processBuilder.command() + "'.", ButtonType.CLOSE).showAndWait();
+            }
+            finally {
+                processCommand = processCommand.subList(0, 1);
             }
         };
         
@@ -257,7 +260,13 @@ public class LauncherFX extends Application {
             }
         });
         
-        FlowPane pwadPane = new FlowPane(Orientation.HORIZONTAL, pwadListView);
+        showHiddenPwadItemsCheckBox = new CheckBox("Show Hidden Items");
+        showHiddenPwadItemsCheckBox.setSelected(false);
+        showHiddenPwadItemsCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            loadPwadList();
+        });
+        
+        FlowPane pwadPane = new FlowPane(Orientation.HORIZONTAL, pwadListView, showHiddenPwadItemsCheckBox);
         pwadPane.setAlignment(Pos.CENTER);
         pwadPane.setPadding(new Insets(8));
         pwadPane.setHgap(8);
@@ -676,12 +685,14 @@ public class LauncherFX extends Application {
                     Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            for(Path toRemove : removeFromWadList) {
-                Iterator<PWadListItem> i = pwadList.iterator();
-                while(i.hasNext()) {
-                    PWadListItem item = i.next();
-                    if(item.path != null && item.path.equals(toRemove)) {
-                        i.remove();
+            if(!showHiddenPwadItemsCheckBox.isSelected()) {
+                for(Path toRemove : removeFromWadList) {
+                    Iterator<PWadListItem> i = pwadList.iterator();
+                    while(i.hasNext()) {
+                        PWadListItem item = i.next();
+                        if(item.path != null && item.path.equals(toRemove)) {
+                            i.remove();
+                        }
                     }
                 }
             }
