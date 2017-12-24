@@ -687,6 +687,7 @@ public class LauncherFX extends Application {
             }
             if(!showHiddenPwadItemsCheckBox.isSelected()) {
                 for(Path toRemove : removeFromWadList) {
+                    System.out.println("Removing from PWadList: " + toRemove);
                     Iterator<PWadListItem> i = pwadList.iterator();
                     while(i.hasNext()) {
                         PWadListItem item = i.next();
@@ -712,7 +713,7 @@ public class LauncherFX extends Application {
                     else if(filename.endsWith(".deh")) {
                         IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(file.getFileName().toString());
                         String ignore = (pwadItem == null) ? null : pwadItem.get(Field.IGNORE);
-                        if(ignore == null || !"true".equals(ignore)) {
+                        if(ignore == null || (!"true".equals(ignore) || showHiddenPwadItemsCheckBox.isSelected())) {
                             theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file, null));
                         }
                     }
@@ -728,21 +729,21 @@ public class LauncherFX extends Application {
     }
     
     private PWadListItem handlePwad(Path pwadPath) {
-        String filename = pwadPath.getFileName().toString();
+        String fileName = pwadPath.getFileName().toString();
 
-        IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(filename);
+        IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(fileName);
         if(pwadItem != null) {
             String ignore = pwadItem.get(Field.IGNORE);
-            if(ignore != null && "true".equals(ignore)) {
+            if(ignore != null && ("true".equals(ignore) && !showHiddenPwadItemsCheckBox.isSelected())) {
                 return null;
             }
             else {
                 String name = pwadItem.get(Field.NAME);
                 if(name == null) {
-                    name = filename;
+                    name = fileName;
                 }
                 else {
-                    name += " (" + filename + ")";
+                    name += " (" + fileName + ")";
                 }
                 
                 String txt = pwadItem.get(Field.TXT);
@@ -751,7 +752,7 @@ public class LauncherFX extends Application {
                     removeFromWadList.add(pwadPath.resolveSibling(txt));
                 }
                 else {
-                    Path txtPath = pwadPath.resolveSibling(filename.replace((".wad"), ".txt"));
+                    Path txtPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "wad", "txt"));//fileName.replace((".wad"), ".txt"));
                     if(Files.exists(txtPath)) {
                         name += (" (.txt)");
                         txt = txtPath.getFileName().toString();
@@ -784,7 +785,7 @@ public class LauncherFX extends Application {
                 }
                 else {
                     //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
-                    Path dehPath = pwadPath.resolveSibling(filename.replace(".wad", ".deh"));
+                    Path dehPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "wad", "deh"));//fileName.replace(".wad", ".deh"));
                     if(Files.exists(dehPath)) {
                         item.args = "-deh \"" + dehPath.toString() + "\" -file \"" + pwadPath.toString() + "\"";
                     }
@@ -796,12 +797,14 @@ public class LauncherFX extends Application {
             PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, pwadPath.getFileName().toString(), pwadPath, null);
             
             //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
-            Path dehPath = pwadPath.resolveSibling(filename.replace(".wad", ".deh"));
+            Path dehPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "wad", "deh"));//fileName.replace(".wad", ".deh"));
             if(Files.exists(dehPath)) {
                 item.args = "-deh \"" + dehPath.toString() + "\" -file \"" + pwadPath.toString() + "\"";
             }
             
-            Path txtPath = pwadPath.resolveSibling(filename.replace((".wad"), ".txt"));
+            Path txtPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "wad", "txt"));//fileName.replace((".wad"), ".txt"));
+            System.out.println(pwadPath);
+            System.out.println(txtPath);
             if(Files.exists(txtPath)) {
                 item.display += " (.txt)";
                 item.txt = txtPath.getFileName().toString();
@@ -809,6 +812,31 @@ public class LauncherFX extends Application {
             }
             return item;
         }
+    }
+    
+    /**
+     * Takes the fileName and checks whether the extension oldExtension is upper or lower case and
+     * replaces it with newExtension using the same case as the original.
+     * 
+     * Returns null if oldExtension isn't even the right extension!
+     * 
+     * @param fileName
+     * @param oldExtension
+     * @param newExtension
+     * @return 
+     */
+    private String changeExtensionRetainingCase(String fileName, String oldExtension, String newExtension) {
+        Matcher m = Pattern.compile(".*\\.(" + oldExtension.toLowerCase() + ")$").matcher(fileName);
+        if(m.matches()) {
+            return fileName.replaceAll("\\." + oldExtension.toLowerCase() + "$", "." + newExtension.toLowerCase());
+        }
+        
+        m = Pattern.compile(".*\\.(" + oldExtension.toUpperCase() + ")$").matcher(fileName);
+        if(m.matches()) {
+            return fileName.replaceAll("\\." + oldExtension.toUpperCase() + "$", "." + newExtension.toUpperCase());
+        }
+        
+        return null;
     }
     
     private void addArgsToProcess(String args) {
