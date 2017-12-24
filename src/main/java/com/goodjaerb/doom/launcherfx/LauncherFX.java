@@ -716,7 +716,7 @@ public class LauncherFX extends Application {
                             theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file, null));
                         }
                     }
-                    else if(filename.endsWith(".wad")) {
+                    else if(filename.endsWith(".wad") || filename.endsWith(".pk3")) {
                         PWadListItem item = handlePwad(file);
                         if(item != null) {
                             theWadSet.add(item);
@@ -751,7 +751,7 @@ public class LauncherFX extends Application {
                     removeFromWadList.add(pwadPath.resolveSibling(txt));
                 }
                 else {
-                    Path txtPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "wad", "txt"));//fileName.replace((".wad"), ".txt"));
+                    Path txtPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "txt"));//fileName.replace((".wad"), ".txt"));
                     if(Files.exists(txtPath)) {
                         name += (" (.txt)");
                         txt = txtPath.getFileName().toString();
@@ -784,7 +784,7 @@ public class LauncherFX extends Application {
                 }
                 else {
                     //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
-                    Path dehPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "wad", "deh"));//fileName.replace(".wad", ".deh"));
+                    Path dehPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "deh"));//fileName.replace(".wad", ".deh"));
                     if(Files.exists(dehPath)) {
                         item.args = "-deh \"" + dehPath.toString() + "\" -file \"" + pwadPath.toString() + "\"";
                         removeFromWadList.add(dehPath); // do i want to do this?
@@ -797,15 +797,13 @@ public class LauncherFX extends Application {
             PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, pwadPath.getFileName().toString(), pwadPath, null);
             
             //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
-            Path dehPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "wad", "deh"));//fileName.replace(".wad", ".deh"));
+            Path dehPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "deh"));//fileName.replace(".wad", ".deh"));
             if(Files.exists(dehPath)) {
                 item.args = "-deh \"" + dehPath.toString() + "\" -file \"" + pwadPath.toString() + "\"";
                 removeFromWadList.add(dehPath); // do i want to do this?
             }
             
-            Path txtPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "wad", "txt"));//fileName.replace((".wad"), ".txt"));
-            System.out.println(pwadPath);
-            System.out.println(txtPath);
+            Path txtPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "txt"));//fileName.replace((".wad"), ".txt"));
             if(Files.exists(txtPath)) {
                 item.display += " (.txt)";
                 item.txt = txtPath.getFileName().toString();
@@ -826,7 +824,8 @@ public class LauncherFX extends Application {
      * @param newExtension
      * @return 
      */
-    private String changeExtensionRetainingCase(String fileName, String oldExtension, String newExtension) {
+    private String changeExtensionRetainingCase(String fileName, String newExtension) {
+        String oldExtension = fileName.substring(fileName.length() - 3);
         Matcher m = Pattern.compile(".*\\.(" + oldExtension.toLowerCase() + ")$").matcher(fileName);
         if(m.matches()) {
             return fileName.replaceAll("\\." + oldExtension.toLowerCase() + "$", "." + newExtension.toLowerCase());
