@@ -26,10 +26,10 @@ public class PWadListCell extends ListCell<PWadListItem> {
             if (item != null && (item.type == PWadListItem.Type.TXT || item.txt != null) && event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
                 try {
                     if(item.type == PWadListItem.Type.TXT) {
-                        new TextViewer(item.path).showAndWait();
+                        new TextViewer(item.path).show();
                     }
                     else if(item.txt != null) {
-                        new TextViewer(item.path.getParent().resolve(item.txt)).showAndWait();
+                        new TextViewer(item.path.getParent().resolve(item.txt)).show();
                     }
                 } catch (IOException ex) {
                     Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
@@ -43,5 +43,4 @@ public class PWadListCell extends ListCell<PWadListItem> {
         super.updateItem(item, empty);
         setText(item == null ? null : item.display);
     }
-    
 }

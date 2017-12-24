@@ -333,6 +333,9 @@ public class LauncherFX extends Application {
         primaryStage.setTitle(APP_NAME);
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
+        primaryStage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, (event) -> {
+            Platform.exit();
+        });
         primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, (event) -> {
             if(CONFIG.isFirstRun()) {
                 ButtonType homeButton = new ButtonType("Use Home Directory");

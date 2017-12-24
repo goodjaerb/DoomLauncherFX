@@ -6,14 +6,16 @@
 package com.goodjaerb.doom.launcherfx.scene.dialog;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TextArea;
 import javafx.scene.text.Font;
+import javafx.stage.Modality;
 
 /**
  *
@@ -22,7 +24,8 @@ import javafx.scene.text.Font;
 public class TextViewer extends Dialog<Void> {
     
     public TextViewer(Path txtPath) throws IOException {
-        BufferedReader reader = Files.newBufferedReader(txtPath);
+//        BufferedReader reader = Files.newBufferedReader(txtPath); //this causes malformedinput exceptions
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(txtPath.toFile()), "utf-8"));
         
         String line;
         String text = "";
@@ -38,5 +41,7 @@ public class TextViewer extends Dialog<Void> {
         ButtonType closeButtonType = new ButtonType("Close", ButtonData.OK_DONE);
         getDialogPane().getButtonTypes().add(closeButtonType);
         getDialogPane().lookupButton(closeButtonType).setDisable(false);
+        
+        initModality(Modality.NONE);
     }
 }
