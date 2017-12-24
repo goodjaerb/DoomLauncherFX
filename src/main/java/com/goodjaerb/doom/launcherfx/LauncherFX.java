@@ -687,7 +687,6 @@ public class LauncherFX extends Application {
             }
             if(!showHiddenPwadItemsCheckBox.isSelected()) {
                 for(Path toRemove : removeFromWadList) {
-                    System.out.println("Removing from PWadList: " + toRemove);
                     Iterator<PWadListItem> i = pwadList.iterator();
                     while(i.hasNext()) {
                         PWadListItem item = i.next();
@@ -788,6 +787,7 @@ public class LauncherFX extends Application {
                     Path dehPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "wad", "deh"));//fileName.replace(".wad", ".deh"));
                     if(Files.exists(dehPath)) {
                         item.args = "-deh \"" + dehPath.toString() + "\" -file \"" + pwadPath.toString() + "\"";
+                        removeFromWadList.add(dehPath); // do i want to do this?
                     }
                 }
                 return item;
@@ -800,6 +800,7 @@ public class LauncherFX extends Application {
             Path dehPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "wad", "deh"));//fileName.replace(".wad", ".deh"));
             if(Files.exists(dehPath)) {
                 item.args = "-deh \"" + dehPath.toString() + "\" -file \"" + pwadPath.toString() + "\"";
+                removeFromWadList.add(dehPath); // do i want to do this?
             }
             
             Path txtPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "wad", "txt"));//fileName.replace((".wad"), ".txt"));
