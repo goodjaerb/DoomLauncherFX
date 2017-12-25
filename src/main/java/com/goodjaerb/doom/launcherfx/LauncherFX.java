@@ -9,6 +9,7 @@ import com.goodjaerb.doom.launcherfx.data.Game;
 import com.goodjaerb.doom.launcherfx.config.Config;
 import com.goodjaerb.doom.launcherfx.config.Field;
 import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
+import com.goodjaerb.doom.launcherfx.config.ui.NewPortDialog;
 import com.goodjaerb.doom.launcherfx.scene.control.LaunchButton;
 import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListItem;
 import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListCell;
@@ -321,10 +322,20 @@ public class LauncherFX extends Application {
             Platform.exit();
         });
         
+        MenuItem editMenuItemAddPort = new MenuItem("Add Port/TC");
+        editMenuItemAddPort.addEventHandler(ActionEvent.ACTION, (event) -> {
+            NewPortDialog portDialog = new NewPortDialog();
+            Optional<ButtonType> result = portDialog.showAndWait();
+            if(result.isPresent() && result.get() == ButtonType.OK) {
+                
+            }
+        });
+        
         MenuItem menuSeparator = new SeparatorMenuItem();
         
         Menu fileMenu = new Menu("File", null, fileMenuItemReloadIni, fileMenuResetSelections, menuSeparator, fileMenuItemExit);
-        MenuBar menuBar = new MenuBar(fileMenu);
+        Menu editMenu = new Menu("Edit", null, editMenuItemAddPort);
+        MenuBar menuBar = new MenuBar(fileMenu, editMenu);
         
         VBox root = new VBox(menuBar, tabPane, buttonPane);
         root.setMinSize(600, 550);

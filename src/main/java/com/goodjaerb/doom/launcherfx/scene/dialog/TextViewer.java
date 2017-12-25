@@ -10,7 +10,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
-import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TextArea;
@@ -38,9 +37,7 @@ public class TextViewer extends Dialog<Void> {
         textArea.setMinSize(650, 600);
         getDialogPane().setContent(textArea);
         
-        ButtonType closeButtonType = new ButtonType("Close", ButtonData.OK_DONE);
-        getDialogPane().getButtonTypes().add(closeButtonType);
-        getDialogPane().lookupButton(closeButtonType).setDisable(false);
+        getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         
         initModality(Modality.NONE);
     }
