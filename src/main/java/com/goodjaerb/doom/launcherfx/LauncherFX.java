@@ -324,7 +324,7 @@ public class LauncherFX extends Application {
         
         MenuItem editMenuItemAddPort = new MenuItem("Add Port");
         editMenuItemAddPort.addEventHandler(ActionEvent.ACTION, (event) -> {
-            ConfigurableItemDialog portDialog = new ConfigurableItemDialog(Config.Type.PORT);
+            ConfigurableItemDialog portDialog = new ConfigurableItemDialog(Config.Type.PORT, "Add New Port");
             Optional<ButtonType> result = portDialog.showAndWait();
             if(result.isPresent() && result.get() == ButtonType.OK) {
                 portDialog.applyValues();
@@ -333,17 +333,26 @@ public class LauncherFX extends Application {
         
         MenuItem editMenuItemAddTc = new MenuItem("Add Total Conversion");
         editMenuItemAddTc.addEventHandler(ActionEvent.ACTION, (event) -> {
-            ConfigurableItemDialog tcDialog = new ConfigurableItemDialog(Config.Type.TC);
+            ConfigurableItemDialog tcDialog = new ConfigurableItemDialog(Config.Type.TC, "Add New TC");
             Optional<ButtonType> result = tcDialog.showAndWait();
             if(result.isPresent() && result.get() == ButtonType.OK) {
                 tcDialog.applyValues();
             }
         });
         
+        MenuItem editMenuItemAddIwad = new MenuItem("Add IWAD");
+        editMenuItemAddIwad.addEventHandler(ActionEvent.ACTION, (event) -> {
+            ConfigurableItemDialog iwadDialog = new ConfigurableItemDialog(Config.Type.IWAD, "Add New IWAD");
+            Optional<ButtonType> result = iwadDialog.showAndWait();
+            if(result.isPresent() && result.get() == ButtonType.OK) {
+                iwadDialog.applyValues();
+            }
+        });
+        
         MenuItem menuSeparator = new SeparatorMenuItem();
         
         Menu fileMenu = new Menu("File", null, fileMenuItemReloadIni, fileMenuResetSelections, menuSeparator, fileMenuItemExit);
-        Menu editMenu = new Menu("Edit", null, editMenuItemAddPort, editMenuItemAddTc);
+        Menu editMenu = new Menu("Edit", null, editMenuItemAddPort, editMenuItemAddTc, editMenuItemAddIwad);
         MenuBar menuBar = new MenuBar(fileMenu, editMenu);
         
         VBox root = new VBox(menuBar, tabPane, buttonPane);

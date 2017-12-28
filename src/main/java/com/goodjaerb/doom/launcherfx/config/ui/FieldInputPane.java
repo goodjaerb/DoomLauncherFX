@@ -49,7 +49,8 @@ public final class FieldInputPane extends FlowPane {
     }
     
     private void doLayout() {
-        switch(field.input.type) {
+        setHgap(4);
+        switch(field.inputType) {
             case BOOLEAN:
                 initLabel();
                 initCheckBox();
@@ -64,6 +65,20 @@ public final class FieldInputPane extends FlowPane {
                 getChildren().addAll(label, textField, browseButton);
                 break;
             case LIST:
+                initLabel();
+                initListView();
+                
+                if(field == Field.GAME) {
+                    ObservableList<ListItem> list = FXCollections.observableArrayList(
+                            new ListItem("Doom", "DOOM"),
+                            new ListItem("Ultimate Doom", "ULTIMATE"),
+                            new ListItem("Doom II", "DOOM2"),
+                            new ListItem("Heretic", "HERETIC"),
+                            new ListItem("Heretic: Shadow of the Serpent Riders", "HERETIC_EXP"));
+                    
+                    listView.setItems(list);
+                    getChildren().addAll(label, listView);
+                }
                 break;
             case MULTI_LIST:
                 initLabel();
@@ -122,7 +137,7 @@ public final class FieldInputPane extends FlowPane {
     }
     
     void applyValue() {
-        switch(field.input.type) {
+        switch(field.inputType) {
             case BOOLEAN:
                 if(checkBox.isSelected()) {
                     System.out.println(field.name().toLowerCase() + "=true");
@@ -132,9 +147,21 @@ public final class FieldInputPane extends FlowPane {
                 System.out.println(field.name().toLowerCase() + "=" + textField.getText());
                 break;
             case LIST:
-                System.out.println(field.name().toLowerCase() + "=" + listView.getSelectionModel().getSelectedItem().getValue());
+                if(listView.getSelectionModel().getSelectedItem() != null) {
+                    System.out.println(field.name().toLowerCase() + "=" + listView.getSelectionModel().getSelectedItem().getValue());
+                }
                 break;
             case MULTI_LIST:
+                String value = null;
+                if(!listView.getSelectionModel().getSelectedItems().isEmpty()) {
+                    value = "";
+                    value = listView.getSelectionModel().getSelectedItems().stream().map((listitem) -> listitem.getValue() + ",").reduce(value, String::concat);
+                    value = value.substring(0, value.length() - 1);
+                }
+                
+                if(value != null) {
+                    System.out.println(field.name().toLowerCase() + "=" + value);
+                }
                 break;
             case HIDDEN:
                 if(field == Field.TYPE) {

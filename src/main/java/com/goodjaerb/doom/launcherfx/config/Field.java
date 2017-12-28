@@ -5,13 +5,6 @@
  */
 package com.goodjaerb.doom.launcherfx.config;
 
-import com.goodjaerb.doom.launcherfx.config.input.BooleanInput;
-import com.goodjaerb.doom.launcherfx.config.input.BrowseInput;
-import com.goodjaerb.doom.launcherfx.config.input.Input;
-import com.goodjaerb.doom.launcherfx.config.input.ListInput;
-import com.goodjaerb.doom.launcherfx.config.input.MultiListInput;
-import com.goodjaerb.doom.launcherfx.config.input.HiddenInput;
-import com.goodjaerb.doom.launcherfx.config.input.TextInput;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -23,7 +16,7 @@ import java.util.Map;
  * @author goodjaerb<goodjaerb@gmail.com>
  */
 public enum Field {
-    NAME("Name:", new TextInput(),
+    NAME("Name:", InputType.TEXT,
             createHelpMap(
                     "The name of the source port being configured. Will be displayed in the main window.", 
                     "The name of the total conversion being configured. Will be displayed in the main window.", 
@@ -35,7 +28,7 @@ public enum Field {
             Config.Type.IWAD,
             Config.Type.MOD,
             Config.Type.PWAD),
-    DESC("Description:", new TextInput(),
+    DESC("Description:", InputType.TEXT,
             createHelpMap(
                     "Description of the source port being configured. Will be displayed in the main window.",
                     "Description of the total conversion being configured. Will be displayed in the main window.",
@@ -46,7 +39,7 @@ public enum Field {
             Config.Type.TC,
             Config.Type.IWAD,
             Config.Type.MOD),
-    TYPE("Type:", new HiddenInput(),
+    TYPE("Type:", InputType.HIDDEN,
             createHelpMap(
                     "Field.TYPE assumed for ports.",
                     "Field.TYPE assumed for total conversions.",
@@ -58,7 +51,7 @@ public enum Field {
             Config.Type.IWAD,
             Config.Type.MOD,
             Config.Type.PWAD),
-    IWAD("IWAD:", new MultiListInput(),
+    IWAD("IWAD:", InputType.MULTI_LIST,
             createHelpMap(
                     "Limit the IWAD's that this port is compatible with to the ones selected. None selected will allow the port to use any IWAD.",
                     "Limit the IWAD's that this total conversion is compatible with to the ones selected. None selected will allow the total conversion to be loaded on any IWAD.",
@@ -68,7 +61,7 @@ public enum Field {
             Config.Type.PORT,
             Config.Type.TC,
             Config.Type.MOD),
-    FILE("File:", new BrowseInput(),
+    FILE("File:", InputType.BROWSE,
             createHelpMap(
                     "Field.FILE not implemented for ports.",
                     "Field.FILE not implemented for tc's.",
@@ -77,7 +70,7 @@ public enum Field {
                     "Field.FILE not implemented for PWAD's."),
             Config.Type.IWAD,
             Config.Type.MOD),
-    WARP("Warp List:", new TextInput(),
+    WARP("Warp List:", InputType.TEXT,
             createHelpMap(
                     "Field.WARP not implemented for ports.",
                     "Enter a comma-separated list of map names that this total conversion replaces to have them highlighted in the warp list. Doom 1 style map names are ExMx. Doom 2 style map names are MAPXX.",
@@ -86,7 +79,7 @@ public enum Field {
                     "Enter a comma-separated list of map names that this PWAD replaces to have them highlighted in the warp list. Doom 1 style map names are ExMx. Doom 2 style map names are MAPXX."),
             Config.Type.TC,
             Config.Type.PWAD),
-    GAME("Game:", new ListInput("DOOM", "ULTIMATE", "DOOM2", "HERETIC", "HERETIC_EXP"),
+    GAME("Game:", InputType.LIST,
             createHelpMap(
                     "Field.GAME not implemented for ports.",
                     "Field.GAME not implemented for tc's.",
@@ -94,7 +87,7 @@ public enum Field {
                     "Field.GAME not implemented for mods.",
                     "Field.GAME not implemented for PWAD's."),
             Config.Type.IWAD),
-    SKIPWADS("Skip PWADS", new BooleanInput(),
+    SKIPWADS("Skip PWADS", InputType.BOOLEAN,
             createHelpMap(
                     "If true, do not offer any PWAD's for this port.",
                     "If true, do not offer any PWAD's for this total conversion.",
@@ -103,7 +96,7 @@ public enum Field {
                     "Field.SKIPWADS not implemented for PWAD's."),
             Config.Type.PORT,
             Config.Type.TC),
-    WADFOLDER("Wad Folder(s):", new MultiListInput(),
+    WADFOLDER("Wad Folder(s):", InputType.MULTI_LIST,
             createHelpMap(
                     "Limit the folders that the application should search for wads in for this port to the selected.\nNone selected will allow all folders to be searched.",
                     "Limit the folders that the application should search for wads in for this total conversion to the selected. None selected will allow all folders to be searched.",
@@ -112,7 +105,7 @@ public enum Field {
                     "Field.WADFOLDER not implemented for PWAD's."),
             Config.Type.PORT,
             Config.Type.TC),
-    PORT("Supported Port(s):", new MultiListInput(),
+    PORT("Supported Port(s):", InputType.MULTI_LIST,
             createHelpMap(
                     "Field.PORT not implemented for ports.",
                     "Select the ports that this total conversion can use to run.",
@@ -121,7 +114,7 @@ public enum Field {
                     "Field.PORT not implemented for PWAD's."),
             Config.Type.TC,
             Config.Type.MOD),
-    CMD("Command:", new BrowseInput(),
+    CMD("Command:", InputType.BROWSE,
             createHelpMap(
                     "Enter the command to run this source port. Must be an absolute path or just the executable name if it is on a system path. Command arguments can be placed in the Arguments field.",
                     "Field.CMD not implemented for total conversions.",
@@ -129,7 +122,7 @@ public enum Field {
                     "Field.CMD not implemented for mods.",
                     "Field.CMD not implemented for PWAD's."),
             Config.Type.PORT),
-    ARGS("Command Arguments:", new TextInput(),
+    ARGS("Command Arguments:", InputType.TEXT,
             createHelpMap(
                     "Enter command line arguments for the source port.\nFiles referenced must be absolute paths OR they may be relative paths stemming from %CONFIGHOME%/mods.\nIn either case file names/paths should be enclosed in \"double-quotes\".\nPlease use / as the path separator, \\ may cause parsing issues.",
                     "Enter command line arguments to forward to the selected source port to run this total conversion. Files referenced must be absolute paths OR they may be relative paths stemming from %CONFIGHOME%/mods. In either case file names/paths should be enclosed in \"double-quotes\". Please use / as the path separator, \\ may cause parsing issues.",
@@ -139,7 +132,7 @@ public enum Field {
             Config.Type.PORT,
             Config.Type.TC,
             Config.Type.PWAD),
-    IMG("Image:", new BrowseInput(),
+    IMG("Image:", InputType.BROWSE,
             createHelpMap(
                     "Enter an image to display on the button selector for this port. Can be just a filename if contained in %CONFIGHOME%/images, otherwise an absolute path.",
                     "Enter an image to display on the button selector for this total conversion. Can be just a filename if contained in %CONFIGHOME%/images, otherwise an absolute path.",
@@ -150,7 +143,7 @@ public enum Field {
             Config.Type.TC,
             Config.Type.IWAD,
             Config.Type.MOD),
-    AUTHOR("WAD Author:", new TextInput(),
+    AUTHOR("WAD Author:", InputType.TEXT,
             createHelpMap(
                     "Field.AUTHOR not implemented for ports.",
                     "Field.AUTHOR not implemented for total conversions.",
@@ -158,7 +151,7 @@ public enum Field {
                     "Field.AUTHOR not implemented for mods.",
                     "Enter the WAD author's name to have it displayed in the PWAD list."), 
             Config.Type.PWAD),
-    TXT("Text File:", new BrowseInput(),
+    TXT("Text File:", InputType.BROWSE,
             createHelpMap(
                     "Field.TXT not implemented for ports.",
                     "Field.TXT not implemented for total conversions.",
@@ -166,7 +159,7 @@ public enum Field {
                     "Field.TXT not implemented for mods.",
                     "Enter the filename of the text file associated with this wad.\nOnly necessary if the filenames do not match as the application will auto-detect matching text files."), 
             Config.Type.PWAD),
-    IGNORE("Ignore:", new BooleanInput(),
+    IGNORE("Ignore:", InputType.BOOLEAN,
             createHelpMap(
                     "Field.IGNORE not implemented for ports.",
                     "Field.IGNORE not implemented for total conversions.",
@@ -176,13 +169,13 @@ public enum Field {
             Config.Type.PWAD);
     
     public final String label;
-    public final Input input;
+    public final InputType inputType;
     public final Map<Config.Type, String> helpMap;
     public final List<Config.Type> validTypes;
     
-    private Field(String label, Input input, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
+    private Field(String label, InputType inputType, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
         this.label = label;
-        this.input = input;
+        this.inputType = inputType;
         this.helpMap = helpMap;
         this.validTypes = Collections.unmodifiableList(Arrays.asList(validTypes));
     }

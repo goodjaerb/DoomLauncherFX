@@ -3,15 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.goodjaerb.doom.launcherfx.config.input;
+package com.goodjaerb.doom.launcherfx.config;
 
 /**
  *
  * @author goodjaerb<goodjaerb@gmail.com>
  */
-public class HiddenInput extends Input {
-    
-    public HiddenInput() {
-        super(Type.HIDDEN);
-    }
+public enum InputType {
+    TEXT, BROWSE, LIST, MULTI_LIST, HIDDEN, BOOLEAN;
 }

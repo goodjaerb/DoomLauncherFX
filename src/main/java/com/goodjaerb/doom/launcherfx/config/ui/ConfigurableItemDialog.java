@@ -25,13 +25,15 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
     
     private List<FieldInputPane> fieldInputPanes;
     
-    public ConfigurableItemDialog(Config.Type type) {
+    public ConfigurableItemDialog(Config.Type type, String title) {
         this.item = null;
+        setTitle(title);
         layout(type);
     }
     
-    public ConfigurableItemDialog(IniConfigurableItem item) {
+    public ConfigurableItemDialog(IniConfigurableItem item, String title) {
         this.item = item;
+        setTitle(title);
         layout(item.getType());
     }
     
@@ -53,11 +55,9 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
                 FieldInputPane fip;
                 if(item == null) {
                     fip = new FieldInputPane(type, f);
-//                    contentPane.getChildren().add(new FieldInputPane(type, f));
                 }
                 else {
                     fip = new FieldInputPane(item, f);
-//                    contentPane.getChildren().add(new FieldInputPane(item, f));
                 }
                 fieldInputPanes.add(fip);
                 contentPane.getChildren().add(fip);
