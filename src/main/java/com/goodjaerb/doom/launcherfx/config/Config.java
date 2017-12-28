@@ -73,6 +73,20 @@ public class Config {
         return Collections.unmodifiableList(CONFIGURABLES);
     }
     
+    /**
+     * Gets a list of IniConigurableItems where getType() == Config.Type.PORT.
+     * Does NOT include total conversions (Config.Type.TC).
+     * 
+     * @return 
+     */
+    public List<IniConfigurableItem> getPorts() {
+        List<IniConfigurableItem> ports = new ArrayList<>();
+        CONFIGURABLES.stream().filter((ic) -> (ic.getType() == Type.PORT)).forEachOrdered((ic) -> {
+            ports.add(ic);
+        });
+        return ports;
+    }
+    
     public IniConfigurableItem getConfigurableByName(String sectionName) {
         for(IniConfigurableItem ic : CONFIGURABLES) {
             if(ic.sectionName().equals(sectionName)) {

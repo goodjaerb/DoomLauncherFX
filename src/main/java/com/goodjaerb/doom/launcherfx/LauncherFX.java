@@ -9,7 +9,7 @@ import com.goodjaerb.doom.launcherfx.data.Game;
 import com.goodjaerb.doom.launcherfx.config.Config;
 import com.goodjaerb.doom.launcherfx.config.Field;
 import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
-import com.goodjaerb.doom.launcherfx.config.ui.NewPortDialog;
+import com.goodjaerb.doom.launcherfx.config.ui.ConfigurableItemDialog;
 import com.goodjaerb.doom.launcherfx.scene.control.LaunchButton;
 import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListItem;
 import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListCell;
@@ -322,19 +322,28 @@ public class LauncherFX extends Application {
             Platform.exit();
         });
         
-        MenuItem editMenuItemAddPort = new MenuItem("Add Port/TC");
+        MenuItem editMenuItemAddPort = new MenuItem("Add Port");
         editMenuItemAddPort.addEventHandler(ActionEvent.ACTION, (event) -> {
-            NewPortDialog portDialog = new NewPortDialog();
+            ConfigurableItemDialog portDialog = new ConfigurableItemDialog(Config.Type.PORT);
             Optional<ButtonType> result = portDialog.showAndWait();
             if(result.isPresent() && result.get() == ButtonType.OK) {
-                
+                portDialog.applyValues();
+            }
+        });
+        
+        MenuItem editMenuItemAddTc = new MenuItem("Add Total Conversion");
+        editMenuItemAddTc.addEventHandler(ActionEvent.ACTION, (event) -> {
+            ConfigurableItemDialog tcDialog = new ConfigurableItemDialog(Config.Type.TC);
+            Optional<ButtonType> result = tcDialog.showAndWait();
+            if(result.isPresent() && result.get() == ButtonType.OK) {
+                tcDialog.applyValues();
             }
         });
         
         MenuItem menuSeparator = new SeparatorMenuItem();
         
         Menu fileMenu = new Menu("File", null, fileMenuItemReloadIni, fileMenuResetSelections, menuSeparator, fileMenuItemExit);
-        Menu editMenu = new Menu("Edit", null, editMenuItemAddPort);
+        Menu editMenu = new Menu("Edit", null, editMenuItemAddPort, editMenuItemAddTc);
         MenuBar menuBar = new MenuBar(fileMenu, editMenu);
         
         VBox root = new VBox(menuBar, tabPane, buttonPane);
