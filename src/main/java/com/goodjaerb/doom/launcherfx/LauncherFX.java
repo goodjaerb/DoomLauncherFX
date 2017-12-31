@@ -42,6 +42,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -323,36 +324,21 @@ public class LauncherFX extends Application {
         });
         
         MenuItem editMenuItemAddPort = new MenuItem("Add Port");
-        editMenuItemAddPort.addEventHandler(ActionEvent.ACTION, (event) -> {
-            ConfigurableItemDialog portDialog = new ConfigurableItemDialog(Config.Type.PORT, "Add New Port");
-            Optional<ButtonType> result = portDialog.showAndWait();
-            if(result.isPresent() && result.get() == ButtonType.OK) {
-                portDialog.applyValues();
-            }
-        });
+        editMenuItemAddPort.addEventHandler(ActionEvent.ACTION, new EditMenuConfigDialogEventHandler(Config.Type.PORT, "Add New Port"));
         
         MenuItem editMenuItemAddTc = new MenuItem("Add Total Conversion");
-        editMenuItemAddTc.addEventHandler(ActionEvent.ACTION, (event) -> {
-            ConfigurableItemDialog tcDialog = new ConfigurableItemDialog(Config.Type.TC, "Add New TC");
-            Optional<ButtonType> result = tcDialog.showAndWait();
-            if(result.isPresent() && result.get() == ButtonType.OK) {
-                tcDialog.applyValues();
-            }
-        });
+        editMenuItemAddTc.addEventHandler(ActionEvent.ACTION, new EditMenuConfigDialogEventHandler(Config.Type.TC, "Add New TC"));
         
         MenuItem editMenuItemAddIwad = new MenuItem("Add IWAD");
-        editMenuItemAddIwad.addEventHandler(ActionEvent.ACTION, (event) -> {
-            ConfigurableItemDialog iwadDialog = new ConfigurableItemDialog(Config.Type.IWAD, "Add New IWAD");
-            Optional<ButtonType> result = iwadDialog.showAndWait();
-            if(result.isPresent() && result.get() == ButtonType.OK) {
-                iwadDialog.applyValues();
-            }
-        });
+        editMenuItemAddIwad.addEventHandler(ActionEvent.ACTION, new EditMenuConfigDialogEventHandler(Config.Type.IWAD, "Add New IWAD"));
+        
+        MenuItem editMenuItemAddMod = new MenuItem("Add Mod");
+        editMenuItemAddMod.addEventHandler(ActionEvent.ACTION, new EditMenuConfigDialogEventHandler(Config.Type.MOD, "Add New Mod"));
         
         MenuItem menuSeparator = new SeparatorMenuItem();
         
         Menu fileMenu = new Menu("File", null, fileMenuItemReloadIni, fileMenuResetSelections, menuSeparator, fileMenuItemExit);
-        Menu editMenu = new Menu("Edit", null, editMenuItemAddPort, editMenuItemAddTc, editMenuItemAddIwad);
+        Menu editMenu = new Menu("Edit", null, editMenuItemAddPort, editMenuItemAddTc, editMenuItemAddIwad, editMenuItemAddMod);
         MenuBar menuBar = new MenuBar(fileMenu, editMenu);
         
         VBox root = new VBox(menuBar, tabPane, buttonPane);
@@ -909,6 +895,26 @@ public class LauncherFX extends Application {
      */
     public static void main(String[] args) {
         launch(args);
+    }
+    
+    private class EditMenuConfigDialogEventHandler implements EventHandler<ActionEvent> {
+
+        private final Config.Type type;
+        private final String title;
+        
+        EditMenuConfigDialogEventHandler(Config.Type type, String title) {
+            this.type = type;
+            this.title = title;
+        }
+        
+        @Override
+        public void handle(ActionEvent event) {
+            ConfigurableItemDialog dialog = new ConfigurableItemDialog(type, title);
+            Optional<ButtonType> result = dialog.showAndWait();
+            if(result.isPresent() && result.get() == ButtonType.OK) {
+                dialog.applyValues();
+            }
+        }
     }
     
     private class LaunchItemEventHandler implements EventHandler<ActionEvent> {

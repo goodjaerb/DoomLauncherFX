@@ -87,6 +87,14 @@ public class Config {
         return ports;
     }
     
+    public List<IniConfigurableItem> getIwads() {
+        List<IniConfigurableItem> iwads = new ArrayList<>();
+        CONFIGURABLES.stream().filter((ic) -> (ic.getType() == Type.IWAD)).forEachOrdered((ic) -> {
+            iwads.add(ic);
+        });
+        return iwads;
+    }
+    
     public IniConfigurableItem getConfigurableByName(String sectionName) {
         for(IniConfigurableItem ic : CONFIGURABLES) {
             if(ic.sectionName().equals(sectionName)) {
