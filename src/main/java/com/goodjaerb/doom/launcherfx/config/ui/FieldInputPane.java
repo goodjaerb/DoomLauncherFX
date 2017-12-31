@@ -72,6 +72,14 @@ public final class FieldInputPane extends FlowPane {
         doLayout();
     }
     
+    public boolean isRequired() {
+        return field.isRequired(type);
+    }
+    
+    public Field getField() {
+        return field;
+    }
+    
     private void doLayout() {
         setHgap(4);
         switch(field.inputType) {
@@ -222,7 +230,7 @@ public final class FieldInputPane extends FlowPane {
     }
     
     private void initLabel() {
-        label = new Label(field.label + " (?)");
+        label = new Label((field.isRequired(type) ? "*" : "") + field.label + " (?)");
         label.setPrefWidth(350);
         label.setTooltip(new Tooltip(field.helpMap.get(type).replace("%CONFIGHOME%", Config.getInstance().getConfigHome())));
     }
@@ -251,19 +259,19 @@ public final class FieldInputPane extends FlowPane {
         checkBox.setSelected(false);
     }
     
-    void applyValue() {
+    String getValue() {
         switch(field.inputType) {
+            case TEXT:
+            case BROWSE:
+                return textField.getText();
             case BOOLEAN:
                 if(checkBox.isSelected()) {
-                    System.out.println(field.name().toLowerCase() + "=true");
+                    return "true";
                 }
-                break;
-            case BROWSE:
-                System.out.println(field.name().toLowerCase() + "=" + textField.getText());
                 break;
             case LIST:
                 if(listView.getSelectionModel().getSelectedItem() != null) {
-                    System.out.println(field.name().toLowerCase() + "=" + listView.getSelectionModel().getSelectedItem().getValue());
+                    return listView.getSelectionModel().getSelectedItem().getValue();
                 }
                 break;
             case MULTI_LIST:
@@ -275,19 +283,17 @@ public final class FieldInputPane extends FlowPane {
                 }
                 
                 if(value != null) {
-                    System.out.println(field.name().toLowerCase() + "=" + value);
+                    return value;
                 }
                 break;
             case HIDDEN:
                 if(field == Field.TYPE) {
-                    System.out.println(field.name().toLowerCase() + "=" + type.name().toLowerCase());
+                    return type.iniValue();
                 }
-                break;
-            case TEXT:
-                System.out.println(field.name().toLowerCase() + "=" + textField.getText());
                 break;
             default:
         }
+        return null;
     }
     
     private class ListItem {

@@ -27,7 +27,7 @@ public class Config {
     public enum Type {
         PORT, TC, MOD, IWAD, PWAD;
         
-        public String value() {
+        public String iniValue() {
             return name().toLowerCase();
         }
     }

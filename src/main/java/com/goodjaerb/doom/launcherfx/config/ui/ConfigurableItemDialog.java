@@ -10,7 +10,10 @@ import com.goodjaerb.doom.launcherfx.config.Field;
 import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.layout.VBox;
@@ -39,8 +42,15 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
     
     public void applyValues() {
         fieldInputPanes.forEach((fip) -> {
-            fip.applyValue();
+            String value = fip.getValue();
+            if(value != null && !value.trim().equals("")) {
+                System.out.println(fip.getField().iniKey() + "=" + value);
+            }
         });
+    }
+    
+    private boolean requiredFieldsArePresent() {
+        return fieldInputPanes.stream().noneMatch((fip) -> (fip.isRequired() && (fip.getValue() == null || fip.getValue().trim().equals(""))));
     }
     
     private void layout(Config.Type type) {
@@ -65,5 +75,14 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
         }
         getDialogPane().setContent(contentPane);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        
+        final Button btOk = (Button)getDialogPane().lookupButton(ButtonType.OK);
+        btOk.addEventFilter(ActionEvent.ACTION, event -> {
+            if(!requiredFieldsArePresent()) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Required fields not entered.", ButtonType.OK);
+                alert.showAndWait();
+                event.consume();
+            }
+        });
     }
 }

@@ -10,13 +10,17 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  *
  * @author goodjaerb<goodjaerb@gmail.com>
  */
 public enum Field {
-    NAME("Name:", InputType.TEXT,
+    NAME("Name:", InputType.TEXT, 
+            (t) -> {
+                return t != Config.Type.PWAD;
+            },
             createHelpMap(
                     "The name of the source port being configured. Will be displayed in the main window.", 
                     "The name of the total conversion being configured. Will be displayed in the main window.", 
@@ -51,7 +55,7 @@ public enum Field {
             Config.Type.IWAD,
             Config.Type.MOD,
             Config.Type.PWAD),
-    IWAD("IWAD:", InputType.MULTI_LIST,
+    IWAD("Restrict IWAD's:", InputType.MULTI_LIST,
             createHelpMap(
                     "Limit the IWAD's that this port is compatible with to the ones selected. None selected will allow the port to use any IWAD.",
                     "Limit the IWAD's that this total conversion is compatible with to the ones selected. None selected will allow the total conversion to be loaded on any IWAD.",
@@ -61,7 +65,8 @@ public enum Field {
             Config.Type.PORT,
             Config.Type.TC,
             Config.Type.MOD),
-    FILE("File:", InputType.BROWSE,
+    FILE("File:", InputType.BROWSE, 
+            true,
             createHelpMap(
                     "Field.FILE not implemented for ports.",
                     "Field.FILE not implemented for tc's.",
@@ -106,6 +111,7 @@ public enum Field {
             Config.Type.PORT,
             Config.Type.TC),
     PORT("Supported Port(s):", InputType.MULTI_LIST,
+            (t) -> { return t == Config.Type.TC; },
             createHelpMap(
                     "Field.PORT not implemented for ports.",
                     "Select the ports that this total conversion can use to run.",
@@ -114,7 +120,8 @@ public enum Field {
                     "Field.PORT not implemented for PWAD's."),
             Config.Type.TC,
             Config.Type.MOD),
-    CMD("Command:", InputType.BROWSE,
+    CMD("Command:", InputType.BROWSE, 
+            true,
             createHelpMap(
                     "Enter the command to run this source port. Must be an absolute path or just the executable name if it is on a system path. Command arguments can be placed in the Arguments field.",
                     "Field.CMD not implemented for total conversions.",
@@ -173,11 +180,22 @@ public enum Field {
     public final Map<Config.Type, String> helpMap;
     public final List<Config.Type> validTypes;
     
+    private final Function<Config.Type, Boolean> isRequiredFunc;
+    
+    private Field(String label, InputType inputType, boolean isRequired, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
+        this(label, inputType, (t) -> { return isRequired; }, helpMap, validTypes);
+    }
+    
     private Field(String label, InputType inputType, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
+        this(label, inputType, (t) -> { return false; }, helpMap, validTypes);
+    }
+        
+    private Field(String label, InputType inputType, Function<Config.Type, Boolean> isRequiredFunc, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
         this.label = label;
         this.inputType = inputType;
         this.helpMap = helpMap;
         this.validTypes = Collections.unmodifiableList(Arrays.asList(validTypes));
+        this.isRequiredFunc = isRequiredFunc;
     }
     
     private static Map<Config.Type, String> createHelpMap(String portHelp, String tcHelp, String iwadHelp, String modHelp, String pwadHelp) {
@@ -190,8 +208,12 @@ public enum Field {
         
         return Collections.unmodifiableMap(theMap);
     }
+    
+    public boolean isRequired(Config.Type type) {
+        return isRequiredFunc.apply(type);
+    }
 
-    String iniKey() {
+    public String iniKey() {
         return name().toLowerCase();
     }
 }
