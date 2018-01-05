@@ -12,6 +12,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,7 +57,6 @@ public class Config {
     
     private String configHome;
     
-    
     private Config() {
         
     }
@@ -71,6 +71,33 @@ public class Config {
     
     public List<IniConfigurableItem> getConfigurables() {
         return Collections.unmodifiableList(CONFIGURABLES);
+    }
+    
+    /**
+     * Add a new section to INI_FILE.
+     * If section name exists, append "_1", with increasing numbers until
+     * no more conflict.
+     * 
+     * @param sectionName
+     * @return the section name created, which may differ from the sectionName
+     * passed as a parameter if there was a name conflict resolution.
+     */
+    public String addNewSection(String sectionName) {
+        String originalSectionName = sectionName;
+        int appendNum = 0;
+        IniConfigurableItem item;
+        while((item = getConfigurableByName(sectionName)) != null) {
+            appendNum++;
+            sectionName = originalSectionName + "_" + appendNum;
+        }
+        INI_FILE.add(sectionName);
+        System.out.println("Added new INI section: " + sectionName);
+        return sectionName;
+    }
+    
+    public void update(String section, Field f, String value) {
+        INI_FILE.add(section, f.iniKey(), value);
+        System.out.println("Updated section '" + section + "' with " + f.iniKey() + "=" + value);
     }
     
     /**
@@ -175,6 +202,12 @@ public class Config {
         }
         
         parseIni();
+    }
+    
+    public void writeIni() throws IOException {
+        INI_FILE.store(Files.newBufferedWriter(Paths.get(configHome, CONFIG_FILE)));
+        parseIni();
+        System.out.println("launcherfx.ini wrote to disk.");
     }
     
     private void parseIni() {

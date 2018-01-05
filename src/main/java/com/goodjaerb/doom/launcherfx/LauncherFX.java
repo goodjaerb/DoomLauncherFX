@@ -42,7 +42,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -912,7 +911,13 @@ public class LauncherFX extends Application {
             ConfigurableItemDialog dialog = new ConfigurableItemDialog(type, title);
             Optional<ButtonType> result = dialog.showAndWait();
             if(result.isPresent() && result.get() == ButtonType.OK) {
-                dialog.applyValues();
+                try {
+                    dialog.applyValues();
+                    refreshFromIni();
+                } catch (IOException ex) {
+                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("An error occured writing to launcherfx.ini");
+                }
             }
         }
     }

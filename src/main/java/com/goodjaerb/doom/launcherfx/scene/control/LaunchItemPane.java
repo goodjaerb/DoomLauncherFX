@@ -9,13 +9,20 @@ import com.goodjaerb.doom.launcherfx.LauncherFX;
 import com.goodjaerb.doom.launcherfx.config.Config;
 import com.goodjaerb.doom.launcherfx.config.Field;
 import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.scene.control.Label;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 
 /**
  *
@@ -26,8 +33,10 @@ public class LaunchItemPane extends BorderPane {
     public final IniConfigurableItem configurableItem;
 
     private final LaunchButton launchButton;
-    private final Label nameLabel;
+    private final Text nameLabel;
+    private final Text versionLabel;
     private final Text descriptionArea;
+    private final Hyperlink hyperLink;
 
     public LaunchItemPane(IniConfigurableItem item, EventHandler<ActionEvent> handler) {
         launchButton = new LaunchButton(LauncherFX.resolvePathRelativeToConfig(item.get(Field.IMG), Config.DIR_IMAGES));
@@ -47,12 +56,26 @@ public class LaunchItemPane extends BorderPane {
             launchButton.setIcon(LauncherFX.resolvePathRelativeToConfig(newValue, Config.DIR_IMAGES));
         });
 
-        nameLabel = new Label();
+        nameLabel = new Text();
         nameLabel.textProperty().bind(item.valueProperty(Field.NAME));
         nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px");
 
+        versionLabel = new Text();
+        versionLabel.textProperty().bind(item.valueProperty(Field.VERSION));
+        versionLabel.setStyle("-fx-font-weight: bold; -fx-font-style: italic; -fx-font-size: 14px");
+        
         descriptionArea = new Text();
         descriptionArea.textProperty().bind(item.valueProperty(Field.DESC));
+        
+        hyperLink = new Hyperlink();
+        hyperLink.textProperty().bind(item.valueProperty(Field.HTTP));
+        hyperLink.addEventHandler(ActionEvent.ACTION, (event) -> {
+            try {
+                Desktop.getDesktop().browse(new URI(hyperLink.getText()));
+            } catch (URISyntaxException | IOException ex) {
+                Logger.getLogger(LaunchItemPane.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
 
         layoutPane();
     }
@@ -79,10 +102,13 @@ public class LaunchItemPane extends BorderPane {
         descriptionArea.minHeight(125);
         descriptionArea.maxHeight(170);
 
+        TextFlow textFlow = new TextFlow(nameLabel, new Text("  "), versionLabel);
+        
         VBox vBox = new VBox();
         vBox.setSpacing(2);
-        vBox.getChildren().add(nameLabel);
+        vBox.getChildren().add(textFlow);
         vBox.getChildren().add(descriptionArea);
+        vBox.getChildren().add(hyperLink);
 
         setLeft(launchButton);
         setCenter(vBox);

@@ -8,6 +8,7 @@ package com.goodjaerb.doom.launcherfx.config.ui;
 import com.goodjaerb.doom.launcherfx.config.Config;
 import com.goodjaerb.doom.launcherfx.config.Field;
 import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.event.ActionEvent;
@@ -40,13 +41,18 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
         layout(item.getType());
     }
     
-    public void applyValues() {
-        fieldInputPanes.forEach((fip) -> {
-            String value = fip.getValue();
-            if(value != null && !value.trim().equals("")) {
-                System.out.println(fip.getField().iniKey() + "=" + value);
-            }
-        });
+    public void applyValues() throws IOException {
+        if(item == null) {
+            // it's a new section and i know that NAME should be the first input pane.
+            String sectionName = Config.getInstance().addNewSection(fieldInputPanes.get(0).getValue().replaceAll("[\\s\\p{Punct}]*", ""));
+            fieldInputPanes.forEach((fip) -> {
+                String value = fip.getValue();
+                if(value != null && !value.trim().equals("")) {
+                    Config.getInstance().update(sectionName, fip.getField(), fip.getValue());
+                }
+            });
+            Config.getInstance().writeIni();
+        }
     }
     
     private boolean requiredFieldsArePresent() {
