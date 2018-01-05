@@ -96,8 +96,14 @@ public class Config {
     }
     
     public void update(String section, Field f, String value) {
-        INI_FILE.add(section, f.iniKey(), value);
-        System.out.println("Updated section '" + section + "' with " + f.iniKey() + "=" + value);
+        if(value == null || value.trim().equals("")) {
+            INI_FILE.remove(section, f.iniKey());
+            System.out.println("Updated section '" + section + "'. Removed " + f.iniKey());
+        }
+        else {
+            INI_FILE.add(section, f.iniKey(), value);
+            System.out.println("Updated section '" + section + "' with " + f.iniKey() + "=" + value);
+        }
     }
     
     /**

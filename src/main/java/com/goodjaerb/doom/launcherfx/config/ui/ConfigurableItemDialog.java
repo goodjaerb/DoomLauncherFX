@@ -42,17 +42,22 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
     }
     
     public void applyValues() throws IOException {
+        String sectionName;
         if(item == null) {
             // it's a new section and i know that NAME should be the first input pane.
-            String sectionName = Config.getInstance().addNewSection(fieldInputPanes.get(0).getValue().replaceAll("[\\s\\p{Punct}]*", ""));
-            fieldInputPanes.forEach((fip) -> {
-                String value = fip.getValue();
-                if(value != null && !value.trim().equals("")) {
-                    Config.getInstance().update(sectionName, fip.getField(), fip.getValue());
-                }
-            });
-            Config.getInstance().writeIni();
+            sectionName = Config.getInstance().addNewSection(fieldInputPanes.get(0).getValue().replaceAll("[\\s\\p{Punct}]*", ""));
         }
+        else {
+            sectionName = item.sectionName();
+        }
+        
+        fieldInputPanes.forEach((fip) -> {
+//            String value = fip.getValue();
+//            if(value != null && !value.trim().equals("")) {
+                Config.getInstance().update(sectionName, fip.getField(), fip.getValue());
+//            }
+        });
+        Config.getInstance().writeIni();
     }
     
     private boolean requiredFieldsArePresent() {

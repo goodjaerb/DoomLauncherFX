@@ -18,7 +18,10 @@ import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.VPos;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Hyperlink;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -38,10 +41,14 @@ public class LaunchItemPane extends BorderPane {
     private final Text descriptionArea;
     private final Hyperlink hyperLink;
 
-    public LaunchItemPane(IniConfigurableItem item, EventHandler<ActionEvent> handler) {
+    public LaunchItemPane(IniConfigurableItem item, EventHandler<ActionEvent> handler, EventHandler<ActionEvent> editHandler) {
         launchButton = new LaunchButton(LauncherFX.resolvePathRelativeToConfig(item.get(Field.IMG), Config.DIR_IMAGES));
         launchButton.textProperty().bind(item.valueProperty(Field.NAME));
         launchButton.addEventHandler(ActionEvent.ACTION, handler);
+        
+        MenuItem editItem = new MenuItem("Edit");
+        editItem.addEventHandler(ActionEvent.ACTION, editHandler);
+        launchButton.setContextMenu(new ContextMenu(editItem));
 
         configurableItem = item;
         configurableItem.selectedProperty().addListener((observable, oldValue, newValue) -> {

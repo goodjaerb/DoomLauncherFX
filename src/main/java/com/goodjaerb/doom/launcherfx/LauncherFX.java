@@ -418,17 +418,20 @@ public class LauncherFX extends Application {
             
             switch(type) {
                 case PORT:
+                    portsList.add(ic);
+                    portsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(type, "Edit Port")));
+                    break;
                 case TC:
                     portsList.add(ic);
-                    portsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic)));
+                    portsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(type, "Edit TC")));
                     break;
                 case IWAD:
                     iwadsList.add(ic);
-                    iwadsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic)));
+                    iwadsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(type, "Edit IWAD")));
                     break;
                 case MOD:
                     modsList.add(ic);
-                    modsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic)));
+                    modsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(type, "Edit Mod")));
                     break;
                 default:
                     break;
@@ -896,12 +899,12 @@ public class LauncherFX extends Application {
         launch(args);
     }
     
-    private class EditMenuConfigDialogEventHandler implements EventHandler<ActionEvent> {
+    public class EditMenuConfigDialogEventHandler implements EventHandler<ActionEvent> {
 
         private final Config.Type type;
         private final String title;
         
-        EditMenuConfigDialogEventHandler(Config.Type type, String title) {
+        public EditMenuConfigDialogEventHandler(Config.Type type, String title) {
             this.type = type;
             this.title = title;
         }
