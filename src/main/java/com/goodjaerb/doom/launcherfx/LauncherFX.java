@@ -52,6 +52,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -415,23 +416,29 @@ public class LauncherFX extends Application {
         
         for(IniConfigurableItem ic : CONFIG.getConfigurables()) {
             Config.Type type = ic.getType();
+            LaunchItemPane lip = new LaunchItemPane(ic);
+            lip.addLaunchHandler(new LaunchItemEventHandler(ic));
             
             switch(type) {
                 case PORT:
                     portsList.add(ic);
-                    portsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(type, "Edit Port")));
+                    portsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit Port")));
+                    lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit Port"));
                     break;
                 case TC:
                     portsList.add(ic);
-                    portsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(type, "Edit TC")));
+                    portsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit TC")));
+                    lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit TC"));
                     break;
                 case IWAD:
                     iwadsList.add(ic);
-                    iwadsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(type, "Edit IWAD")));
+                    iwadsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit IWAD")));
+                    lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit IWAD"));
                     break;
                 case MOD:
                     modsList.add(ic);
-                    modsBox.getChildren().add(new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(type, "Edit Mod")));
+                    modsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit Mod")));
+                    lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit Mod"));
                     break;
                 default:
                     break;
@@ -440,11 +447,115 @@ public class LauncherFX extends Application {
         reset();
     }
     
+    private ContextMenu createLaunchButtonContextMenu(IniConfigurableItem ic, String title) {
+        MenuItem editItem = new MenuItem("Edit");
+        editItem.addEventHandler(ActionEvent.ACTION, new EditMenuConfigDialogEventHandler(ic, title));
+        
+        MenuItem deleteItem = new MenuItem("Delete");
+        deleteItem.addEventHandler(ActionEvent.ACTION, (event) -> {
+            Alert confirmDelete = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to delete '" + ic.get(Field.NAME) + "'?", ButtonType.YES, ButtonType.CANCEL);
+            Optional<ButtonType> result = confirmDelete.showAndWait();
+            if(result.isPresent() && result.get() == ButtonType.YES) {
+                CONFIG.deleteSection(ic.sectionName());
+                try {
+                    CONFIG.writeIni();
+                    refreshFromIni();
+                    System.out.println("Deleted INI Section '" + ic.sectionName());
+                } catch (IOException ex) {
+                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("An error occured writing to launcherfx.ini");
+                }
+            }
+        });
+        
+        MenuItem moveUpItem = new MenuItem("Move Up");
+        moveUpItem.addEventHandler(ActionEvent.ACTION, (event) -> {
+            List<IniConfigurableItem> items;
+            switch(ic.getType()) {
+                case PORT:
+                case TC:
+                    items = CONFIG.getPortsAndTcs();
+                    break;
+                case IWAD:
+                    items = CONFIG.getIwads();
+                    break;
+                case MOD:
+                    items = CONFIG.getMods();
+                    break;
+                default:
+                    System.out.println("Unknown Type. Cannot move up.");
+                    return;
+            }
+            
+            int index = items.indexOf(ic);
+            if(index > 0) {
+                String mySort = ic.get(Field.SORT);
+                
+                IniConfigurableItem other = items.get(index - 1);
+                String otherSort = other.get(Field.SORT);
+                
+                CONFIG.update(ic.sectionName(), Field.SORT, otherSort);
+                CONFIG.update(other.sectionName(), Field.SORT, mySort);
+                
+                try {
+                    CONFIG.writeIni();
+                    refreshFromIni();
+                } catch (IOException ex) {
+                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("An error occured writing to launcherfx.ini");
+                }
+            }
+        });
+        
+        MenuItem moveDownItem = new MenuItem("Move Down");
+        moveDownItem.addEventHandler(ActionEvent.ACTION, (event) -> {
+            List<IniConfigurableItem> items;
+            switch(ic.getType()) {
+                case PORT:
+                case TC:
+                    items = CONFIG.getPortsAndTcs();
+                    break;
+                case IWAD:
+                    items = CONFIG.getIwads();
+                    break;
+                case MOD:
+                    items = CONFIG.getMods();
+                    break;
+                default:
+                    System.out.println("Unknown Type. Cannot move down.");
+                    return;
+            }
+            
+            int index = items.indexOf(ic);
+            if(index < items.size() - 1) {
+                String mySort = ic.get(Field.SORT);
+                
+                IniConfigurableItem other = items.get(index + 1);
+                String otherSort = other.get(Field.SORT);
+                
+                CONFIG.update(ic.sectionName(), Field.SORT, otherSort);
+                CONFIG.update(other.sectionName(), Field.SORT, mySort);
+                
+                try {
+                    CONFIG.writeIni();
+                    refreshFromIni();
+                } catch (IOException ex) {
+                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("An error occured writing to launcherfx.ini");
+                }
+            }
+        });
+        
+        return new ContextMenu(editItem, deleteItem, new SeparatorMenuItem(), moveUpItem, moveDownItem);
+    }
+    
     private void reset() {
         launchNowButton.setDisable(true);
         
         pwadListView.getItems().clear();
         warpListView.getItems().clear();
+        
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
         
         portsTab.setDisable(false);
         iwadsTab.setDisable(false);
@@ -452,7 +563,7 @@ public class LauncherFX extends Application {
         pwadsTab.setDisable(true);
         warpTab.setDisable(true);
         
-        tabPane.getSelectionModel().select(portsTab);
+        tabPane.getSelectionModel().select(selectedTab);
 
         processCommand = null;
         
@@ -885,9 +996,13 @@ public class LauncherFX extends Application {
                         longArg = "";
                         continue;
                     }
+                    if(!longArg.isEmpty() && !longArg.endsWith("\"")) {
+                        continue;
+                    }
                     argsList.add(arg);
                 }
                 processCommand.addAll(argsList);
+                System.out.println("current cmd=" + processCommand);
             }
         }
     }
@@ -899,19 +1014,33 @@ public class LauncherFX extends Application {
         launch(args);
     }
     
-    public class EditMenuConfigDialogEventHandler implements EventHandler<ActionEvent> {
+    private class EditMenuConfigDialogEventHandler implements EventHandler<ActionEvent> {
 
         private final Config.Type type;
+        private final IniConfigurableItem item;
         private final String title;
         
         public EditMenuConfigDialogEventHandler(Config.Type type, String title) {
             this.type = type;
+            this.item = null;
+            this.title = title;
+        }
+        
+        public EditMenuConfigDialogEventHandler(IniConfigurableItem item, String title) {
+            this.type = null;
+            this.item = item;
             this.title = title;
         }
         
         @Override
         public void handle(ActionEvent event) {
-            ConfigurableItemDialog dialog = new ConfigurableItemDialog(type, title);
+            ConfigurableItemDialog dialog;
+            if(item == null) {
+                dialog = new ConfigurableItemDialog(type, title);
+            }
+            else {
+                dialog = new ConfigurableItemDialog(item, title);
+            }
             Optional<ButtonType> result = dialog.showAndWait();
             if(result.isPresent() && result.get() == ButtonType.OK) {
                 try {

@@ -247,7 +247,13 @@ public final class FieldInputPane extends FlowPane {
                 }
                 
                 if(configRootPath == null || !filePath.startsWith(configRootPath)) {
-                    textField.setText(filePath.toString());
+                    switch(field) {
+                        case CMD:
+                            textField.setText("\"" + filePath.toString() + "\"");
+                            break;
+                        default:
+                            textField.setText(filePath.toString());
+                    }
                 }
                 else {
                     textField.setText(configRootPath.relativize(filePath).toString());
@@ -314,8 +320,12 @@ public final class FieldInputPane extends FlowPane {
                 }
                 break;
             case HIDDEN:
-                if(field == Field.TYPE) {
-                    return type.iniValue();
+                switch(field) {
+                    case TYPE:
+                        return type.iniValue();
+                    case SORT:
+                        return Integer.toString(Config.getInstance().getConfigurables().size() + 1);
+                    default:
                 }
                 break;
             default:

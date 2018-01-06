@@ -15,8 +15,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
@@ -69,8 +72,15 @@ public class Config {
         return configHome;
     }
     
-    public List<IniConfigurableItem> getConfigurables() {
-        return Collections.unmodifiableList(CONFIGURABLES);
+    public Collection<IniConfigurableItem> getConfigurables() {
+        SortedSet<IniConfigurableItem> sortedConfigurables = new TreeSet<>((o1, o2) -> {
+            int sort1 = o1.getInt(Field.SORT, Integer.MAX_VALUE);
+            int sort2 = o2.getInt(Field.SORT, Integer.MAX_VALUE);
+            
+            return sort1 == sort2 ? 1 : sort1 - sort2;
+        });
+        sortedConfigurables.addAll(CONFIGURABLES);
+        return Collections.unmodifiableCollection(sortedConfigurables);
     }
     
     /**
@@ -95,13 +105,17 @@ public class Config {
         return sectionName;
     }
     
+    public void deleteSection(String sectionName) {
+        INI_FILE.remove(sectionName);
+    }
+    
     public void update(String section, Field f, String value) {
         if(value == null || value.trim().equals("")) {
             INI_FILE.remove(section, f.iniKey());
             System.out.println("Updated section '" + section + "'. Removed " + f.iniKey());
         }
         else {
-            INI_FILE.add(section, f.iniKey(), value);
+            INI_FILE.put(section, f.iniKey(), value);
             System.out.println("Updated section '" + section + "' with " + f.iniKey() + "=" + value);
         }
     }
@@ -114,18 +128,34 @@ public class Config {
      */
     public List<IniConfigurableItem> getPorts() {
         List<IniConfigurableItem> ports = new ArrayList<>();
-        CONFIGURABLES.stream().filter((ic) -> (ic.getType() == Type.PORT)).forEachOrdered((ic) -> {
+        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.PORT)).forEachOrdered((ic) -> {
             ports.add(ic);
         });
-        return ports;
+        return Collections.unmodifiableList(ports);
+    }
+    
+    public List<IniConfigurableItem> getPortsAndTcs() {
+        List<IniConfigurableItem> ports = new ArrayList<>();
+        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.PORT || ic.getType() == Type.TC)).forEachOrdered((ic) -> {
+            ports.add(ic);
+        });
+        return Collections.unmodifiableList(ports);
     }
     
     public List<IniConfigurableItem> getIwads() {
         List<IniConfigurableItem> iwads = new ArrayList<>();
-        CONFIGURABLES.stream().filter((ic) -> (ic.getType() == Type.IWAD)).forEachOrdered((ic) -> {
+        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.IWAD)).forEachOrdered((ic) -> {
             iwads.add(ic);
         });
-        return iwads;
+        return Collections.unmodifiableList(iwads);
+    }
+    
+    public List<IniConfigurableItem> getMods() {
+        List<IniConfigurableItem> mods = new ArrayList<>();
+        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.MOD)).forEachOrdered((ic) -> {
+            mods.add(ic);
+        });
+        return Collections.unmodifiableList(mods);
     }
     
     public IniConfigurableItem getConfigurableByName(String sectionName) {

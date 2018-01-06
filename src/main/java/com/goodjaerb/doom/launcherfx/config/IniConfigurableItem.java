@@ -49,7 +49,13 @@ public final class IniConfigurableItem {
     }
     
     public final void set(Field f, String value) {
-        fieldMap.get(f).setValue(value);
+        ReadOnlyStringWrapper w = fieldMap.get(f);
+        if(w != null) {
+            w.setValue(value);
+        }
+        else {
+            fieldMap.put(f, new ReadOnlyStringWrapper(value));
+        }
     }
     
     /**
