@@ -70,6 +70,33 @@ public final class FieldInputPane extends FlowPane {
         this.field = field;
         this.pwadPath = pwadPath;
         doLayout();
+        
+        switch(field.inputType) {
+            case TEXT:
+            case BROWSE:
+                textField.setText(item.get(field));
+                break;
+            case BOOLEAN:
+                if("true".equals(item.get(field))) {
+                    checkBox.setSelected(true);
+                }
+                break;
+            case LIST:
+            case MULTI_LIST:
+                if(item.get(field) != null) {
+                    String[] split = item.get(field).split(",");
+                    for(String s : split) {
+                        for(ListItem i : listView.getItems()) {
+                            if(i.value.equals(s)) {
+                                listView.getSelectionModel().select(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+                break;
+            default:
+        }
     }
     
     public boolean isRequired() {
