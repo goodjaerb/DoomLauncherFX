@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
@@ -136,25 +137,46 @@ public class Config {
     
     public List<IniConfigurableItem> getPortsAndTcs() {
         List<IniConfigurableItem> ports = new ArrayList<>();
-        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.PORT || ic.getType() == Type.TC)).forEachOrdered((ic) -> {
-            ports.add(ic);
-        });
+//        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.PORT || ic.getType() == Type.TC)).forEachOrdered((ic) -> {
+//            ports.add(ic);
+//        });
+        int sort = 0;
+        for(IniConfigurableItem item : getConfigurables()) {
+            if(item.getType() == Type.PORT || item.getType() == Type.TC) {
+                ports.add(item);
+                item.set(Field.SORT, Integer.toString(sort++));
+            }
+        }
         return Collections.unmodifiableList(ports);
     }
     
     public List<IniConfigurableItem> getIwads() {
         List<IniConfigurableItem> iwads = new ArrayList<>();
-        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.IWAD)).forEachOrdered((ic) -> {
-            iwads.add(ic);
-        });
+//        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.IWAD)).forEachOrdered((ic) -> {
+//            iwads.add(ic);
+//        });
+        int sort = 0;
+        for(IniConfigurableItem item : getConfigurables()) {
+            if(item.getType() == Type.IWAD) {
+                iwads.add(item);
+                item.set(Field.SORT, Integer.toString(sort++));
+            }
+        }
         return Collections.unmodifiableList(iwads);
     }
     
     public List<IniConfigurableItem> getMods() {
         List<IniConfigurableItem> mods = new ArrayList<>();
-        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.MOD)).forEachOrdered((ic) -> {
-            mods.add(ic);
-        });
+//        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.MOD)).forEachOrdered((ic) -> {
+//            mods.add(ic);
+//        });
+        int sort = 0;
+        for(IniConfigurableItem item : getConfigurables()) {
+            if(item.getType() == Type.MOD) {
+                mods.add(item);
+                item.set(Field.SORT, Integer.toString(sort++));
+            }
+        }
         return Collections.unmodifiableList(mods);
     }
     

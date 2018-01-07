@@ -61,7 +61,7 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
     }
     
     private boolean requiredFieldsArePresent() {
-        return fieldInputPanes.stream().noneMatch((fip) -> (fip.isRequired() && (fip.getValue() == null || fip.getValue().trim().equals(""))));
+        return fieldInputPanes.stream().noneMatch((FieldInputPane fip) -> fip.isRequired() && (fip.getValue() == null || fip.getValue().trim().equals("")));
     }
     
     private void layout(Config.Type type) {

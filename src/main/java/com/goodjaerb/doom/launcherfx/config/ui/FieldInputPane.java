@@ -14,6 +14,8 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -219,45 +221,59 @@ public final class FieldInputPane extends FlowPane {
         chooser = new FileChooser();
         chooser.setInitialDirectory(new File(Config.getInstance().getConfigHome()));
         browseButton.addEventHandler(ActionEvent.ACTION, (event) -> {
-            File file = chooser.showOpenDialog(((Node)event.getTarget()).getScene().getWindow());
-            if(file != null) {
-                Path filePath = Paths.get(file.toURI());
-                Path configRootPath = null;
-                switch(field) {
-                    case FILE:
-                        switch(type) {
-                            case IWAD:
-                                configRootPath = Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IWAD);
-                                break;
-                            case MOD:
-                                configRootPath = Paths.get(Config.getInstance().getConfigHome(), Config.DIR_MODS);
-                                break;
-                            default:
-                        }
-                        break;
-                    case IMG:
-                        configRootPath = Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IMAGES);
-                        break;
-                    case TXT:
-                        if(pwadPath != null && pwadPath.startsWith(Paths.get(Config.getInstance().getConfigHome(), Config.DIR_WADS))) {
-                            configRootPath = pwadPath.getParent();
-                        }
-                        break;
-                    default:
-                }
-                
-                if(configRootPath == null || !filePath.startsWith(configRootPath)) {
+            List<File> files;
+            if(type == Config.Type.MOD) {
+                files = chooser.showOpenMultipleDialog(((Node)event.getTarget()).getScene().getWindow());
+            }
+            else {
+                File file = chooser.showOpenDialog(((Node)event.getTarget()).getScene().getWindow());
+                files = new ArrayList<>();
+                files.add(file);
+            }
+            
+            if(files != null && !files.isEmpty()) {
+                textField.clear();
+                for(File file : files) {
+                    Path filePath = Paths.get(file.toURI());
+                    Path configRootPath = null;
                     switch(field) {
-                        case CMD:
-                            textField.setText("\"" + filePath.toString() + "\"");
+                        case FILE:
+                            switch(type) {
+                                case IWAD:
+                                    configRootPath = Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IWAD);
+                                    break;
+                                case MOD:
+                                    configRootPath = Paths.get(Config.getInstance().getConfigHome(), Config.DIR_MODS);
+                                    break;
+                                default:
+                            }
+                            break;
+                        case IMG:
+                            configRootPath = Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IMAGES);
+                            break;
+                        case TXT:
+                            if(pwadPath != null && pwadPath.startsWith(Paths.get(Config.getInstance().getConfigHome(), Config.DIR_WADS))) {
+                                configRootPath = pwadPath.getParent();
+                            }
                             break;
                         default:
-                            textField.setText(filePath.toString());
+                    }
+
+                    if(configRootPath == null || !filePath.startsWith(configRootPath)) {
+                        switch(field) {
+                            case CMD:
+                                // CMD will only be single file.
+                                textField.setText("\"" + filePath.toString() + "\" ");
+                                break;
+                            default:
+                                textField.setText(textField.getText() + "\"" + filePath.toString() + "\" ");
+                        }
+                    }
+                    else {
+                        textField.setText(textField.getText() + "\"" + configRootPath.relativize(filePath).toString() + "\" ");
                     }
                 }
-                else {
-                    textField.setText(configRootPath.relativize(filePath).toString());
-                }
+                textField.setText(textField.getText().substring(0, textField.getText().length() - 1));
             }
         });
     }
@@ -324,7 +340,10 @@ public final class FieldInputPane extends FlowPane {
                     case TYPE:
                         return type.iniValue();
                     case SORT:
-                        return Integer.toString(Config.getInstance().getConfigurables().size() + 1);
+                        if(item != null) {
+                            return item.get(Field.SORT);
+                        }
+//                        return Integer.toString(Config.getInstance().getConfigurables().size() + 1);
                     default:
                 }
                 break;

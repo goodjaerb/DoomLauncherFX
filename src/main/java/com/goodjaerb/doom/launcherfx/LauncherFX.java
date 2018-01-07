@@ -135,8 +135,26 @@ public class LauncherFX extends Application {
             }
             
             for(IniConfigurableItem mod : selectedModsList) {
-                if(mod.get(Field.FILE) != null) {
-                    addArgsToProcess("-file " + resolvePathRelativeToConfig(mod.get(Field.FILE), Config.DIR_MODS));
+                String modArgs = mod.get(Field.ARGS);
+                if(modArgs != null) {
+                    Matcher m = Pattern.compile("\"(.*?)\"").matcher(modArgs);
+                    while(m.find()) {
+                        String group = m.group(1);
+                        String absPath = resolvePathRelativeToConfig(group, Config.DIR_MODS);
+                        modArgs = modArgs.replace(group, absPath);
+                    }
+                    addArgsToProcess(modArgs);
+                }
+                else if(mod.get(Field.FILE) != null) {
+//                    addArgsToProcess("-file " + resolvePathRelativeToConfig(mod.get(Field.FILE), Config.DIR_MODS));
+                    String modFiles = mod.get(Field.FILE);
+                    Matcher m = Pattern.compile("\"(.*?)\"").matcher(modFiles);
+                    while(m.find()) {
+                        String group = m.group(1);
+                        String absPath = resolvePathRelativeToConfig(group, Config.DIR_MODS);
+                        modFiles = modFiles.replace(group, absPath);
+                    }
+                    addArgsToProcess("-file " + modFiles);
                 }
             }
             
@@ -681,6 +699,7 @@ public class LauncherFX extends Application {
         for(IniConfigurableItem mod : modsList) {
             mod.setEnabled(true);
 
+            // i use to have GAME available for Mods but decided not to implement it in the config dialogs, but leaving this here anyway.
             String modSupportedGames = mod.get(Field.GAME);
             String modSupportedIwads = mod.get(Field.IWAD);
             if((modSupportedIwads != null && !modSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase()) || (modSupportedGames != null && !modSupportedGames.toUpperCase().contains(selectedGame.name())))) {
