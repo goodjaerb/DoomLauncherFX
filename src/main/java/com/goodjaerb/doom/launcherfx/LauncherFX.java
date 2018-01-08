@@ -930,7 +930,8 @@ public class LauncherFX extends Application {
                     if(filename.endsWith(".txt")) {
                         IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(file.getFileName().toString());
                         if(pwadItem != null && "true".equals(pwadItem.get(Field.IGNORE))) {
-                            removeFromWadList.add(file.getFileName());
+                            System.out.println("bla");
+                            removeFromWadList.add(wadPath);
                         }
                         theWadSet.add(new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file, null));
 //                        String ignore = (pwadItem == null) ? null : pwadItem.get(Field.IGNORE);
