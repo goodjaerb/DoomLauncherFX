@@ -9,6 +9,7 @@ import com.goodjaerb.doom.launcherfx.config.Config;
 import com.goodjaerb.doom.launcherfx.config.Field;
 import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.event.ActionEvent;
@@ -25,27 +26,54 @@ import javafx.scene.layout.VBox;
  */
 public class ConfigurableItemDialog extends Dialog<ButtonType> {
     private final IniConfigurableItem item;
+    private final Config.Type type;
     private VBox contentPane;
-    
     private List<FieldInputPane> fieldInputPanes;
+    private String newSectionName;
+    private Path pwadPath;
     
-    public ConfigurableItemDialog(Config.Type type, String title) {
+    public ConfigurableItemDialog(Config.Type type, String title, Path pwadPath) {
         this.item = null;
+        this.type = type;
+        this.newSectionName = null;
+        this.pwadPath = pwadPath;
         setTitle(title);
-        layout(type);
+        layout();
     }
     
-    public ConfigurableItemDialog(IniConfigurableItem item, String title) {
+    public ConfigurableItemDialog(IniConfigurableItem item, String title, Path pwadPath) {
         this.item = item;
+        this.type = item.getType();
+        this.newSectionName = null;
+        this.pwadPath = pwadPath;
         setTitle(title);
-        layout(item.getType());
+        layout();
+    }
+    
+    public Config.Type getType() {
+        return type;
+    }
+    
+    public void setNewSectionName(String newSectionName) {
+        this.newSectionName = newSectionName;
     }
     
     public void applyValues() throws IOException {
         String sectionName;
         if(item == null) {
-            // it's a new section and i know that NAME should be the first input pane.
-            sectionName = Config.getInstance().addNewSection(fieldInputPanes.get(0).getValue().replaceAll("[\\s\\p{Punct}]*", ""));
+            if(newSectionName == null) {
+                // it's a new section and i know that NAME should be the first input pane.
+                String name = Config.getInstance().addNewSection(fieldInputPanes.get(0).getValue().replaceAll("[\\s\\p{Punct}]*", ""));
+                if(name.isEmpty()) {
+                    sectionName = "IniSection";
+                }
+                else {
+                    sectionName = name;
+                }
+            }
+            else {
+                sectionName = newSectionName;
+            }
         }
         else {
             sectionName = item.sectionName();
@@ -64,7 +92,7 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
         return fieldInputPanes.stream().noneMatch((FieldInputPane fip) -> fip.isRequired() && (fip.getValue() == null || fip.getValue().trim().equals("")));
     }
     
-    private void layout(Config.Type type) {
+    private void layout() {
         fieldInputPanes = new ArrayList<>();
         
         contentPane = new VBox();
@@ -75,10 +103,10 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
             if(f.validTypes.contains(type)) {
                 FieldInputPane fip;
                 if(item == null) {
-                    fip = new FieldInputPane(type, f);
+                    fip = new FieldInputPane(type, f, pwadPath);
                 }
                 else {
-                    fip = new FieldInputPane(item, f);
+                    fip = new FieldInputPane(item, f, pwadPath);
                 }
                 fieldInputPanes.add(fip);
                 contentPane.getChildren().add(fip);

@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -99,7 +100,7 @@ public class LauncherFX extends Application {
     private List<IniConfigurableItem> iwadsList;
     private List<IniConfigurableItem> modsList;
     private List<IniConfigurableItem> selectedModsList;
-    private List<Path> removeFromWadList;
+    private Set<Path> removeFromWadList;
     
     private List<String> processCommand;
     private Game selectedGame = Game.UNKNOWN_GAME;
@@ -113,7 +114,7 @@ public class LauncherFX extends Application {
         iwadsList = new ArrayList<>();
         modsList = new ArrayList<>();
         selectedModsList = new ArrayList<>();
-        removeFromWadList = new ArrayList<>();
+        removeFromWadList = new HashSet<>();
         
         portsBox = new VBox();
         iwadsBox = new VBox();
@@ -261,7 +262,35 @@ public class LauncherFX extends Application {
         MenuItem editPwadItem = new MenuItem("Edit");
         editPwadItem.setOnAction(new EditMenuConfigDialogEventHandler(Config.Type.PWAD, "Edit PWAD"));
         
-        ContextMenu pwadContextMenu = new ContextMenu(editPwadItem);
+        MenuItem ignorePwadItem = new MenuItem("Ignore");
+        ignorePwadItem.setOnAction((event) -> {
+            setPwadItemsToIgnore(pwadListView.getSelectionModel().getSelectedItems(), true);
+        });
+        
+        MenuItem unignorePwadItem = new MenuItem("Unignore");
+        unignorePwadItem.setOnAction((event) -> {
+            setPwadItemsToIgnore(pwadListView.getSelectionModel().getSelectedItems(), false);
+        });
+        
+        MenuItem deletePwadItem = new MenuItem("Delete Config");
+        deletePwadItem.setOnAction((event) -> {
+            List<PWadListItem> selectedItems = pwadListView.getSelectionModel().getSelectedItems();
+            for(PWadListItem listItem : selectedItems) {
+                if(listItem != PWadListItem.NO_PWAD) {
+                    String section = listItem.path.getFileName().toString();
+                    CONFIG.deleteSection(section);
+                    try {
+                        CONFIG.writeIni();
+                        loadPwadList();
+                    } catch (IOException ex) {
+                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                        System.out.println("Error writing ini.");
+                    }
+                }
+            }
+        });
+        
+        ContextMenu pwadContextMenu = new ContextMenu(editPwadItem, ignorePwadItem, unignorePwadItem, new SeparatorMenuItem(), deletePwadItem);
         pwadContextMenu.addEventHandler(WindowEvent.WINDOW_SHOWING, (event) -> {
             List<PWadListItem> selectedItems = pwadListView.getSelectionModel().getSelectedItems();
             if(selectedItems.size() > 1) {
@@ -276,6 +305,8 @@ public class LauncherFX extends Application {
                     editPwadItem.setDisable(false);
                     IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(listItem.path.getFileName().toString());
                     ((EditMenuConfigDialogEventHandler)editPwadItem.getOnAction()).setItem(pwadItem);
+                    ((EditMenuConfigDialogEventHandler)editPwadItem.getOnAction()).setPwadPath(listItem.path);
+                    ((EditMenuConfigDialogEventHandler)editPwadItem.getOnAction()).setSectionName(listItem.path.getFileName().toString());
                     ((EditMenuConfigDialogEventHandler)editPwadItem.getOnAction()).setTitle("Edit PWAD: " + listItem.path.getFileName().toString());
                 }
             }
@@ -821,7 +852,16 @@ public class LauncherFX extends Application {
         pwadListView.getItems().clear();
         removeFromWadList.clear();
         if(selectedPort != null && selectedPort != IniConfigurableItem.EMPTY_ITEM && selectedGame != Game.UNKNOWN_GAME) {
-            SortedSet<PWadListItem> pwadList = new TreeSet<>();
+            SortedSet<PWadListItem> pwadList = new TreeSet<>((o1, o2) -> {
+                if (o1 == PWadListItem.NO_PWAD) {
+                    return -1;
+                }
+                if (o2 == PWadListItem.NO_PWAD) {
+                    return 1;
+                }
+                return o1.display.compareToIgnoreCase(o2.display);
+            });
+            
             pwadList.add(PWadListItem.NO_PWAD);
 
             String skipWads = selectedPort.get(Field.SKIPWADS);
@@ -888,14 +928,25 @@ public class LauncherFX extends Application {
                 String filename = file.getFileName().toString().toLowerCase();
                 if(Files.isRegularFile(file)) {
                     if(filename.endsWith(".txt")) {
+                        IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(file.getFileName().toString());
+                        if(pwadItem != null && "true".equals(pwadItem.get(Field.IGNORE))) {
+                            removeFromWadList.add(file.getFileName());
+                        }
                         theWadSet.add(new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file, null));
+//                        String ignore = (pwadItem == null) ? null : pwadItem.get(Field.IGNORE);
+//                        if("true".equals(ignore)) {
+//                            removeFromWadList.add()
+//                        }
+////                        if(ignore == null || (!"true".equals(ignore) || showHiddenPwadItemsCheckBox.isSelected())) {
+//                            theWadSet.add(new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file, null));
+////                        }
                     }
                     else if(filename.endsWith(".deh")) {
                         IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(file.getFileName().toString());
                         String ignore = (pwadItem == null) ? null : pwadItem.get(Field.IGNORE);
-                        if(ignore == null || (!"true".equals(ignore) || showHiddenPwadItemsCheckBox.isSelected())) {
+//                        if(ignore == null || (!"true".equals(ignore) || showHiddenPwadItemsCheckBox.isSelected())) {
                             theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file, null));
-                        }
+//                        }
                     }
                     else if(filename.endsWith(".wad") || filename.endsWith(".pk3")) {
                         PWadListItem item = handlePwad(file);
@@ -963,6 +1014,9 @@ public class LauncherFX extends Application {
                         String group = m.group(1);
                         String absPath = resolveRelativePathToAbsolute(group, pwadPath.getParent().toString());
                         args = args.replace(group, absPath);
+                        if(!pwadPath.equals(Paths.get(absPath))) {
+                            removeFromWadList.add(Paths.get(absPath));
+                        }
                     }
                     item.args = args;
 //                    item.args = args.replace("%WADPATH%", pwadPath.getParent().toString());
@@ -995,6 +1049,33 @@ public class LauncherFX extends Application {
                 removeFromWadList.add(txtPath);
             }
             return item;
+        }
+    }
+    
+    private void setPwadItemsToIgnore(List<PWadListItem> items, boolean ignore) {
+        for(PWadListItem listItem : items) {
+            if(listItem != PWadListItem.NO_PWAD) {
+                String sectionName = listItem.path.getFileName().toString();
+                IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(sectionName);
+                if(ignore) {
+                    if(pwadItem == null) {
+                        CONFIG.addNewSection(sectionName);
+                        CONFIG.update(sectionName, Field.TYPE, Config.Type.PWAD.iniValue());
+                    }
+                    CONFIG.update(sectionName, Field.IGNORE, "true");
+                }
+                else {
+                    CONFIG.update(sectionName, Field.IGNORE, null);
+                }
+            }
+        }
+        
+        try {
+            CONFIG.writeIni();
+            loadPwadList();
+        } catch (IOException ex) {
+            Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Error writing ini.");
         }
     }
     
@@ -1073,17 +1154,23 @@ public class LauncherFX extends Application {
         private final Config.Type type;
         private String title;
         private IniConfigurableItem item;
+        private String sectionName;
+        private Path pwadPath;
         
         public EditMenuConfigDialogEventHandler(Config.Type type, String title) {
             this.type = type;
             this.item = null;
             this.title = title;
+            this.sectionName = null;
+            this.pwadPath = null;
         }
         
         public EditMenuConfigDialogEventHandler(IniConfigurableItem item, String title) {
             this.type = null;
             this.item = item;
             this.title = title;
+            this.sectionName = null;
+            this.pwadPath = null;
         }
         
         public void setItem(IniConfigurableItem item) {
@@ -1094,20 +1181,36 @@ public class LauncherFX extends Application {
             this.title = title;
         }
         
+        public void setSectionName(String sectionName) {
+            this.sectionName = sectionName;
+        }
+        
+        public void setPwadPath(Path pwadPath) {
+            this.pwadPath = pwadPath;
+        }
+        
         @Override
         public void handle(ActionEvent event) {
             ConfigurableItemDialog dialog;
             if(item == null) {
-                dialog = new ConfigurableItemDialog(type, title);
+                dialog = new ConfigurableItemDialog(type, title, pwadPath);
+                if(sectionName != null) {
+                    dialog.setNewSectionName(sectionName);
+                }
             }
             else {
-                dialog = new ConfigurableItemDialog(item, title);
+                dialog = new ConfigurableItemDialog(item, title, pwadPath);
             }
             Optional<ButtonType> result = dialog.showAndWait();
             if(result.isPresent() && result.get() == ButtonType.OK) {
                 try {
                     dialog.applyValues();
-                    refreshFromIni();
+                    if(dialog.getType() == Config.Type.PWAD) {
+                        loadPwadList();
+                    }
+                    else {
+                        refreshFromIni();
+                    }
                 } catch (IOException ex) {
                     Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                     System.out.println("An error occured writing to launcherfx.ini");

@@ -17,10 +17,10 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.function.Consumer;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
@@ -263,6 +263,17 @@ public class Config {
     }
     
     public void writeIni() throws IOException {
+        Iterator<Section> sectionItr = INI_FILE.values().iterator();
+        while(sectionItr.hasNext()) {
+            Section s = sectionItr.next();
+            if(s.size() <= 1) {
+                // All sections have at least a type field and so if only one
+                // field is set there's no use keeping it in the ini.
+                sectionItr.remove();
+                System.out.println("Deleted section '" + s.getName() + "' due to no more entries.");
+            }
+        }
+        
         INI_FILE.store(Files.newBufferedWriter(Paths.get(configHome, CONFIG_FILE)));
         parseIni();
         System.out.println("launcherfx.ini wrote to disk.");

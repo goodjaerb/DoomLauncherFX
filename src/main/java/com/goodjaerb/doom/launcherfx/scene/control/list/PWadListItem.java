@@ -6,12 +6,13 @@
 package com.goodjaerb.doom.launcherfx.scene.control.list;
 
 import java.nio.file.Path;
+import java.util.Objects;
 
 /**
  *
  * @author goodjaerb<goodjaerb@gmail.com>
  */
-public class PWadListItem implements Comparable<PWadListItem> {
+public class PWadListItem {// implements Comparable<PWadListItem> {
     public static final PWadListItem NO_PWAD = new PWadListItem(PWadListItem.Type.WAD, "No PWAD.", null, null);
     
     public enum Type {
@@ -31,18 +32,40 @@ public class PWadListItem implements Comparable<PWadListItem> {
         this.warp = "";
         this.txt = txt;
     }
-
-    @Override
-    public int compareTo(PWadListItem other) {
-        if (this == NO_PWAD) {
-            return -1;
-        }
-        if (other == NO_PWAD) {
-            return 1;
-        }
-        return this.display.compareToIgnoreCase(other.display);
-    }
     
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 11 * hash + Objects.hashCode(this.path);
+        return hash;
+    }
+
+//    @Override
+//    public int compareTo(PWadListItem other) {
+//        if (this == NO_PWAD) {
+//            return -1;
+//        }
+//        if (other == NO_PWAD) {
+//            return 1;
+//        }
+//        return this.display.compareToIgnoreCase(other.display);
+//    }
+    
+    @Override    
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final PWadListItem other = (PWadListItem) obj;
+        return Objects.equals(this.path, other.path);
+    }
+
     @Override
     public String toString() {
         return display;

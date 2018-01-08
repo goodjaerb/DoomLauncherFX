@@ -219,7 +219,12 @@ public final class FieldInputPane extends FlowPane {
     private void initBrowseButton() {
         browseButton = new Button("Browse...");
         chooser = new FileChooser();
-        chooser.setInitialDirectory(new File(Config.getInstance().getConfigHome()));
+        if(pwadPath != null) {
+            chooser.setInitialDirectory(pwadPath.getParent().toFile());
+        }
+        else {
+            chooser.setInitialDirectory(new File(Config.getInstance().getConfigHome()));
+        }
         browseButton.addEventHandler(ActionEvent.ACTION, (event) -> {
             List<File> files = null;
             if(type == Config.Type.MOD) {
@@ -254,7 +259,7 @@ public final class FieldInputPane extends FlowPane {
                             configRootPath = Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IMAGES);
                             break;
                         case TXT:
-                            if(pwadPath != null && pwadPath.startsWith(Paths.get(Config.getInstance().getConfigHome(), Config.DIR_WADS))) {
+                            if(pwadPath != null) {// && pwadPath.startsWith(Paths.get(Config.getInstance().getConfigHome(), Config.DIR_WADS))) {
                                 configRootPath = pwadPath.getParent();
                             }
                             break;
@@ -267,15 +272,28 @@ public final class FieldInputPane extends FlowPane {
                                 // CMD will only be single file.
                                 textField.setText("\"" + filePath.toString() + "\" ");
                                 break;
+                            case TXT:
+                                // don't quote text files.
+                                textField.setText(filePath.toString());
+                                break;
                             default:
                                 textField.setText(textField.getText() + "\"" + filePath.toString() + "\" ");
                         }
                     }
                     else {
-                        textField.setText(textField.getText() + "\"" + configRootPath.relativize(filePath).toString() + "\" ");
+                        switch(field) {
+                            case TXT:
+                                // don't quote text files.
+                                textField.setText(configRootPath.relativize(filePath).toString());
+                                break;
+                            default:
+                                textField.setText(textField.getText() + "\"" + configRootPath.relativize(filePath).toString() + "\" ");
+                        }
                     }
                 }
-                textField.setText(textField.getText().substring(0, textField.getText().length() - 1));
+                if(field != Field.TXT) {
+                    textField.setText(textField.getText().substring(0, textField.getText().length() - 1));
+                }
             }
         });
     }
