@@ -62,7 +62,6 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
@@ -259,10 +258,36 @@ public class LauncherFX extends Application {
         buttonPane.setPadding(new Insets(4));
         buttonPane.setHgap(8);
         
+        MenuItem editPwadItem = new MenuItem("Edit");
+        editPwadItem.setOnAction(new EditMenuConfigDialogEventHandler(Config.Type.PWAD, "Edit PWAD"));
+        
+        ContextMenu pwadContextMenu = new ContextMenu(editPwadItem);
+        pwadContextMenu.addEventHandler(WindowEvent.WINDOW_SHOWING, (event) -> {
+            List<PWadListItem> selectedItems = pwadListView.getSelectionModel().getSelectedItems();
+            if(selectedItems.size() > 1) {
+                editPwadItem.setDisable(true);
+            }
+            else if(selectedItems.size() == 1) {
+                PWadListItem listItem = selectedItems.get(0);
+                if(listItem == PWadListItem.NO_PWAD || listItem.type != PWadListItem.Type.WAD) {
+                    editPwadItem.setDisable(true);
+                }
+                else {
+                    editPwadItem.setDisable(false);
+                    IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(listItem.path.getFileName().toString());
+                    ((EditMenuConfigDialogEventHandler)editPwadItem.getOnAction()).setItem(pwadItem);
+                    ((EditMenuConfigDialogEventHandler)editPwadItem.getOnAction()).setTitle("Edit PWAD: " + listItem.path.getFileName().toString());
+                }
+            }
+            else {
+                event.consume();
+            }
+        });
+        
         pwadListView = new ListView<>();
         pwadListView.setMinSize(350, 450);
         pwadListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        pwadListView.setCellFactory((ListView<PWadListItem> list) -> new PWadListCell());
+        pwadListView.setCellFactory((ListView<PWadListItem> list) -> new PWadListCell(pwadContextMenu));
         pwadListView.getSelectionModel().getSelectedItems().addListener((ListChangeListener.Change<? extends PWadListItem> c) -> {
             List<PWadListItem> selectedItems = pwadListView.getSelectionModel().getSelectedItems();
             PWadListItem selectedWad = null;
@@ -280,9 +305,6 @@ public class LauncherFX extends Application {
                 loadWarpList();
             }
         });
-        
-        MenuItem editPwadItem = new MenuItem("Edit");
-        editPwadItem.addEventHandler(ActionEvent.ACTION, new EditMenuConfigDialogEventHandler(, APP_NAME));
         
         showHiddenPwadItemsCheckBox = new CheckBox("Show Hidden Items");
         showHiddenPwadItemsCheckBox.setSelected(false);
@@ -839,17 +861,22 @@ public class LauncherFX extends Application {
                     Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if(!showHiddenPwadItemsCheckBox.isSelected()) {
+//            if(!showHiddenPwadItemsCheckBox.isSelected()) {
                 for(Path toRemove : removeFromWadList) {
                     Iterator<PWadListItem> i = pwadList.iterator();
                     while(i.hasNext()) {
                         PWadListItem item = i.next();
                         if(item.path != null && item.path.equals(toRemove)) {
-                            i.remove();
+                            if(showHiddenPwadItemsCheckBox.isSelected()) {
+                                item.display += " (auto-hidden)";
+                            }
+                            else {
+                                i.remove();
+                            }
                         }
                     }
                 }
-            }
+//            }
             pwadListView.setItems(FXCollections.observableArrayList(pwadList));
             pwadListView.getSelectionModel().select(PWadListItem.NO_PWAD);
         }
@@ -892,11 +919,15 @@ public class LauncherFX extends Application {
             }
             else {
                 String name = pwadItem.get(Field.NAME);
-                if(name == null) {
+                if(name == null || name.equals("")) {
                     name = fileName;
                 }
                 else {
                     name += " (" + fileName + ")";
+                }
+                
+                if("true".equals(pwadItem.get(Field.IGNORE))) {
+                    name += " (ignored)";
                 }
                 
                 String txt = pwadItem.get(Field.TXT);
@@ -1040,8 +1071,8 @@ public class LauncherFX extends Application {
     private class EditMenuConfigDialogEventHandler implements EventHandler<ActionEvent> {
 
         private final Config.Type type;
-        private final IniConfigurableItem item;
-        private final String title;
+        private String title;
+        private IniConfigurableItem item;
         
         public EditMenuConfigDialogEventHandler(Config.Type type, String title) {
             this.type = type;
@@ -1052,6 +1083,14 @@ public class LauncherFX extends Application {
         public EditMenuConfigDialogEventHandler(IniConfigurableItem item, String title) {
             this.type = null;
             this.item = item;
+            this.title = title;
+        }
+        
+        public void setItem(IniConfigurableItem item) {
+            this.item = item;
+        }
+        
+        public void setTitle(String title) {
             this.title = title;
         }
         
@@ -1201,11 +1240,13 @@ public class LauncherFX extends Application {
                         } 
                         catch (IOException ex) {
                             Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                            System.out.println("IWAD file not found.");
                             new Alert(Alert.AlertType.ERROR, "IWAD file not found.", ButtonType.CLOSE).showAndWait();
                             selectedGame = Game.UNKNOWN_GAME;
-                        } 
+                        }
                         catch (NoSuchAlgorithmException ex) {
                             Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                            System.out.println("Error occured detecting game.");
                             new Alert(Alert.AlertType.ERROR, "Error occured detecting game.", ButtonType.CLOSE).showAndWait();
                             selectedGame = Game.UNKNOWN_GAME;
                         }

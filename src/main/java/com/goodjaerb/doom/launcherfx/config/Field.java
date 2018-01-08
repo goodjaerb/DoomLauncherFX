@@ -200,7 +200,7 @@ public enum Field {
                     "Field.TXT not implemented for mods.",
                     "Enter the filename of the text file associated with this wad.\nOnly necessary if the filenames do not match as the application will auto-detect matching text files."), 
             Config.Type.PWAD),
-    IGNORE("Ignore:", InputType.BOOLEAN,
+    IGNORE("Ignore:", InputType.HIDDEN,
             createHelpMap(
                     "Field.IGNORE not implemented for ports.",
                     "Field.IGNORE not implemented for total conversions.",

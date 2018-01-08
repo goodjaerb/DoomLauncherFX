@@ -221,14 +221,16 @@ public final class FieldInputPane extends FlowPane {
         chooser = new FileChooser();
         chooser.setInitialDirectory(new File(Config.getInstance().getConfigHome()));
         browseButton.addEventHandler(ActionEvent.ACTION, (event) -> {
-            List<File> files;
+            List<File> files = null;
             if(type == Config.Type.MOD) {
                 files = chooser.showOpenMultipleDialog(((Node)event.getTarget()).getScene().getWindow());
             }
             else {
                 File file = chooser.showOpenDialog(((Node)event.getTarget()).getScene().getWindow());
-                files = new ArrayList<>();
-                files.add(file);
+                if(file != null) {
+                    files = new ArrayList<>();
+                    files.add(file);
+                }
             }
             
             if(files != null && !files.isEmpty()) {

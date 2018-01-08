@@ -10,6 +10,7 @@ import com.goodjaerb.doom.launcherfx.scene.dialog.TextViewer;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -20,22 +21,26 @@ import javafx.scene.input.MouseEvent;
  */
 public class PWadListCell extends ListCell<PWadListItem> {
     
-    public PWadListCell() {
+    public PWadListCell(ContextMenu contextMenu) {
         addEventHandler(MouseEvent.MOUSE_CLICKED, (javafx.scene.input.MouseEvent event) -> {
             PWadListItem item = getItem();
-            if (item != null && (item.type == PWadListItem.Type.TXT || item.txt != null) && event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-                try {
-                    if(item.type == PWadListItem.Type.TXT) {
-                        new TextViewer(item.path).show();
+            if(event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                if (item != null && (item.type == PWadListItem.Type.TXT || item.txt != null)) {
+                    try {
+                        if(item.type == PWadListItem.Type.TXT) {
+                            new TextViewer(item.path).show();
+                        }
+                        else if(item.txt != null) {
+                            new TextViewer(item.path.getParent().resolve(item.txt)).show();
+                        }
+                    } catch (IOException ex) {
+                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    else if(item.txt != null) {
-                        new TextViewer(item.path.getParent().resolve(item.txt)).show();
-                    }
-                } catch (IOException ex) {
-                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         });
+        
+        setContextMenu(contextMenu);
     }
 
     @Override
