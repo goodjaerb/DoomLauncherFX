@@ -62,6 +62,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
@@ -279,6 +280,9 @@ public class LauncherFX extends Application {
                 loadWarpList();
             }
         });
+        
+        MenuItem editPwadItem = new MenuItem("Edit");
+        editPwadItem.addEventHandler(ActionEvent.ACTION, new EditMenuConfigDialogEventHandler(, APP_NAME));
         
         showHiddenPwadItemsCheckBox = new CheckBox("Show Hidden Items");
         showHiddenPwadItemsCheckBox.setSelected(false);
