@@ -106,6 +106,7 @@ public class LauncherFX extends Application {
     private Game selectedGame = Game.UNKNOWN_GAME;
     private IniConfigurableItem selectedIwad = IniConfigurableItem.EMPTY_ITEM;
     private IniConfigurableItem selectedPort = IniConfigurableItem.EMPTY_ITEM;
+    private IniConfigurableItem tcPortToUse = IniConfigurableItem.EMPTY_ITEM;
     private PWadListItem selectedPwad = PWadListItem.NO_PWAD;
     
     @Override
@@ -726,18 +727,27 @@ public class LauncherFX extends Application {
             }
         }
         
-        if(enabledIwadsList.size() == 1) {
-            System.out.println("Only one supported iwad available. Auto-selecting it.");
-            enabledIwadsList.get(0).setSelected(true);
-            selectedIwad = enabledIwadsList.get(0);
-        }
+        // I don't want to do this like this because then it doesn't do all the other stuff
+        // that manually selecting the iwad does. and i don't want to fix it right now.
+//        if(enabledIwadsList.size() == 1) {
+//            System.out.println("Only one supported iwad available. Auto-selecting it.");
+//            enabledIwadsList.get(0).setSelected(true);
+//            selectedIwad = enabledIwadsList.get(0);
+//        }
 
-        for(IniConfigurableItem mod : modsList) {
-            mod.setEnabled(true);
+        if(!selectedPort.getBoolean(Field.SKIPMODS)) {
+            IniConfigurableItem checkAgainstPort = selectedPort;
+            if(selectedPort.getType() == Config.Type.TC) {
+                checkAgainstPort = tcPortToUse;
+            }
+            
+            for(IniConfigurableItem mod : modsList) {
+                mod.setEnabled(true);
 
-            String modSupportedPorts = mod.get(Field.PORT);
-            if(modSupportedPorts != null && !modSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())) {
-                mod.setEnabled(false);
+                String modSupportedPorts = mod.get(Field.PORT);
+                if(modSupportedPorts != null && !modSupportedPorts.toLowerCase().contains(checkAgainstPort.sectionName().toLowerCase())) {
+                    mod.setEnabled(false);
+                }
             }
         }
         checkLaunchNowAvailable();
@@ -908,7 +918,9 @@ public class LauncherFX extends Application {
                         PWadListItem item = i.next();
                         if(item.path != null && item.path.equals(toRemove)) {
                             if(showHiddenPwadItemsCheckBox.isSelected()) {
-                                item.display += " (auto-hidden)";
+                                if(!item.display.endsWith("(ignored)")) {
+                                    item.display += " (auto-hidden)";
+                                }
                             }
                             else {
                                 i.remove();
@@ -928,12 +940,14 @@ public class LauncherFX extends Application {
                 String filename = file.getFileName().toString().toLowerCase();
                 if(Files.isRegularFile(file)) {
                     if(filename.endsWith(".txt")) {
+                        PWadListItem txtListItem = new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file, null);
+                        
                         IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(file.getFileName().toString());
                         if(pwadItem != null && "true".equals(pwadItem.get(Field.IGNORE))) {
-                            System.out.println("bla");
-                            removeFromWadList.add(wadPath);
+                            removeFromWadList.add(file);
+                            txtListItem.display += " (ignored)";
                         }
-                        theWadSet.add(new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file, null));
+                        theWadSet.add(txtListItem);
 //                        String ignore = (pwadItem == null) ? null : pwadItem.get(Field.IGNORE);
 //                        if("true".equals(ignore)) {
 //                            removeFromWadList.add()
@@ -943,11 +957,19 @@ public class LauncherFX extends Application {
 ////                        }
                     }
                     else if(filename.endsWith(".deh")) {
+                        PWadListItem dehListItem = new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file, null);
+                        
                         IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(file.getFileName().toString());
-                        String ignore = (pwadItem == null) ? null : pwadItem.get(Field.IGNORE);
-//                        if(ignore == null || (!"true".equals(ignore) || showHiddenPwadItemsCheckBox.isSelected())) {
-                            theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file, null));
-//                        }
+                        if(pwadItem != null && "true".equals(pwadItem.get(Field.IGNORE))) {
+                            removeFromWadList.add(file);
+                            dehListItem.display += " (ignored)";
+                        }
+                        theWadSet.add(dehListItem);
+//                        IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(file.getFileName().toString());
+//                        String ignore = (pwadItem == null) ? null : pwadItem.get(Field.IGNORE);
+////                        if(ignore == null || (!"true".equals(ignore) || showHiddenPwadItemsCheckBox.isSelected())) {
+//                            theWadSet.add(new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file, null));
+////                        }
                     }
                     else if(filename.endsWith(".wad") || filename.endsWith(".pk3")) {
                         PWadListItem item = handlePwad(file);
@@ -1256,12 +1278,13 @@ public class LauncherFX extends Application {
                         selectedPort = IniConfigurableItem.EMPTY_ITEM;
                     }
                     else {
-                        IniConfigurableItem portToUse;
+//                        IniConfigurableItem portToUse;
+                        tcPortToUse = IniConfigurableItem.EMPTY_ITEM;
                         
                         String portStr = ic.get(Field.PORT);
                         String[] splitPort = portStr.split(",");
                         if(splitPort.length == 1) {
-                            portToUse = CONFIG.getConfigurableByName(splitPort[0]);
+                            tcPortToUse = CONFIG.getConfigurableByName(splitPort[0]);
                         }
                         else {
                             List<String> validChoices = new ArrayList<>();
@@ -1272,10 +1295,11 @@ public class LauncherFX extends Application {
                             }
                             
                             if(validChoices.isEmpty()) {
-                                portToUse = null;
+                                tcPortToUse = IniConfigurableItem.EMPTY_ITEM;
+//                                portToUse = null;
                             }
                             else if(validChoices.size() == 1) {
-                                portToUse = CONFIG.getConfigurableByName(validChoices.get(0));
+                                tcPortToUse = CONFIG.getConfigurableByName(validChoices.get(0));
                             }
                             else {
                                 ChoiceDialog<String> dialog = new ChoiceDialog<>(validChoices.get(0), validChoices);
@@ -1290,18 +1314,18 @@ public class LauncherFX extends Application {
                                 });
                                 String portChosen = dialog.showAndWait().orElse(null);
                                 if(portChosen == null) {
-                                    portToUse = IniConfigurableItem.EMPTY_ITEM;
+                                    tcPortToUse = IniConfigurableItem.EMPTY_ITEM;
                                 }
                                 else {
-                                    portToUse = CONFIG.getConfigurableByName(portChosen);
+                                    tcPortToUse = CONFIG.getConfigurableByName(portChosen);
                                 }
                             }
                         }
-                        if(portToUse == null) {
+                        if(tcPortToUse == IniConfigurableItem.EMPTY_ITEM) {
                             new Alert(Alert.AlertType.ERROR, "No valid source port defined for '" + ic.get(Field.NAME) + "'.", ButtonType.CLOSE).showAndWait();
                         }
                         else {
-                            String tcCmd = portToUse.get(Field.CMD);
+                            String tcCmd = tcPortToUse.get(Field.CMD);
 
                             if(tcCmd == null) {
                                 new Alert(Alert.AlertType.ERROR, "No command set for port.", ButtonType.CLOSE).showAndWait();

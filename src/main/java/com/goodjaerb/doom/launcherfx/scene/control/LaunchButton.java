@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -30,6 +31,8 @@ public final class LaunchButton extends Button {
     public LaunchButton(String imgPathStr) {
         super();
         label = new Label();
+        label.setMaxWidth(175);
+        label.setAlignment(Pos.CENTER);
         label.textProperty().bind(textProperty());
         
         icon = new ImageView();

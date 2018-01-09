@@ -125,6 +125,15 @@ public enum Field {
                     "Field.GAME not implemented for mods.",
                     "Field.GAME not implemented for PWAD's."),
             Config.Type.IWAD),
+    SKIPMODS("Skip Mods", InputType.BOOLEAN,
+            createHelpMap(
+                    "If true, do not offer any mods for this port.",
+                    "If true, do not offer any mods for this total conversion.",
+                    "Field.SKIPMODS not implemented for IWAD's.",
+                    "Field.SKIPMODS not implemented for mods.",
+                    "Field.SKIPMODS not implemented for PWAD's."),
+            Config.Type.PORT,
+            Config.Type.TC),
     SKIPWADS("Skip PWADS", InputType.BOOLEAN,
             createHelpMap(
                     "If true, do not offer any PWAD's for this port.",

@@ -86,6 +86,11 @@ public final class IniConfigurableItem {
         return (w == null || w.getValue() == null) ? ifNull : Integer.parseInt(w.getValue());
     }
     
+    public final Boolean getBoolean(Field f) {
+        ReadOnlyStringWrapper w = fieldMap.get(f);
+        return (w == null || w.getValue() == null) ? false : Boolean.parseBoolean(w.getValue());
+    }
+    
     public final Config.Type getType() {
         return Config.Type.valueOf(fieldMap.get(Field.TYPE).getValue().toUpperCase());
     }
