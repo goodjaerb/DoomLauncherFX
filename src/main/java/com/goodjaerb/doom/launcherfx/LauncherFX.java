@@ -504,33 +504,49 @@ public class LauncherFX extends Application {
                     ic.selectedProperty().addListener((observable, oldValue, newValue) -> {
                         if(!newValue) { //false. this port has been deselected.
                             // check mods/iwads with currently selected port in the event they were disabled
-                            //because of this port but may now be available.
-                            for(IniConfigurableItem mod : modsList) {
-                                String modSupportedPorts = mod.get(Field.PORT);
-                                System.out.println(modSupportedPorts);
-                                System.out.println("'" + selectedPort.sectionName() + "'");
-                                if(modSupportedPorts == null || modSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())) {
-                                    System.out.println("enable mod");
-                                    mod.setEnabled(true);
-                                }
-                                else {
-                                    System.out.println("disable mod");
-                                    mod.setEnabled(false);
-                                }
-                            }
-                            
-                            String portSupportedIwads = selectedPort.get(Field.IWAD);
-                            for(IniConfigurableItem iwad : iwadsList) {
-    //                                iwad.setEnabled(true);
-
-                                String iwadSupportedPorts = iwad.get(Field.PORT);
-                                if(iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())
-                                        && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
+                            // because of this port but may now be available.
+                            if(selectedPort == IniConfigurableItem.EMPTY_ITEM) {
+                                for(IniConfigurableItem iwad : iwadsList) {
                                     iwad.setEnabled(true);
                                 }
+                                
+                                for(IniConfigurableItem mod : modsList) {
+                                    mod.setEnabled(true);
+                                }
+                            }
+                            else {
+                                IniConfigurableItem checkAgainstPort = selectedPort;
+                                if(selectedPort.getType() == Config.Type.TC) {
+                                    checkAgainstPort = tcPortToUse;
+                                }
+                                if(checkAgainstPort.getBoolean(Field.SKIPMODS)) {
+                                    for(IniConfigurableItem mod : modsList) {
+                                        mod.setEnabled(false);
+                                    }
+                                }
                                 else {
-                                    iwad.setEnabled(false);
-    //                                    enabledIwadsList.remove(iwad);
+                                    for(IniConfigurableItem mod : modsList) {
+                                        String modSupportedPorts = mod.get(Field.PORT);
+                                        if(modSupportedPorts == null || modSupportedPorts.toLowerCase().contains(checkAgainstPort.sectionName().toLowerCase())) {
+                                            mod.setEnabled(true);
+                                        }
+                                        else {
+                                            mod.setEnabled(false);
+                                        }
+                                    }
+                                }
+
+                                String portSupportedIwads = selectedPort.get(Field.IWAD);
+                                for(IniConfigurableItem iwad : iwadsList) {
+
+                                    String iwadSupportedPorts = iwad.get(Field.PORT);
+                                    if(iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())
+                                            && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
+                                        iwad.setEnabled(true);
+                                    }
+                                    else {
+                                        iwad.setEnabled(false);
+                                    }
                                 }
                             }
                         }
@@ -549,14 +565,7 @@ public class LauncherFX extends Application {
                                 }
                             }
                             else {
-    //                                IniConfigurableItem checkAgainstPort = selectedPort;
-    //                                if(selectedPort.getType() == Config.Type.TC) {
-    //                                    checkAgainstPort = tcPortToUse;
-    //                                }
-
                                 for(IniConfigurableItem mod : modsList) {
-    //                                    mod.setEnabled(true);
-
                                     String modSupportedPorts = mod.get(Field.PORT);
                                     if(modSupportedPorts == null || modSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase())) {
                                         mod.setEnabled(true);
@@ -569,34 +578,33 @@ public class LauncherFX extends Application {
 
                             String portSupportedIwads = ic.get(Field.IWAD);
                             for(IniConfigurableItem iwad : iwadsList) {
-    //                                iwad.setEnabled(true);
 
                                 String iwadSupportedPorts = iwad.get(Field.PORT);
-                                if(iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase())
+                                if((iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase()))
                                         && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
                                     iwad.setEnabled(true);
                                 }
                                 else {
                                     iwad.setEnabled(false);
-    //                                    enabledIwadsList.remove(iwad);
                                 }
                             }
-                            checkLaunchNowAvailable();
                         }
                     });
                         
                     ic.enabledProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
                         // if this port is enabled, reverse check that this port is compatible with currently selected mods and disable if it is not.
                         if(newValue) {
-                            for(IniConfigurableItem mod : selectedModsList) {
-                                String modSupportedPorts = mod.get(Field.PORT);
-                                if(modSupportedPorts != null) {
-//                                            for(IniConfigurableItem port : portsList) {
-//                                                port.setEnabled(true);
-
-                                    if(!modSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase())) {
-                                        ic.setEnabled(false);
-                                        break;
+                            if(ic.getBoolean(Field.SKIPMODS) && !selectedModsList.isEmpty()) {
+                                ic.setEnabled(false);
+                            }
+                            else {
+                                for(IniConfigurableItem mod : selectedModsList) {
+                                    String modSupportedPorts = mod.get(Field.PORT);
+                                    if(modSupportedPorts != null) {
+                                        if(!modSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase())) {
+                                            ic.setEnabled(false);
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -607,16 +615,151 @@ public class LauncherFX extends Application {
                     portsList.add(ic);
                     portsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit TC")));
                     lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit TC"));
+                    ic.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                        if(!newValue) { //false. this port has been deselected.
+                            // check mods/iwads with currently selected port in the event they were disabled
+                            // because of this port but may now be available.
+                            if(selectedPort == IniConfigurableItem.EMPTY_ITEM) {
+                                for(IniConfigurableItem iwad : iwadsList) {
+                                    iwad.setEnabled(true);
+                                }
+                                
+                                for(IniConfigurableItem mod : modsList) {
+                                    mod.setEnabled(true);
+                                }
+                            }
+                            else {
+                                IniConfigurableItem checkAgainstPort = selectedPort;
+                                if(selectedPort.getType() == Config.Type.TC) {
+                                    checkAgainstPort = tcPortToUse;
+                                }
+                                for(IniConfigurableItem mod : modsList) {
+                                    String modSupportedPorts = mod.get(Field.PORT);
+                                    if(modSupportedPorts == null || modSupportedPorts.toLowerCase().contains(checkAgainstPort.sectionName().toLowerCase())) {
+                                        mod.setEnabled(true);
+                                    }
+                                    else {
+                                        mod.setEnabled(false);
+                                    }
+                                }
+
+                                String portSupportedIwads = selectedPort.get(Field.IWAD);
+                                for(IniConfigurableItem iwad : iwadsList) {
+
+                                    String iwadSupportedPorts = iwad.get(Field.PORT);
+                                    if(iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())
+                                            && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
+                                        iwad.setEnabled(true);
+                                    }
+                                    else {
+                                        iwad.setEnabled(false);
+                                    }
+                                }
+                            }
+                        }
+                        else { // true. this port has been selected.
+                            // deselect other ports
+                            for(IniConfigurableItem port : portsList) {
+                                if(port != ic) {
+                                    port.setSelected(false);
+                                }
+                            }
+                            
+                            // enabled/disable mods/iwads according to this port's compatibility settings.
+                            if(ic.getBoolean(Field.SKIPMODS)) {
+                                for(IniConfigurableItem mod : modsList) {
+                                    mod.setEnabled(false);
+                                }
+                            }
+                            else {
+                                for(IniConfigurableItem mod : modsList) {
+                                    String modSupportedPorts = mod.get(Field.PORT);
+                                    if(modSupportedPorts == null || modSupportedPorts.toLowerCase().contains(tcPortToUse.sectionName().toLowerCase())) {
+                                        mod.setEnabled(true);
+                                    }
+                                    else {
+                                        mod.setEnabled(false);
+                                    }
+                                }
+                            }
+
+                            String portSupportedIwads = ic.get(Field.IWAD);
+                            for(IniConfigurableItem iwad : iwadsList) {
+                                String iwadSupportedPorts = iwad.get(Field.PORT);
+                                if((iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase()))
+                                        && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
+                                    iwad.setEnabled(true);
+                                }
+                                else {
+                                    iwad.setEnabled(false);
+                                }
+                            }
+                        }
+                    });
+                        
+                    ic.enabledProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                        // if this port is enabled, reverse check that this port is compatible with currently selected mods (and iwads?) and disable if it is not.
+                        if(newValue) {
+                            if((ic.getBoolean(Field.SKIPMODS) || tcPortToUse.getBoolean(Field.SKIPMODS)) && !selectedModsList.isEmpty()) {
+                                ic.setEnabled(false);
+                            }
+                            else {
+                                for(IniConfigurableItem mod : selectedModsList) {
+                                    String modSupportedPorts = mod.get(Field.PORT);
+                                    if(modSupportedPorts != null) {
+                                        if(!modSupportedPorts.toLowerCase().contains(tcPortToUse.sectionName().toLowerCase())) {
+                                            tcPortToUse.setEnabled(false);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
                     break;
                 case IWAD:
                     iwadsList.add(ic);
                     iwadsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit IWAD")));
                     lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit IWAD"));
+                    ic.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                        if(!newValue) { //false. this iwad has been deselected.
+                            // check ports/mods with currently selected iwad in the event they were disabled
+                            // because of this iwad but may now be available.
+                        }
+                        else { // true. this iwad has been selected.
+                            // deselect other iwads
+                            
+                            // enabled/disable ports/mods according to this iwad's compatibility settings.
+                        }
+                    });
+                        
+                    ic.enabledProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                        // if this iwad is enabled, reverse check that this iwad is compatible with currently selected ports/mods and disable if it is not.
+                        if(newValue) {
+                            
+                        }
+                    });
                     break;
                 case MOD:
                     modsList.add(ic);
                     modsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit Mod")));
                     lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit Mod"));
+                    ic.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                        if(!newValue) { //false. this mod has been deselected.
+                            // check ports/iwads with currently selected mod in the event they were disabled
+                            // because of this mod but may now be available.
+                        }
+                        else { // true. this mod has been selected.
+                            // enabled/disable ports/iwads according to this mod's compatibility settings.
+                        }
+                    });
+                        
+                    ic.enabledProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                        // if this mod is enabled, reverse check that this mod is compatible with currently selected ports/iwads and disable if it is not.
+                        if(newValue) {
+                            
+                        }
+                    });
                     break;
                 default:
                     break;
@@ -1383,13 +1526,15 @@ public class LauncherFX extends Application {
                         }
                     }
 //                    applyPortCompatibilites();
+                    checkLaunchNowAvailable();
                     loadPwadList();
                     loadWarpList();
                     break;
                 case TC:
-                    selectedPort.setSelected(false);
+//                    selectedPort.setSelected(false);
                     if(selectedPort == ic) {
                         selectedPort = IniConfigurableItem.EMPTY_ITEM;
+                        ic.setSelected(false);
                     }
                     else {
 //                        IniConfigurableItem portToUse;
@@ -1455,6 +1600,7 @@ public class LauncherFX extends Application {
                         }
                     }
 //                    applyPortCompatibilites();
+                    checkLaunchNowAvailable();
                     loadPwadList();
                     loadWarpList();
                     break;
@@ -1500,6 +1646,7 @@ public class LauncherFX extends Application {
                         selectedIwad.setSelected(true);
                     }
 //                    applyIwadCompatibilities();
+                    checkLaunchNowAvailable();
                     loadPwadList();
                     loadWarpList();
                     break;
