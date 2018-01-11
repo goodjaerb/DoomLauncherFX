@@ -273,7 +273,8 @@ public final class FieldInputPane extends FlowPane {
                                 textField.setText("\"" + filePath.toString() + "\" ");
                                 break;
                             case TXT:
-                                // don't quote text files.
+                            case IMG:
+                                // don't quote images or text files.
                                 textField.setText(filePath.toString());
                                 break;
                             default:
@@ -283,7 +284,8 @@ public final class FieldInputPane extends FlowPane {
                     else {
                         switch(field) {
                             case TXT:
-                                // don't quote text files.
+                            case IMG:
+                                // don't quote images or text files.
                                 textField.setText(configRootPath.relativize(filePath).toString());
                                 break;
                             default:
@@ -291,7 +293,7 @@ public final class FieldInputPane extends FlowPane {
                         }
                     }
                 }
-                if(field != Field.TXT) {
+                if(field != Field.TXT && field != Field.IMG) {
                     textField.setText(textField.getText().substring(0, textField.getText().length() - 1));
                 }
             }
