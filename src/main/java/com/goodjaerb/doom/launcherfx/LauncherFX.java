@@ -834,6 +834,7 @@ public class LauncherFX extends Application {
                         if(!newValue) { //false. this mod has been deselected.
                             // check ports/iwads with currently selected mod in the event they were disabled
                             // because of this mod but may now be available.
+                            selectedModsList.remove(ic);
                             if(selectedModsList.isEmpty()) {
                                 for(IniConfigurableItem port : portsList) {
                                     port.setEnabled(true);
@@ -869,6 +870,7 @@ public class LauncherFX extends Application {
                         }
                         else { // true. this mod has been selected.
                             // enabled/disable ports/iwads according to this mod's compatibility settings.
+                            selectedModsList.add(ic);
                             String modSupportedPorts = ic.get(Field.PORT);
                             for(IniConfigurableItem port : portsList) {
                                 if(modSupportedPorts != null && !modSupportedPorts.toLowerCase().contains(port.sectionName().toLowerCase())) {
@@ -1757,11 +1759,11 @@ public class LauncherFX extends Application {
                 case MOD:
                     if(myButton.isChecked()) {
                         ic.setSelected(false);
-                        selectedModsList.remove(ic);
+//                        selectedModsList.remove(ic);
                     }
                     else {
                         ic.setSelected(true);
-                        selectedModsList.add(ic);
+//                        selectedModsList.add(ic);
                     }
 //                    applyModCompatiblities();
                     break;
