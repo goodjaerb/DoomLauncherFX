@@ -259,7 +259,7 @@ public final class FieldInputPane extends FlowPane {
                             configRootPath = Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IMAGES);
                             break;
                         case TXT:
-                            if(pwadPath != null) {// && pwadPath.startsWith(Paths.get(Config.getInstance().getConfigHome(), Config.DIR_WADS))) {
+                            if(pwadPath != null) {
                                 configRootPath = pwadPath.getParent();
                             }
                             break;
@@ -365,7 +365,6 @@ public final class FieldInputPane extends FlowPane {
                         if(item != null) {
                             return item.get(Field.SORT);
                         }
-//                        return Integer.toString(Config.getInstance().getConfigurables().size() + 1);
                     default:
                 }
                 break;

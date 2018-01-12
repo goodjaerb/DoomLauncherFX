@@ -77,18 +77,22 @@ public final class IniConfigurableItem {
      * @return 
      */
     public final String get(Field f, String ifNull) {
-        ReadOnlyStringWrapper w = fieldMap.get(f);
-        return (w == null || w.getValue() == null) ? ifNull : w.getValue();
+        String value = get(f);
+        return value == null ? ifNull : value;
     }
     
     public final Integer getInt(Field f, Integer ifNull) {
-        ReadOnlyStringWrapper w = fieldMap.get(f);
-        return (w == null || w.getValue() == null) ? ifNull : Integer.parseInt(w.getValue());
+        String value = get(f);
+        return value == null ? ifNull : Integer.parseInt(value);
     }
     
     public final Boolean getBoolean(Field f) {
-        ReadOnlyStringWrapper w = fieldMap.get(f);
-        return (w == null || w.getValue() == null) ? false : Boolean.parseBoolean(w.getValue());
+        String value = get(f);
+        return value == null ? false : Boolean.parseBoolean(value);
+    }
+    
+    public final boolean isType(Config.Type type) {
+        return getType() == type;
     }
     
     public final Config.Type getType() {

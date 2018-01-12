@@ -39,17 +39,9 @@ public class LaunchItemPane extends BorderPane {
     private final Text descriptionArea;
     private final Hyperlink hyperLink;
 
-    public LaunchItemPane(IniConfigurableItem item) {//, EventHandler<ActionEvent> handler, EventHandler<ActionEvent> editHandler) {
+    public LaunchItemPane(IniConfigurableItem item) {
         launchButton = new LaunchButton(LauncherFX.resolvePathRelativeToConfig(item.get(Field.IMG), Config.DIR_IMAGES));
         launchButton.textProperty().bind(item.valueProperty(Field.NAME));
-//        launchButton.addEventHandler(ActionEvent.ACTION, handler);
-        
-//        MenuItem editItem = new MenuItem("Edit");
-//        editItem.addEventHandler(ActionEvent.ACTION, editHandler);
-//        
-//        MenuItem deleteItem = new MenuItem("Delete");
-//        deleteItem.addEventHandler(ActionEvent.ACTION, )
-//        launchButton.setContextMenu(new ContextMenu(editItem));
 
         configurableItem = item;
         configurableItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -95,10 +87,6 @@ public class LaunchItemPane extends BorderPane {
     public void setContextMenu(ContextMenu menu) {
         launchButton.setContextMenu(menu);
     }
-
-//    public LaunchButton getLaunchButton() {
-//        return launchButton;
-//    }
 
     public void setSelected(boolean b) {
         configurableItem.selectedProperty().set(b);

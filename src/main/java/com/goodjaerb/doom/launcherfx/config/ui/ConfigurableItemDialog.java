@@ -27,10 +27,10 @@ import javafx.scene.layout.VBox;
 public class ConfigurableItemDialog extends Dialog<ButtonType> {
     private final IniConfigurableItem item;
     private final Config.Type type;
+    private final Path pwadPath;
     private VBox contentPane;
     private List<FieldInputPane> fieldInputPanes;
     private String newSectionName;
-    private Path pwadPath;
     
     public ConfigurableItemDialog(Config.Type type, String title, Path pwadPath) {
         this.item = null;
@@ -48,6 +48,10 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
         this.pwadPath = pwadPath;
         setTitle(title);
         layout();
+    }
+    
+    public boolean isType(Config.Type type) {
+        return this.type == type;
     }
     
     public Config.Type getType() {
@@ -80,10 +84,7 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
         }
         
         fieldInputPanes.forEach((fip) -> {
-//            String value = fip.getValue();
-//            if(value != null && !value.trim().equals("")) {
-                Config.getInstance().update(sectionName, fip.getField(), fip.getValue());
-//            }
+            Config.getInstance().update(sectionName, fip.getField(), fip.getValue());
         });
         Config.getInstance().writeIni();
     }

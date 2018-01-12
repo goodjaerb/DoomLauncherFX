@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -96,8 +97,7 @@ public class Config {
     public String addNewSection(String sectionName) {
         String originalSectionName = sectionName;
         int appendNum = 0;
-        IniConfigurableItem item;
-        while((item = getConfigurableByName(sectionName)) != null) {
+        while(getConfigurableByName(sectionName) != null) {
             appendNum++;
             sectionName = originalSectionName + "_" + appendNum;
         }
@@ -117,8 +117,23 @@ public class Config {
         }
         else {
             INI_FILE.put(section, f.iniKey(), value);
-            System.out.println("Updated section '" + section + "' with " + f.iniKey() + "=" + value);
+            System.out.println("Updated section '" + section + "'. Set " + f.iniKey() + "=" + value);
         }
+    }
+    
+    private List<IniConfigurableItem> getOfTypesSorted(Config.Type... types) {
+        List<Config.Type> typesList = Arrays.asList(types);
+        int sort = 0;
+        
+        List<IniConfigurableItem> items = new ArrayList<>();
+        for(IniConfigurableItem item : getConfigurables()) {
+            if(typesList.contains(item.getType())) {
+                item.set(Field.SORT, Integer.toString(sort++));
+                items.add(item);
+            }
+        }
+        
+        return Collections.unmodifiableList(items);
     }
     
     /**
@@ -129,55 +144,22 @@ public class Config {
      */
     public List<IniConfigurableItem> getPorts() {
         List<IniConfigurableItem> ports = new ArrayList<>();
-        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.PORT)).forEachOrdered((ic) -> {
+        getConfigurables().stream().filter((ic) -> (ic.isType(Type.PORT))).forEachOrdered((ic) -> {
             ports.add(ic);
         });
         return Collections.unmodifiableList(ports);
     }
     
     public List<IniConfigurableItem> getPortsAndTcs() {
-        List<IniConfigurableItem> ports = new ArrayList<>();
-//        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.PORT || ic.getType() == Type.TC)).forEachOrdered((ic) -> {
-//            ports.add(ic);
-//        });
-        int sort = 0;
-        for(IniConfigurableItem item : getConfigurables()) {
-            if(item.getType() == Type.PORT || item.getType() == Type.TC) {
-                ports.add(item);
-                item.set(Field.SORT, Integer.toString(sort++));
-            }
-        }
-        return Collections.unmodifiableList(ports);
+        return getOfTypesSorted(Type.PORT, Type.TC);
     }
     
     public List<IniConfigurableItem> getIwads() {
-        List<IniConfigurableItem> iwads = new ArrayList<>();
-//        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.IWAD)).forEachOrdered((ic) -> {
-//            iwads.add(ic);
-//        });
-        int sort = 0;
-        for(IniConfigurableItem item : getConfigurables()) {
-            if(item.getType() == Type.IWAD) {
-                iwads.add(item);
-                item.set(Field.SORT, Integer.toString(sort++));
-            }
-        }
-        return Collections.unmodifiableList(iwads);
+        return getOfTypesSorted(Type.IWAD);
     }
     
     public List<IniConfigurableItem> getMods() {
-        List<IniConfigurableItem> mods = new ArrayList<>();
-//        getConfigurables().stream().filter((ic) -> (ic.getType() == Type.MOD)).forEachOrdered((ic) -> {
-//            mods.add(ic);
-//        });
-        int sort = 0;
-        for(IniConfigurableItem item : getConfigurables()) {
-            if(item.getType() == Type.MOD) {
-                mods.add(item);
-                item.set(Field.SORT, Integer.toString(sort++));
-            }
-        }
-        return Collections.unmodifiableList(mods);
+        return getOfTypesSorted(Type.MOD);
     }
     
     public IniConfigurableItem getConfigurableByName(String sectionName) {
@@ -281,12 +263,12 @@ public class Config {
     
     private void parseIni() {
         CONFIGURABLES.clear();
-        for(Section section : INI_FILE.values()) {
+        INI_FILE.values().forEach((section) -> {
             Type type = Type.valueOf(section.get(Field.TYPE.iniKey()).toUpperCase());
-            if(null != type) {
+            if (null != type) {
                 CONFIGURABLES.add(new IniConfigurableItem(section));
             }
-        }
+        });
     }
     
     private void createPointerConfig(Path configFilePath, Path pointToPath) throws IOException {        //check that .launcherfx directory exists.

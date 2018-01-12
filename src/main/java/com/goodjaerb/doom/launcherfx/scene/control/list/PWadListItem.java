@@ -12,7 +12,7 @@ import java.util.Objects;
  *
  * @author goodjaerb<goodjaerb@gmail.com>
  */
-public class PWadListItem {// implements Comparable<PWadListItem> {
+public class PWadListItem {
     public static final PWadListItem NO_PWAD = new PWadListItem(PWadListItem.Type.WAD, "No PWAD.", null, null);
     
     public enum Type {
@@ -39,17 +39,6 @@ public class PWadListItem {// implements Comparable<PWadListItem> {
         hash = 11 * hash + Objects.hashCode(this.path);
         return hash;
     }
-
-//    @Override
-//    public int compareTo(PWadListItem other) {
-//        if (this == NO_PWAD) {
-//            return -1;
-//        }
-//        if (other == NO_PWAD) {
-//            return 1;
-//        }
-//        return this.display.compareToIgnoreCase(other.display);
-//    }
     
     @Override    
     public boolean equals(Object obj) {
