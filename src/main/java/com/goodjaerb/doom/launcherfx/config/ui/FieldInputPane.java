@@ -132,7 +132,9 @@ public final class FieldInputPane extends FlowPane {
                                 break;
                             case MOD:
                                 chooser.setInitialDirectory(Paths.get(Config.getInstance().getConfigHome(), Config.DIR_MODS).toFile());
+                                chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All Files", "*.*"));
                                 chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(".PK3 files", "*.PK3"));
+                                chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(".PK7 files", "*.PK7"));
                                 break;
                             default:
                         }
