@@ -5,6 +5,7 @@
  */
 package com.goodjaerb.doom.launcherfx.config;
 
+import com.goodjaerb.doom.launcherfx.LauncherFX;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -102,7 +103,7 @@ public class Config {
             sectionName = originalSectionName + "_" + appendNum;
         }
         INI_FILE.add(sectionName);
-        System.out.println("Added new INI section: " + sectionName);
+        LauncherFX.info("Added new INI section: " + sectionName);
         return sectionName;
     }
     
@@ -113,11 +114,11 @@ public class Config {
     public void update(String section, Field f, String value) {
         if(value == null || value.trim().equals("")) {
             INI_FILE.remove(section, f.iniKey());
-            System.out.println("Updated section '" + section + "'. Removed " + f.iniKey());
+            LauncherFX.info("Updated section '" + section + "'. Removed " + f.iniKey());
         }
         else {
             INI_FILE.put(section, f.iniKey(), value);
-            System.out.println("Updated section '" + section + "'. Set " + f.iniKey() + "=" + value);
+            LauncherFX.info("Updated section '" + section + "'. Set " + f.iniKey() + "=" + value);
         }
     }
     
@@ -252,13 +253,13 @@ public class Config {
                 // All sections have at least a type field and so if only one
                 // field is set there's no use keeping it in the ini.
                 sectionItr.remove();
-                System.out.println("Deleted section '" + s.getName() + "' due to no more entries.");
+                LauncherFX.info("Deleted section '" + s.getName() + "' due to no more entries.");
             }
         }
         
         INI_FILE.store(Files.newBufferedWriter(Paths.get(configHome, CONFIG_FILE)));
         parseIni();
-        System.out.println("launcherfx.ini wrote to disk.");
+        LauncherFX.info("launcherfx.ini wrote to disk.");
     }
     
     private void parseIni() {

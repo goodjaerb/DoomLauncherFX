@@ -8,8 +8,6 @@ package com.goodjaerb.doom.launcherfx.scene.control.list;
 import com.goodjaerb.doom.launcherfx.LauncherFX;
 import com.goodjaerb.doom.launcherfx.scene.dialog.TextViewer;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
 import javafx.scene.input.MouseButton;
@@ -34,7 +32,7 @@ public class PWadListCell extends ListCell<PWadListItem> {
                             new TextViewer(item.path.getParent().resolve(item.txt)).show();
                         }
                     } catch (IOException ex) {
-                        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                        LauncherFX.error(ex);
                     }
                 }
             }
