@@ -5,6 +5,7 @@
  */
 package com.goodjaerb.doom.launcherfx.data;
 
+import com.goodjaerb.doom.launcherfx.LauncherFX;
 import com.goodjaerb.doom.launcherfx.scene.control.list.WarpListItem;
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,7 +51,7 @@ public enum Game {
         String sha = calcSHA1(new File(iwadPath));
         for(Map.Entry<List<String>, Game> entry : SHA_GAME_MAPPINGS.entrySet()) {
             if(entry.getKey().contains(sha)) {
-                System.out.println("'" + iwadPath + "' matched to " + entry.getValue().name);
+                LauncherFX.info("'" + iwadPath + "' matched to " + entry.getValue().name);
                 return entry.getValue();
             }
         }

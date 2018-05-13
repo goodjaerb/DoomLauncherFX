@@ -224,13 +224,13 @@ public class LauncherFX extends Application {
             ProcessBuilder processBuilder = new ProcessBuilder(processCommand);
             processBuilder.directory(new File(processCommand.get(0)).getParentFile());
             
-            System.out.println("command=" + processBuilder.command() + ", workingdir=" + processBuilder.directory());
+            LauncherFX.info("command=" + processBuilder.command() + ", workingdir=" + processBuilder.directory());
             try {
                 Process p = processBuilder.start();
                 p.waitFor();
             }
             catch (IOException | InterruptedException ex) {
-                Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                LauncherFX.error(ex);
                 new Alert(Alert.AlertType.ERROR, "An error occured accessing or running the program '" + processBuilder.command() + "'.", ButtonType.CLOSE).showAndWait();
             }
             finally {
@@ -274,8 +274,8 @@ public class LauncherFX extends Application {
                 CONFIG.writeIni();
                 loadPwadList();
             } catch (IOException ex) {
-                Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-                System.out.println("Error writing ini.");
+                LauncherFX.error(ex);
+                LauncherFX.info("Error writing ini.");
             }
         });
         
@@ -370,7 +370,7 @@ public class LauncherFX extends Application {
                 CONFIG.loadConfig();
                 refreshFromIni();
             } catch (IOException ex) {
-                Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                LauncherFX.error(ex);
                 
                 Alert exceptionAlert = new Alert(Alert.AlertType.ERROR, "There was a problem loading the configuration file.\nMake sure you have a " + Config.CONFIG_FILE + " located in " + Config.USER_HOME + File.separator + Config.CONFIG_DIR + ", even if you use a custom data location.\nRestart the application to recreate it and if necessary point it to your custom directory.", ButtonType.OK);
                 exceptionAlert.showAndWait();
@@ -426,7 +426,7 @@ public class LauncherFX extends Application {
 
                 Optional<ButtonType> result = firstRunAlert.showAndWait();
                 if(!result.isPresent() || result.get() == ButtonType.CANCEL) {
-                    System.out.println("Cancelled configuration alert. Exiting.");
+                    LauncherFX.info("Cancelled configuration alert. Exiting.");
                     Platform.exit();
                 }
                 else {
@@ -434,7 +434,7 @@ public class LauncherFX extends Application {
                         try {
                             CONFIG.initializeConfig();
                         } catch (IOException ex) {
-                            Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                            LauncherFX.error(ex);
                         }
                     }
                     else if(result.get() == otherButton) {
@@ -443,14 +443,14 @@ public class LauncherFX extends Application {
 
                         File dir = chooser.showDialog(primaryStage);
                         if(dir == null) {
-                            System.out.println("No directory chosen. Exiting.");
+                            LauncherFX.info("No directory chosen. Exiting.");
                             Platform.exit();
                         }
                         else {
                             try {
                                 CONFIG.initializeConfig(dir.toPath());
                             } catch (IOException ex) {
-                                Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                                LauncherFX.error(ex);
                             }
                         }
                     }
@@ -460,7 +460,7 @@ public class LauncherFX extends Application {
                 try {
                     CONFIG.loadConfig();
                 } catch (IOException ex) {
-                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                    LauncherFX.error(ex);
                 }
             }
 
@@ -920,10 +920,10 @@ public class LauncherFX extends Application {
                 try {
                     CONFIG.writeIni();
                     refreshFromIni();
-                    System.out.println("Deleted INI Section '" + ic.sectionName());
+                    LauncherFX.info("Deleted INI Section '" + ic.sectionName());
                 } catch (IOException ex) {
-                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-                    System.out.println("An error occured writing to launcherfx.ini");
+                    LauncherFX.error(ex);
+                    LauncherFX.info("An error occured writing to launcherfx.ini");
                 }
             }
         });
@@ -943,7 +943,7 @@ public class LauncherFX extends Application {
                     items = CONFIG.getMods();
                     break;
                 default:
-                    System.out.println("Unknown Type. Cannot move up.");
+                    LauncherFX.info("Unknown Type. Cannot move up.");
                     return;
             }
             
@@ -961,8 +961,8 @@ public class LauncherFX extends Application {
                     CONFIG.writeIni();
                     refreshFromIni();
                 } catch (IOException ex) {
-                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-                    System.out.println("An error occured writing to launcherfx.ini");
+                    LauncherFX.error(ex);
+                    LauncherFX.info("An error occured writing to launcherfx.ini");
                 }
             }
         });
@@ -982,7 +982,7 @@ public class LauncherFX extends Application {
                     items = CONFIG.getMods();
                     break;
                 default:
-                    System.out.println("Unknown Type. Cannot move down.");
+                    LauncherFX.info("Unknown Type. Cannot move down.");
                     return;
             }
             
@@ -1000,8 +1000,8 @@ public class LauncherFX extends Application {
                     CONFIG.writeIni();
                     refreshFromIni();
                 } catch (IOException ex) {
-                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-                    System.out.println("An error occured writing to launcherfx.ini");
+                    LauncherFX.error(ex);
+                    LauncherFX.info("An error occured writing to launcherfx.ini");
                 }
             }
         });
@@ -1165,7 +1165,7 @@ public class LauncherFX extends Application {
                                     addFilesToPwadList(path.resolve(gameWadFolder), pwadList);
                                 }
                                 catch (IOException ex) {
-                                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                                    LauncherFX.error(ex);
                                 }
                             }
                         });
@@ -1179,7 +1179,7 @@ public class LauncherFX extends Application {
                         }
                     }
                 } catch (IOException ex) {
-                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
+                    LauncherFX.error(ex);
                 }
             }
             removeFromWadList.forEach((toRemove) -> {
@@ -1350,8 +1350,8 @@ public class LauncherFX extends Application {
             CONFIG.writeIni();
             loadPwadList();
         } catch (IOException ex) {
-            Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-            System.out.println("Error writing ini.");
+            LauncherFX.error(ex);
+            LauncherFX.info("Error writing ini.");
         }
     }
     
@@ -1413,7 +1413,7 @@ public class LauncherFX extends Application {
                     argsList.add(arg);
                 }
                 processCommand.addAll(argsList);
-                System.out.println("current cmd=" + processCommand);
+                LauncherFX.info("current cmd=" + processCommand);
             }
         }
     }
@@ -1423,6 +1423,14 @@ public class LauncherFX extends Application {
      */
     public static void main(String[] args) {
         launch(args);
+    }
+    
+    public static void info(String message) {
+        Logger.getLogger(LauncherFX.class.getName()).log(Level.INFO, message);
+    }
+    
+    public static void error(Exception ex) {
+        Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
     }
     
     private class EditMenuConfigDialogEventHandler implements EventHandler<ActionEvent> {
@@ -1488,8 +1496,8 @@ public class LauncherFX extends Application {
                         refreshFromIni();
                     }
                 } catch (IOException ex) {
-                    Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-                    System.out.println("An error occured writing to launcherfx.ini");
+                    LauncherFX.error(ex);
+                    LauncherFX.info("An error occured writing to launcherfx.ini");
                 }
             }
         }
@@ -1615,14 +1623,14 @@ public class LauncherFX extends Application {
                             selectedGame = Game.getGameData(iwadPath);
                         } 
                         catch (IOException ex) {
-                            Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-                            System.out.println("IWAD file not found.");
+                            LauncherFX.error(ex);
+                            LauncherFX.info("IWAD file not found.");
                             new Alert(Alert.AlertType.ERROR, "IWAD file not found.", ButtonType.CLOSE).showAndWait();
                             selectedGame = Game.UNKNOWN_GAME;
                         }
                         catch (NoSuchAlgorithmException ex) {
-                            Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
-                            System.out.println("Error occured detecting game.");
+                            LauncherFX.error(ex);
+                            LauncherFX.info("Error occured detecting game.");
                             new Alert(Alert.AlertType.ERROR, "Error occured detecting game.", ButtonType.CLOSE).showAndWait();
                             selectedGame = Game.UNKNOWN_GAME;
                         }
