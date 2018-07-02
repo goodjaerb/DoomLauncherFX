@@ -27,4 +27,5 @@ repositories {
 dependencies {
     compile("org.ini4j:ini4j:0.5.4")
     compile("javax.xml.bind:jaxb-api:2.3.0")
+    compile("org.apache.commons:commons-lang3:3.7")
 }

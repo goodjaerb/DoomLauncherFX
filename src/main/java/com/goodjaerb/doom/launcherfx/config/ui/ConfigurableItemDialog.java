@@ -19,6 +19,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.layout.VBox;
+import org.apache.commons.lang3.SystemUtils;
 
 /**
  *
@@ -102,6 +103,9 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
         
         for(Field f : Field.values()) {
             if(f.validTypes.contains(type)) {
+                if((f == Field.WIN_CMD && !SystemUtils.IS_OS_WINDOWS) || (f == Field.LINUX_CMD && !SystemUtils.IS_OS_LINUX)) {
+                    continue;
+                }
                 FieldInputPane fip;
                 if(item == null) {
                     fip = new FieldInputPane(type, f, pwadPath);

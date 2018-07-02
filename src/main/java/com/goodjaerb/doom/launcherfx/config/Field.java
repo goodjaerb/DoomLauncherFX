@@ -162,7 +162,16 @@ public enum Field {
                     "Field.PORT not implemented for PWAD's."),
             Config.Type.TC,
             Config.Type.MOD),
-    CMD("Command:", InputType.BROWSE, 
+    WIN_CMD("Command:", InputType.BROWSE, 
+            true,
+            createHelpMap(
+                    "Enter the command to run this source port.\nMust be an absolute path or just the executable name if it is on a system path.\nPaths with spaces will need to be encapsulated in \"double quotes\".\nCommand arguments can be placed in the Arguments field.",
+                    "Field.CMD not implemented for total conversions.",
+                    "Field.CMD not implemented for IWAD's.",
+                    "Field.CMD not implemented for mods.",
+                    "Field.CMD not implemented for PWAD's."),
+            Config.Type.PORT),
+    LINUX_CMD("Command:", InputType.BROWSE, 
             true,
             createHelpMap(
                     "Enter the command to run this source port.\nMust be an absolute path or just the executable name if it is on a system path.\nPaths with spaces will need to be encapsulated in \"double quotes\".\nCommand arguments can be placed in the Arguments field.",

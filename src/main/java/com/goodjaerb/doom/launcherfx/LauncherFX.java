@@ -1520,7 +1520,7 @@ public class LauncherFX extends Application {
                         ic.setSelected(false);
                     }
                     else {
-                        String portCmd = ic.get(Field.CMD);
+                        String portCmd = ic.getCmd();
                         if(portCmd != null) {
                             processCommand = new ArrayList<>();
                             addArgsToProcess(portCmd);
@@ -1584,7 +1584,7 @@ public class LauncherFX extends Application {
                             new Alert(Alert.AlertType.ERROR, "No valid source port defined for '" + ic.get(Field.NAME) + "'.", ButtonType.CLOSE).showAndWait();
                         }
                         else {
-                            String tcCmd = tcPortToUse.get(Field.CMD);
+                            String tcCmd = tcPortToUse.getCmd();
 
                             if(tcCmd == null) {
                                 new Alert(Alert.AlertType.ERROR, "No command set for port.", ButtonType.CLOSE).showAndWait();

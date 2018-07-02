@@ -270,7 +270,8 @@ public final class FieldInputPane extends FlowPane {
 
                     if(configRootPath == null || !filePath.startsWith(configRootPath)) {
                         switch(field) {
-                            case CMD:
+                            case WIN_CMD:
+                            case LINUX_CMD:
                                 // CMD will only be single file.
                                 textField.setText("\"" + filePath.toString() + "\" ");
                                 break;

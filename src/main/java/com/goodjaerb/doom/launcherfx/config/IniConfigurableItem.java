@@ -10,6 +10,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
+import org.apache.commons.lang3.SystemUtils;
 import org.ini4j.Profile.Section;
 
 /**
@@ -89,6 +90,16 @@ public final class IniConfigurableItem {
     public final Boolean getBoolean(Field f) {
         String value = get(f);
         return value == null ? false : Boolean.parseBoolean(value);
+    }
+    
+    public final String getCmd() {
+        if(SystemUtils.IS_OS_WINDOWS) {
+            return get(Field.WIN_CMD);
+        }
+        else if(SystemUtils.IS_OS_LINUX) {
+            return get(Field.LINUX_CMD);
+        }
+        return null;
     }
     
     public final boolean isType(Config.Type type) {
