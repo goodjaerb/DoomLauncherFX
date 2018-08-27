@@ -1067,11 +1067,17 @@ public class LauncherFX extends Application {
             return null;
         }
         
+        System.out.println("-----------------------");
+        System.out.println("resolveRelativePathToAbsolue");
         Path path = Paths.get(pathStr);
         if(path.isAbsolute()) {
+            System.out.println("pathStr='" + pathStr + "' is ABSOLUTE.");
             return path.toString();
         }
-        return Paths.get(parentStr, path.toString()).toString();
+        
+        Path retPath = Paths.get(parentStr, path.toString());
+        System.out.println("pathStr='" + pathStr + "' is NOT ABSOLUTE, returning '" + retPath.toString() + "'.");
+        return retPath.toString();
     }
     
     private void checkLaunchNowAvailable() {
