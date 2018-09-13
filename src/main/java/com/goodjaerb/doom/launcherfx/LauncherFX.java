@@ -126,6 +126,11 @@ public class LauncherFX extends Application {
             String iwadPath = resolvePathRelativeToConfig(selectedIwad.get(Field.FILE), Config.DIR_IWAD);
             addArgsToProcess("-iwad " + iwadPath);
             
+            String currentSaveDir = null;
+            if(selectedIwad.getBoolean(Field.SAVEDIR)) {
+                currentSaveDir = "saves/" + selectedIwad.sectionName();
+            }
+            
             String portArgs = selectedPort.get(Field.ARGS);
             if(portArgs != null) {
                 Matcher m = Pattern.compile("\"(.*?)\"").matcher(portArgs);
@@ -157,6 +162,10 @@ public class LauncherFX extends Application {
                         modFiles = modFiles.replace(group, absPath);
                     }
                     addArgsToProcess("-file " + modFiles);
+                }
+                
+                if(mod.getBoolean(Field.SAVEDIR)) {
+                    currentSaveDir = "saves/" + mod.sectionName();
                 }
             }
             
@@ -219,6 +228,14 @@ public class LauncherFX extends Application {
                         addArgsToProcess("-skill " + (skillList.indexOf(skill) + 1));
                     }
                 }
+            }
+            
+            if(selectedPort.isType(Config.Type.TC) && selectedPort.getBoolean(Field.SAVEDIR)) {
+                currentSaveDir = "saves/" + selectedPort.sectionName();
+            }
+            
+            if(currentSaveDir != null && selectedPort.getBoolean(Field.SAVEDIR)) {
+                addArgsToProcess("-savedir " + currentSaveDir);
             }
             
             ProcessBuilder processBuilder = new ProcessBuilder(processCommand);

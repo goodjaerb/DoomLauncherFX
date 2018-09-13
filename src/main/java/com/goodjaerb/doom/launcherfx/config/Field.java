@@ -108,6 +108,18 @@ public enum Field {
                     "Field.FILE not implemented for PWAD's."),
             Config.Type.IWAD,
             Config.Type.MOD),
+    SAVEDIR("Use Savedir:", InputType.BOOLEAN, 
+            false,
+            createHelpMap(
+                    "Tells the launcher that this port supports the -savedir command argument.",
+                    "Save files will be kept in a folder for this TC only, separate from other saves. Savedir for TC's will be used above all other Savedirs. Requires port support (GZDoom).",
+                    "Save files will be kept in a folder for this IWAD only, separate from other saves. Requires port support (GZDoom).",
+                    "Save files will be kept in a folder for this mod only, separate from other saves. Savedir for mods will override savedir for IWAD's. Requires port support (GZDoom).",
+                    "Field.FILE not implemented for PWAD's."),
+            Config.Type.PORT,
+            Config.Type.TC,
+            Config.Type.IWAD,
+            Config.Type.MOD),
     WARP("Warp List:", InputType.TEXT,
             createHelpMap(
                     "Field.WARP not implemented for ports.",
