@@ -10,5 +10,5 @@ package com.goodjaerb.doom.launcherfx.config;
  * @author goodjaerb<goodjaerb@gmail.com>
  */
 public enum InputType {
-    TEXT, BROWSE, LIST, MULTI_LIST, HIDDEN, BOOLEAN;
+    TEXT, BROWSE, BROWSE_DIR, LIST, MULTI_LIST, HIDDEN, BOOLEAN;
 }

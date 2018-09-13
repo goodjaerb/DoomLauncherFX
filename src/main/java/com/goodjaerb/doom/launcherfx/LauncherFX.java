@@ -234,7 +234,14 @@ public class LauncherFX extends Application {
                 currentSaveDir = "saves/" + selectedPort.sectionName();
             }
             
-            if(currentSaveDir != null && selectedPort.getBoolean(Field.SAVEDIR)) {
+            if(currentSaveDir != null && ((selectedPort.isType(Config.Type.TC) && selectedPort.getBoolean(Field.SAVEDIR) && tcPortToUse.getBoolean(Field.SAVEDIR)) || (selectedPort.isType(Config.Type.PORT) && selectedPort.getBoolean(Field.SAVEDIR)))) {
+                if(selectedPort.isType(Config.Type.TC) && tcPortToUse.get(Field.SAVELOC) != null && !tcPortToUse.get(Field.SAVELOC).isEmpty()) {
+                    currentSaveDir = tcPortToUse.get(Field.SAVELOC) + File.separator + currentSaveDir;
+                }
+                else if(selectedPort.isType(Config.Type.PORT) && selectedPort.get(Field.SAVELOC) != null && !selectedPort.get(Field.SAVELOC).isEmpty()) {
+                    currentSaveDir = selectedPort.get(Field.SAVELOC) + File.separator + currentSaveDir;
+                }
+                
                 addArgsToProcess("-savedir " + currentSaveDir);
             }
             

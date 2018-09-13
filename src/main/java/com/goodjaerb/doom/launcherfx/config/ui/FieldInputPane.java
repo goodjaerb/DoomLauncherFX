@@ -30,6 +30,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 
 /**
@@ -45,6 +46,7 @@ public final class FieldInputPane extends FlowPane {
     private TextField textField;
     private Button browseButton;
     private FileChooser chooser;
+    private DirectoryChooser dirChooser;
     private ListView<ListItem> listView;
     private CheckBox checkBox;
     
@@ -76,6 +78,7 @@ public final class FieldInputPane extends FlowPane {
         switch(field.inputType) {
             case TEXT:
             case BROWSE:
+            case BROWSE_DIR:
                 textField.setText(item.get(field));
                 break;
             case BOOLEAN:
@@ -117,6 +120,13 @@ public final class FieldInputPane extends FlowPane {
                 initCheckBox();
                 
                 getChildren().addAll(checkBox, label);
+                break;
+            case BROWSE_DIR:
+                initLabel();
+                initTextField();
+                initBrowseDirButton();
+                
+                getChildren().addAll(label,textField, browseButton);
                 break;
             case BROWSE:
                 initLabel();
@@ -216,6 +226,20 @@ public final class FieldInputPane extends FlowPane {
                 break;
             default:
         }
+    }
+    
+    private void initBrowseDirButton() {
+        browseButton = new Button("Browse...");
+        dirChooser = new DirectoryChooser();
+        
+        dirChooser.setInitialDirectory(new File(Config.getInstance().getConfigHome()));
+        
+        browseButton.addEventHandler(ActionEvent.ACTION, (event) -> {
+            File file = dirChooser.showDialog(((Node)event.getTarget()).getScene().getWindow());
+            if(file != null) {
+                textField.setText(file.getAbsolutePath());
+            }
+        });
     }
     
     private void initBrowseButton() {
@@ -337,6 +361,7 @@ public final class FieldInputPane extends FlowPane {
         switch(field.inputType) {
             case TEXT:
             case BROWSE:
+            case BROWSE_DIR:
                 return textField.getText();
             case BOOLEAN:
                 if(checkBox.isSelected()) {
