@@ -1,11 +1,11 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
+plugins {
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.7'
 }
 
-apply plugin: 'application'
-mainClassName = "com.goodjaerb.doom.launcherfx.LauncherFX"
+repositories {
+    mavenCentral()
+}
 
 compileJava {
     options.encoding = 'UTF-8'
@@ -17,15 +17,14 @@ jar {
     version = '0.0.1'
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-repositories {
-     mavenCentral()
-}
-
 dependencies {
     compile("org.ini4j:ini4j:0.5.4")
     compile("javax.xml.bind:jaxb-api:2.3.0")
     compile("org.apache.commons:commons-lang3:3.7")
 }
+
+javafx {
+    modules = [ 'javafx.controls' ]
+}
+
+mainClassName = "com.goodjaerb.doom.launcherfx.Main"
