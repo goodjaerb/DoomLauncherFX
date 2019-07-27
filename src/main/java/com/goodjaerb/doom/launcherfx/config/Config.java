@@ -41,6 +41,7 @@ public class Config {
     public static final String USER_HOME = System.getProperty("user.home");
     public static final String CONFIG_DIR = ".launcherfx";
     public static final String CONFIG_FILE = "launcherfx.ini";
+    public static final String CONFIG_PORTS_FILE = "launcherfx-ports.ini";
     
     public static final String DIR_IMAGES = "images";
     public static final String DIR_IWAD = "iwad";
@@ -56,7 +57,7 @@ public class Config {
     private static final String CONFIG_LAUNCHER_DATA_DIR_KEY = "launcher-data";
     
     private static final Path HOME_CONFIG_FILE_PATH = FileSystems.getDefault().getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
-    private static final Ini INI_FILE = new Ini();
+    private static final Ini MASTER_INI = new Ini();
     private static final Config INSTANCE = new Config();
     
     private final List<IniConfigurableItem> CONFIGURABLES = new ArrayList<>();
@@ -87,7 +88,7 @@ public class Config {
     }
     
     /**
-     * Add a new section to INI_FILE.
+     * Add a new section to MASTER_INI.
      * If section name exists, append "_1", with increasing numbers until
      * no more conflict.
      * 
@@ -102,22 +103,22 @@ public class Config {
             appendNum++;
             sectionName = originalSectionName + "_" + appendNum;
         }
-        INI_FILE.add(sectionName);
+        MASTER_INI.add(sectionName);
         LauncherFX.info("Added new INI section: " + sectionName);
         return sectionName;
     }
     
     public void deleteSection(String sectionName) {
-        INI_FILE.remove(sectionName);
+        MASTER_INI.remove(sectionName);
     }
     
     public void update(String section, Field f, String value) {
         if(value == null || value.trim().equals("")) {
-            INI_FILE.remove(section, f.iniKey());
+            MASTER_INI.remove(section, f.iniKey());
             LauncherFX.info("Updated section '" + section + "'. Removed " + f.iniKey());
         }
         else {
-            INI_FILE.put(section, f.iniKey(), value);
+            MASTER_INI.put(section, f.iniKey(), value);
             LauncherFX.info("Updated section '" + section + "'. Set " + f.iniKey() + "=" + value);
         }
     }
@@ -207,23 +208,34 @@ public class Config {
     }
     
     public void loadConfig() throws IOException {
-        INI_FILE.load(Files.newBufferedReader(HOME_CONFIG_FILE_PATH));
-        String datadir = INI_FILE.get(CONFIG_LAUNCHER_DATA_DIR_SECTION, CONFIG_LAUNCHER_DATA_DIR_KEY);
+        MASTER_INI.load(Files.newBufferedReader(HOME_CONFIG_FILE_PATH));
+        String datadir = MASTER_INI.get(CONFIG_LAUNCHER_DATA_DIR_SECTION, CONFIG_LAUNCHER_DATA_DIR_KEY);
 
         FileSystem fs = FileSystems.getDefault();
         if(datadir != null) {
             configHome = datadir;
-            
+
+            /**
+             * load standard launcherfx.ini from custome location.
+             */
             Path customConfigFilePath = fs.getPath(configHome, CONFIG_FILE);
             if(!Files.exists(customConfigFilePath)) {
                 createDefaultConfig(customConfigFilePath);
             }
 
-            INI_FILE.clear();
-            INI_FILE.load(Files.newBufferedReader(customConfigFilePath));
+            MASTER_INI.clear();
+            MASTER_INI.load(Files.newBufferedReader(customConfigFilePath));
         }
         else {
             configHome = USER_HOME + File.separator + CONFIG_DIR;
+        }
+
+        /**
+         * load launcherfx-ports.ini if exists.
+         */
+        Path portsConfigFilePath = fs.getPath(configHome, CONFIG_PORTS_FILE);
+        if (Files.exists(portsConfigFilePath)) {
+            MASTER_INI.load(Files.newBufferedReader(portsConfigFilePath));
         }
 
         //create the directory structure
@@ -246,7 +258,10 @@ public class Config {
     }
     
     public void writeIni() throws IOException {
-        Iterator<Section> sectionItr = INI_FILE.values().iterator();
+        final Ini portsIni = new Ini();
+        final Ini standardIni = new Ini();
+
+        Iterator<Section> sectionItr = MASTER_INI.values().iterator();
         while(sectionItr.hasNext()) {
             Section s = sectionItr.next();
             if(s.size() <= 1) {
@@ -255,16 +270,30 @@ public class Config {
                 sectionItr.remove();
                 LauncherFX.info("Deleted section '" + s.getName() + "' due to no more entries.");
             }
+            else {
+                if(Type.PORT.iniValue().equals(s.get(Field.TYPE.iniKey())) || Type.TC.iniValue().equals(s.get(Field.TYPE.iniKey()))) {
+                    for (String key : s.keySet()) {
+                        portsIni.put(s.getName(), key, s.get(key));
+                    }
+                }
+                else {
+                    for(String key : s.keySet()) {
+                        standardIni.put(s.getName(), key, s.get(key));
+                    }
+                }
+            }
         }
         
-        INI_FILE.store(Files.newBufferedWriter(Paths.get(configHome, CONFIG_FILE)));
+//        MASTER_INI.store(Files.newBufferedWriter(Paths.get(configHome, CONFIG_FILE)));
+        portsIni.store(Files.newBufferedWriter(Paths.get(configHome, CONFIG_PORTS_FILE)));
+        standardIni.store(Files.newBufferedWriter(Paths.get(configHome, CONFIG_FILE)));
         parseIni();
         LauncherFX.info("launcherfx.ini wrote to disk.");
     }
     
     private void parseIni() {
         CONFIGURABLES.clear();
-        INI_FILE.values().forEach((section) -> {
+        MASTER_INI.values().forEach((section) -> {
             Type type = Type.valueOf(section.get(Field.TYPE.iniKey()).toUpperCase());
             if (null != type) {
                 CONFIGURABLES.add(new IniConfigurableItem(section));

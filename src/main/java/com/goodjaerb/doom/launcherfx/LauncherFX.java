@@ -437,6 +437,11 @@ public class LauncherFX extends Application {
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, (event) -> {
+            try {
+                CONFIG.writeIni();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             Platform.exit();
         });
         primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, (event) -> {
