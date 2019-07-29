@@ -6,6 +6,8 @@
 package com.goodjaerb.doom.launcherfx.config;
 
 import com.goodjaerb.doom.launcherfx.LauncherFX;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -15,14 +17,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
+
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
@@ -41,6 +37,7 @@ public class Config {
     public static final String USER_HOME = System.getProperty("user.home");
     public static final String CONFIG_DIR = ".launcherfx";
     public static final String CONFIG_FILE = "launcherfx.ini";
+    public static final String HIDE_FILE = "launcherfx_hide.ini";
     
     public static final String DIR_IMAGES = "images";
     public static final String DIR_IWAD = "iwad";
@@ -60,6 +57,7 @@ public class Config {
     private static final Config INSTANCE = new Config();
     
     private final List<IniConfigurableItem> CONFIGURABLES = new ArrayList<>();
+    private final Set<String> hiddenSections = new HashSet<>();
     
     private String configHome;
     
@@ -109,6 +107,18 @@ public class Config {
     
     public void deleteSection(String sectionName) {
         INI_FILE.remove(sectionName);
+    }
+
+    public void hideSection(String sectionName) {
+        hiddenSections.add(sectionName);
+    }
+
+    public void unHideSection(String sectionName) {
+        hiddenSections.remove(sectionName);
+    }
+
+    public boolean isHidden(String sectionName) {
+        return hiddenSections.contains(sectionName);
     }
     
     public void update(String section, Field f, String value) {
@@ -226,6 +236,16 @@ public class Config {
             configHome = USER_HOME + File.separator + CONFIG_DIR;
         }
 
+        Path hideFilePath = fs.getPath(configHome, HIDE_FILE);
+        if(Files.exists(hideFilePath)) {
+            try(BufferedReader hideFileReader = Files.newBufferedReader(hideFilePath)) {
+                String line;
+                while ((line = hideFileReader.readLine()) != null) {
+                    hiddenSections.add(line);
+                }
+            }
+        }
+
         //create the directory structure
         Path[] configDirs = {
             fs.getPath(configHome, DIR_IMAGES),
@@ -253,10 +273,23 @@ public class Config {
                 // All sections have at least a type field and so if only one
                 // field is set there's no use keeping it in the ini.
                 sectionItr.remove();
+                hiddenSections.remove(s.getName());
                 LauncherFX.info("Deleted section '" + s.getName() + "' due to no more entries.");
             }
         }
-        
+
+        Path hideFilePath = Paths.get(configHome, HIDE_FILE);
+        if(hiddenSections.isEmpty()) {
+            Files.deleteIfExists(hideFilePath);
+        }
+        else {
+            try(PrintWriter hideWriter = new PrintWriter(Files.newBufferedWriter(hideFilePath))) {
+                for (String sectionName : hiddenSections) {
+                    hideWriter.println(sectionName);
+                }
+            }
+        }
+
         INI_FILE.store(Files.newBufferedWriter(Paths.get(configHome, CONFIG_FILE)));
         parseIni();
         LauncherFX.info("launcherfx.ini wrote to disk.");
