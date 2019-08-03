@@ -24,13 +24,14 @@ import java.nio.file.Path;
 public class TextViewer extends Dialog<Void> {
 
     public TextViewer(Path txtPath) throws IOException {
-//        BufferedReader reader = Files.newBufferedReader(txtPath); //this causes malformedinput exceptions
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(txtPath.toFile()), StandardCharsets.UTF_8));
+        StringBuilder text;
+        try(BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(txtPath.toFile()), StandardCharsets.UTF_8))) {
 
-        String line;
-        StringBuilder text = new StringBuilder();
-        while((line = reader.readLine()) != null) {
-            text.append(line).append("\n");
+            String line;
+            text = new StringBuilder();
+            while((line = reader.readLine()) != null) {
+                text.append(line).append("\n");
+            }
         }
 
         TextArea textArea = new TextArea(text.toString());
