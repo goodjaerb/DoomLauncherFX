@@ -1,7 +1,8 @@
 .gradle
 .idea
-/.nb-gradle/
-/build/
+out/
+.nb-gradle/
+build/
 .nb-gradle-properties
 gradle.properties
 
