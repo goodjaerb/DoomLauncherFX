@@ -28,7 +28,7 @@ public class PWadListCell extends ListCell<PWadListItem> {
                         if(item.type == PWadListItem.Type.TXT) {
                             new TextViewer(item.path).show();
                         }
-                        else if(item.txt != null) {
+                        else {
                             new TextViewer(item.path.getParent().resolve(item.txt)).show();
                         }
                     }

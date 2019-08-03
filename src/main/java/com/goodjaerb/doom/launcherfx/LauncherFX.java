@@ -50,53 +50,44 @@ import java.util.regex.Pattern;
  * @author goodjaerb
  */
 public class LauncherFX extends Application {
-    private static final Config CONFIG = Config.getInstance();
-    private final String APP_NAME = "DoomLauncherFX";
+    private static final Config CONFIG   = Config.getInstance();
+    private final        String APP_NAME = "DoomLauncherFX";
 
-    private boolean showHidden;
-    private TabPane tabPane;
-    private Tab portsTab;
-    private Tab iwadsTab;
-    private Tab modsTab;
-    private Tab pwadsTab;
-    private Tab warpTab;
+    private VBox portsBox = new VBox();
+    private VBox iwadsBox = new VBox();
+    private VBox modsBox  = new VBox();
 
-    private VBox portsBox;
-    private VBox iwadsBox;
-    private VBox modsBox;
+    private TabPane tabPane  = new TabPane();
+    private Tab     portsTab = new Tab("Ports & TC's", new ScrollPane(portsBox));
+    private Tab     iwadsTab = new Tab("IWADS", new ScrollPane(iwadsBox));
+    private Tab     modsTab  = new Tab("Mods", new ScrollPane(modsBox));
+    private Tab     pwadsTab = new Tab("PWADS");
+    private Tab     warpTab  = new Tab("Warp");
 
-    private CheckBox showHiddenPwadItemsCheckBox;
-    private ListView<PWadListItem> pwadListView;
-    private ListView<WarpListItem> warpListView;
+    private CheckBox               showHiddenPwadItemsCheckBox = new CheckBox("Show Hidden Items");
+    private ListView<PWadListItem> pwadListView                = new ListView<>();
+    private ListView<WarpListItem> warpListView                = new ListView<>();
 
-    private Button launchNowButton;
-    private Button clearSelectionsButton;
+    private Button launchNowButton       = new Button("Launch Now!");
+    private Button clearSelectionsButton = new Button("Clear Selections");
 
-    private List<IniConfigurableItem> portsList;
-    private List<IniConfigurableItem> iwadsList;
-    private List<IniConfigurableItem> modsList;
-    private List<IniConfigurableItem> selectedModsList;
-    private Set<Path> removeFromWadList;
+    private List<IniConfigurableItem> portsList         = new ArrayList<>();
+    private List<IniConfigurableItem> iwadsList         = new ArrayList<>();
+    private List<IniConfigurableItem> modsList          = new ArrayList<>();
+    private List<IniConfigurableItem> selectedModsList  = new ArrayList<>();
+    private Set<Path>                 removeFromWadList = new HashSet<>();
 
-    private List<String> processCommand;
-    private Game selectedGame = Game.UNKNOWN_GAME;
+    private Game                selectedGame = Game.UNKNOWN_GAME;
     private IniConfigurableItem selectedIwad = IniConfigurableItem.EMPTY_ITEM;
     private IniConfigurableItem selectedPort = IniConfigurableItem.EMPTY_ITEM;
-    private IniConfigurableItem tcPortToUse = IniConfigurableItem.EMPTY_ITEM;
-    private PWadListItem selectedPwad = PWadListItem.NO_PWAD;
+    private IniConfigurableItem tcPortToUse  = IniConfigurableItem.EMPTY_ITEM;
+    private PWadListItem        selectedPwad = PWadListItem.NO_PWAD;
+
+    private List<String> processCommand;
+    private boolean      showHidden;
 
     @Override
     public void start(Stage primaryStage) {
-        portsList = new ArrayList<>();
-        iwadsList = new ArrayList<>();
-        modsList = new ArrayList<>();
-        selectedModsList = new ArrayList<>();
-        removeFromWadList = new HashSet<>();
-
-        portsBox = new VBox();
-        iwadsBox = new VBox();
-        modsBox = new VBox();
-
         EventHandler<ActionEvent> launchHandler = (event) -> {
             String iwadPath = resolvePathRelativeToConfig(selectedIwad.get(Field.FILE), Config.DIR_IWAD);
             addArgsToProcess("-iwad " + iwadPath);
@@ -236,10 +227,8 @@ public class LauncherFX extends Application {
             }
         };
 
-        launchNowButton = new Button("Launch Now!");
         launchNowButton.addEventHandler(ActionEvent.ACTION, launchHandler);
 
-        clearSelectionsButton = new Button("Clear Selections");
         clearSelectionsButton.addEventHandler(ActionEvent.ACTION, (event) -> reset());
 
         FlowPane buttonPane = new FlowPane(launchNowButton, clearSelectionsButton);
@@ -295,7 +284,6 @@ public class LauncherFX extends Application {
             }
         });
 
-        pwadListView = new ListView<>();
         pwadListView.setMinSize(350, 450);
         pwadListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         pwadListView.setCellFactory((ListView<PWadListItem> list) -> new PWadListCell(pwadContextMenu));
@@ -317,7 +305,6 @@ public class LauncherFX extends Application {
             }
         });
 
-        showHiddenPwadItemsCheckBox = new CheckBox("Show Hidden Items");
         showHiddenPwadItemsCheckBox.setSelected(false);
         showHiddenPwadItemsCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> loadPwadList());
 
@@ -326,7 +313,6 @@ public class LauncherFX extends Application {
         pwadPane.setPadding(new Insets(8));
         pwadPane.setHgap(8);
 
-        warpListView = new ListView<>();
         warpListView.setMinSize(200, 450);
         warpListView.setCellFactory((ListView<WarpListItem> list) -> new WarpListCell());
 
@@ -335,18 +321,14 @@ public class LauncherFX extends Application {
         warpPane.setPadding(new Insets(8));
         warpPane.setHgap(8);
 
-        portsTab = new Tab("Ports & TC's", new ScrollPane(portsBox));
         portsTab.setClosable(false);
-        iwadsTab = new Tab("IWADS", new ScrollPane(iwadsBox));
         iwadsTab.setClosable(false);
-        modsTab = new Tab("Mods", new ScrollPane(modsBox));
         modsTab.setClosable(false);
-        pwadsTab = new Tab("PWADS", new BorderPane(null, pwadPane, null, null, null));
+        pwadsTab.setContent(new BorderPane(null, pwadPane, null, null, null));
         pwadsTab.setClosable(false);
-        warpTab = new Tab("Warp", new BorderPane(null, warpPane, null, null, null));
+        warpTab.setContent(new BorderPane(null, warpPane, null, null, null));
         warpTab.setClosable(false);
 
-        tabPane = new TabPane();
         tabPane.getTabs().add(portsTab);
         tabPane.getTabs().add(iwadsTab);
         tabPane.getTabs().add(modsTab);
@@ -1094,16 +1076,16 @@ public class LauncherFX extends Application {
             result = null;
         }
         else {
-            System.out.println("-----------------------");
-            System.out.println("resolveRelativePathToAbsolue");
+//            System.out.println("-----------------------");
+//            System.out.println("resolveRelativePathToAbsolue");
             Path path = Paths.get(pathStr);
             if(path.isAbsolute()) {
-                System.out.println("pathStr='" + pathStr + "' is ABSOLUTE.");
+//                System.out.println("pathStr='" + pathStr + "' is ABSOLUTE.");
                 result = path.toString();
             }
             else {
                 Path retPath = Paths.get(parentStr, path.toString());
-                System.out.println("pathStr='" + pathStr + "' is NOT ABSOLUTE, returning '" + retPath.toString() + "'.");
+//                System.out.println("pathStr='" + pathStr + "' is NOT ABSOLUTE, returning '" + retPath.toString() + "'.");
                 result = retPath.toString();
             }
         }
@@ -1468,11 +1450,11 @@ public class LauncherFX extends Application {
 
     private class EditMenuConfigDialogEventHandler implements EventHandler<ActionEvent> {
 
-        private final Config.Type type;
-        private String title;
-        private IniConfigurableItem item;
-        private String sectionName;
-        private Path pwadPath;
+        private final Config.Type         type;
+        private       String              title;
+        private       IniConfigurableItem item;
+        private       String              sectionName;
+        private       Path                pwadPath;
 
         EditMenuConfigDialogEventHandler(Config.Type type, String title) {
             this.type = type;

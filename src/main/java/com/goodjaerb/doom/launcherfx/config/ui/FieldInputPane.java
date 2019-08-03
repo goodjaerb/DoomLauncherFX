@@ -31,18 +31,18 @@ import java.util.logging.Logger;
 /**
  * @author goodjaerb<goodjaerb @ gmail.com>
  */
-public final class FieldInputPane extends FlowPane {
+final class FieldInputPane extends FlowPane {
     private final IniConfigurableItem item;
-    private final Config.Type type;
-    private final Field field;
+    private final Config.Type         type;
+    private final Field               field;
 
-    private Label label;
-    private TextField textField;
-    private Button browseButton;
-    private FileChooser chooser;
-    private DirectoryChooser dirChooser;
+    private Label              label;
+    private TextField          textField;
+    private Button             browseButton;
+    private FileChooser        chooser;
+    private DirectoryChooser   dirChooser;
     private ListView<ListItem> listView;
-    private CheckBox checkBox;
+    private CheckBox           checkBox;
 
     private Path pwadPath;
 
@@ -98,11 +98,11 @@ public final class FieldInputPane extends FlowPane {
         }
     }
 
-    public boolean isRequired() {
+    boolean isRequired() {
         return field.isRequired(type);
     }
 
-    public Field getField() {
+    Field getField() {
         return field;
     }
 
@@ -161,18 +161,15 @@ public final class FieldInputPane extends FlowPane {
                 initLabel();
                 initListView();
 
-                switch(field) {
-                    case GAME:
-                        ObservableList<ListItem> list = FXCollections.observableArrayList(
-                                new ListItem("Doom", "DOOM"),
-                                new ListItem("Ultimate Doom", "ULTIMATE"),
-                                new ListItem("Doom II", "DOOM2"),
-                                new ListItem("Heretic", "HERETIC"),
-                                new ListItem("Heretic: Shadow of the Serpent Riders", "HERETIC_EXP"));
+                if(field == Field.GAME) {
+                    ObservableList<ListItem> list = FXCollections.observableArrayList(
+                            new ListItem("Doom", "DOOM"),
+                            new ListItem("Ultimate Doom", "ULTIMATE"),
+                            new ListItem("Doom II", "DOOM2"),
+                            new ListItem("Heretic", "HERETIC"),
+                            new ListItem("Heretic: Shadow of the Serpent Riders", "HERETIC_EXP"));
 
-                        listView.setItems(list);
-                        break;
-                    default:
+                    listView.setItems(list);
                 }
                 getChildren().addAll(label, listView);
                 break;
@@ -183,14 +180,10 @@ public final class FieldInputPane extends FlowPane {
                 ObservableList<ListItem> list = FXCollections.observableArrayList();
                 switch(field) {
                     case PORT:
-                        Config.getInstance().getPorts().forEach((port) -> {
-                            list.add(new ListItem(port.get(Field.NAME), port.sectionName()));
-                        });
+                        Config.getInstance().getPorts().forEach((port) -> list.add(new ListItem(port.get(Field.NAME), port.sectionName())));
                         break;
                     case IWAD:
-                        Config.getInstance().getIwads().forEach((iwad) -> {
-                            list.add(new ListItem(iwad.get(Field.NAME), iwad.sectionName()));
-                        });
+                        Config.getInstance().getIwads().forEach((iwad) -> list.add(new ListItem(iwad.get(Field.NAME), iwad.sectionName())));
                         break;
                     case WADFOLDER:
                         Path wadPath = FileSystems.getDefault().getPath(Config.getInstance().getConfigHome(), Config.DIR_WADS);
@@ -396,16 +389,16 @@ public final class FieldInputPane extends FlowPane {
         return null;
     }
 
-    private class ListItem {
+    private static class ListItem {
         private final String display;
         private final String value;
 
-        public ListItem(String display, String value) {
+        ListItem(String display, String value) {
             this.display = display;
             this.value = value;
         }
 
-        public ListItem(String displayAndValue) {
+        ListItem(String displayAndValue) {
             this.display = displayAndValue;
             this.value = displayAndValue;
         }
@@ -415,7 +408,7 @@ public final class FieldInputPane extends FlowPane {
             return display;
         }
 
-        public String getValue() {
+        String getValue() {
             return value;
         }
     }

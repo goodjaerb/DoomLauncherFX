@@ -23,31 +23,27 @@ import java.util.logging.Logger;
  */
 public final class LaunchButton extends Button {
 
-    private final Label label;
-    private final ImageView icon;
-    private final ImageView checkmarkView;
-    private final StackPane graphicStack;
+    private final Label     label         = new Label();
+    private final ImageView icon          = new ImageView();
+    private final ImageView checkmarkView = new ImageView("images/checkmark.png");
 
-    public LaunchButton(String imgPathStr) {
+    LaunchButton(String imgPathStr) {
         super();
-        label = new Label();
         label.setMaxWidth(175);
         label.setAlignment(Pos.CENTER);
         label.textProperty().bind(textProperty());
 
-        icon = new ImageView();
         icon.setPreserveRatio(true);
         icon.setFitHeight(150);
         icon.setFitWidth(150);
         setIcon(imgPathStr);
 
-        checkmarkView = new ImageView("images/checkmark.png");
         checkmarkView.setPreserveRatio(true);
         checkmarkView.setFitHeight(150);
         checkmarkView.setFitWidth(150);
         checkmarkView.setVisible(false);
 
-        graphicStack = new StackPane();
+        StackPane graphicStack = new StackPane();
         graphicStack.getChildren().add(label);
         graphicStack.getChildren().add(icon);
         graphicStack.getChildren().add(checkmarkView);
@@ -80,7 +76,7 @@ public final class LaunchButton extends Button {
         checkmarkView.setVisible(!checkmarkView.isVisible());
     }
 
-    public void setCheckmarkVisible(boolean b) {
+    void setCheckmarkVisible(boolean b) {
         checkmarkView.setVisible(b);
     }
 }

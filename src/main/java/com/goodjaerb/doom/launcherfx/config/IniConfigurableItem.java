@@ -20,16 +20,14 @@ import java.util.EnumMap;
 public final class IniConfigurableItem {
     public static final IniConfigurableItem EMPTY_ITEM = new IniConfigurableItem(null);
 
-    private final EnumMap<Field, ReadOnlyStringWrapper> fieldMap;
+    private final EnumMap<Field, ReadOnlyStringWrapper> fieldMap         = new EnumMap<>(Field.class);
+    private final SimpleBooleanProperty                 selectedProperty = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty                 enabledProperty  = new SimpleBooleanProperty(true);
+
     private final Section iniSection;
-    private final SimpleBooleanProperty selectedProperty;
-    private final SimpleBooleanProperty enabledProperty;
 
     IniConfigurableItem(Section iniSection) {
         this.iniSection = iniSection;
-        this.fieldMap = new EnumMap<>(Field.class);
-        this.selectedProperty = new SimpleBooleanProperty(false);
-        this.enabledProperty = new SimpleBooleanProperty(true);
 
         if(iniSection != null) {
             for(Field f : Field.values()) {
@@ -90,7 +88,7 @@ public final class IniConfigurableItem {
 
     public final Boolean getBoolean(Field f) {
         String value = get(f);
-        return value == null ? false : Boolean.parseBoolean(value);
+        return value != null && Boolean.parseBoolean(value);
     }
 
     public final String getCmd() {
@@ -123,7 +121,7 @@ public final class IniConfigurableItem {
     public final void setEnabled(boolean b) {
         enabledProperty.set(b);
         if(!b) {
-            selectedProperty.set(b);
+            selectedProperty.set(false);
         }
     }
 

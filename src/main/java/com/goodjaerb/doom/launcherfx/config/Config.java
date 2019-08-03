@@ -28,30 +28,30 @@ public class Config {
         }
     }
 
-    public static final String USER_HOME = System.getProperty("user.home");
-    public static final String CONFIG_DIR = ".launcherfx";
+    public static final String USER_HOME   = System.getProperty("user.home");
+    public static final String CONFIG_DIR  = ".launcherfx";
     public static final String CONFIG_FILE = "launcherfx.ini";
-    public static final String HIDE_FILE = "launcherfx_hide.ini";
+    public static final String HIDE_FILE   = "launcherfx_hide.ini";
 
-    public static final String DIR_IMAGES = "images";
-    public static final String DIR_IWAD = "iwad";
-    public static final String DIR_MODS = "mods";
-    public static final String DIR_WADS = "wads";
-    public static final String DIR_BOOM = "boom";
+    public static final String DIR_IMAGES         = "images";
+    public static final String DIR_IWAD           = "iwad";
+    public static final String DIR_MODS           = "mods";
+    public static final String DIR_WADS           = "wads";
+    public static final String DIR_BOOM           = "boom";
     public static final String DIR_LIMIT_REMOVING = "limit-removing";
-    public static final String DIR_VANILLA = "vanilla";
-    public static final String DIR_DOOM = "doom";
-    public static final String DIR_DOOM2 = "doom2";
+    public static final String DIR_VANILLA        = "vanilla";
+    public static final String DIR_DOOM           = "doom";
+    public static final String DIR_DOOM2          = "doom2";
 
     private static final String CONFIG_LAUNCHER_DATA_DIR_SECTION = "LauncherFXDataDir";
-    private static final String CONFIG_LAUNCHER_DATA_DIR_KEY = "launcher-data";
+    private static final String CONFIG_LAUNCHER_DATA_DIR_KEY     = "launcher-data";
 
-    private static final Path HOME_CONFIG_FILE_PATH = FileSystems.getDefault().getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
-    private static final Ini INI_FILE = new Ini();
-    private static final Config INSTANCE = new Config();
+    private static final Path   HOME_CONFIG_FILE_PATH = FileSystems.getDefault().getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
+    private static final Ini    INI_FILE              = new Ini();
+    private static final Config INSTANCE              = new Config();
 
-    private final List<IniConfigurableItem> CONFIGURABLES = new ArrayList<>();
-    private final Set<String> hiddenSections = new HashSet<>();
+    private final List<IniConfigurableItem> CONFIGURABLES  = new ArrayList<>();
+    private final Set<String>               hiddenSections = new HashSet<>();
 
     private String configHome;
 
@@ -72,6 +72,8 @@ public class Config {
             int sort1 = o1.getInt(Field.SORT, Integer.MAX_VALUE);
             int sort2 = o2.getInt(Field.SORT, Integer.MAX_VALUE);
 
+            // i know this breaks a contract but i just want to know that if two things are equal which side
+            // they will sort on.
             return sort1 == sort2 ? 1 : sort1 - sort2;
         });
         sortedConfigurables.addAll(CONFIGURABLES);
@@ -149,9 +151,7 @@ public class Config {
      */
     public List<IniConfigurableItem> getPorts() {
         List<IniConfigurableItem> ports = new ArrayList<>();
-        getConfigurables().stream().filter((ic) -> (ic.isType(Type.PORT))).forEachOrdered((ic) -> {
-            ports.add(ic);
-        });
+        getConfigurables().stream().filter((ic) -> (ic.isType(Type.PORT))).forEachOrdered(ports::add);
         return Collections.unmodifiableList(ports);
     }
 
@@ -292,6 +292,8 @@ public class Config {
         CONFIGURABLES.clear();
         INI_FILE.values().forEach((section) -> {
             Type type = Type.valueOf(section.get(Field.TYPE.iniKey()).toUpperCase());
+            // if i ever have a Config.Type and later remove it from the source, i need this check to make sure
+            // i don't load any deprecated types into configurables.
             if(null != type) {
                 CONFIGURABLES.add(new IniConfigurableItem(section));
             }

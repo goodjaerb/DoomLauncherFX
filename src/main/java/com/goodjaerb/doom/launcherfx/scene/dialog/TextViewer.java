@@ -15,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 /**
@@ -24,15 +25,15 @@ public class TextViewer extends Dialog<Void> {
 
     public TextViewer(Path txtPath) throws IOException {
 //        BufferedReader reader = Files.newBufferedReader(txtPath); //this causes malformedinput exceptions
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(txtPath.toFile()), "utf-8"));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(txtPath.toFile()), StandardCharsets.UTF_8));
 
         String line;
-        String text = "";
+        StringBuilder text = new StringBuilder();
         while((line = reader.readLine()) != null) {
-            text += line + "\n";
+            text.append(line).append("\n");
         }
 
-        TextArea textArea = new TextArea(text);
+        TextArea textArea = new TextArea(text.toString());
         textArea.setFont(new Font("Lucida Console", 12));
         textArea.setMinSize(650, 600);
         getDialogPane().setContent(textArea);

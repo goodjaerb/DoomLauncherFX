@@ -15,15 +15,15 @@ public class PWadListItem {
     public static final PWadListItem NO_PWAD = new PWadListItem(PWadListItem.Type.WAD, "No PWAD.", null, null);
 
     public enum Type {
-        WAD, TXT, DEH;
+        WAD, TXT, DEH
     }
 
-    public final Type type;
-    public String display;
-    public final Path path;
-    public String txt;
-    public String warp;
-    public String args;
+    public final Type   type;
+    public       String display;
+    public final Path   path;
+    public       String txt;
+    public       String warp;
+    public       String args;
 
     public PWadListItem(Type type, String display, Path path, String txt) {
         this.type = type;

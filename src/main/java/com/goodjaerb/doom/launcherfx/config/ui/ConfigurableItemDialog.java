@@ -27,11 +27,11 @@ import java.util.List;
  */
 public class ConfigurableItemDialog extends Dialog<ButtonType> {
     private final IniConfigurableItem item;
-    private final Config.Type type;
-    private final Path pwadPath;
-    private VBox contentPane;
+    private final Config.Type         type;
+    private final Path                pwadPath;
+
     private List<FieldInputPane> fieldInputPanes;
-    private String newSectionName;
+    private String               newSectionName;
 
     public ConfigurableItemDialog(Config.Type type, String title, Path pwadPath) {
         this.item = null;
@@ -84,9 +84,7 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
             sectionName = item.sectionName();
         }
 
-        fieldInputPanes.forEach((fip) -> {
-            Config.getInstance().update(sectionName, fip.getField(), fip.getValue());
-        });
+        fieldInputPanes.forEach((fip) -> Config.getInstance().update(sectionName, fip.getField(), fip.getValue()));
         Config.getInstance().writeIni();
     }
 
@@ -97,7 +95,7 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
     private void layout() {
         fieldInputPanes = new ArrayList<>();
 
-        contentPane = new VBox();
+        VBox contentPane = new VBox();
         contentPane.setPadding(new Insets(4));
         contentPane.setSpacing(4);
 

@@ -27,12 +27,12 @@ public enum Game {
     //HEXEN, 
     //HEXEN_EXP;
 
-    public final String name;
-    public final String wadfolder;
-    public final List<String> skillList;
+    public final String             name;
+    public final String             wadfolder;
+    public final List<String>       skillList;
     public final List<WarpListItem> warpList;
 
-    private Game(String name, String wadfolder, List<String> skillList, List<WarpListItem> warpList) {
+    Game(String name, String wadfolder, List<String> skillList, List<WarpListItem> warpList) {
         this.name = name;
         this.wadfolder = wadfolder;
         this.skillList = skillList;
@@ -80,18 +80,18 @@ public enum Game {
         }
     }
 
-    private static final List<String> DOOM_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
+    private static final List<String> DOOM_SHA_VALUES = List.of(
             "7742089b4468a736cadb659a7deca3320fe6dcbd", // Doom Version 1.9
             "2c8212631b37f21ad06d18b5638c733a75e179ff", // Doom Version 1.8
             "2e89b86859acd9fc1e552f587b710751efcffa8e", // Doom Version 1.666
             "b5f86a559642a2b3bdfb8a75e91c8da97f057fe6", // Doom Version 1.2
-            "df0040ccb29cc1622e74ceb3b7793a2304cca2c8")); // Doom Version 1.1
+            "df0040ccb29cc1622e74ceb3b7793a2304cca2c8"); // Doom Version 1.1
 
-    private static final List<String> ULTIMATE_DOOM_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
+    private static final List<String> ULTIMATE_DOOM_SHA_VALUES = List.of(
             "9b07b02ab3c275a6a7570c3f73cc20d63a0e3833", // Doom Version 1.9ud
-            "e5ec79505530e151ff0e6f517f3ce1fd65969c46")); // Doom BFG Edition
+            "e5ec79505530e151ff0e6f517f3ce1fd65969c46"); // Doom BFG Edition
 
-    private static final List<String> DOOM2_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
+    private static final List<String> DOOM2_SHA_VALUES = List.of(
             "7ec7652fcfce8ddc6e801839291f0e28ef1d5ae7", // Doom 2 Version 1.9
             "a59548125f59f6aa1a41c22f615557d3dd2e85a9", // Doom 2 BFG Edition
             "d510c877031bbd5f3d198581a2c8651e09b9861f", // Doom 2 Version 1.8f
@@ -103,14 +103,14 @@ public enum Game {
             "9fbc66aedef7fe3bae0986cdb9323d2b8db4c9d3", // TNT: Evilution Version 1.9
             "4a65c8b960225505187c36040b41a40b152f8f3e", // TNT: Evilution, also Version 1.9 (rare). https://doomwiki.org/wiki/TNT.WAD
             "90361e2a538d2388506657252ae41aceeb1ba360", // The Plutonia Experiment Version 1.9
-            "f131cbe1946d7fddb3caec4aa258c83399c21e60")); // The Plutonia Experiment, also Version 1.9 (rare). https://doomwiki.org/wiki/PLUTONIA.WAD
+            "f131cbe1946d7fddb3caec4aa258c83399c21e60"); // The Plutonia Experiment, also Version 1.9 (rare). https://doomwiki.org/wiki/PLUTONIA.WAD
 
-    private static final List<String> HERETIC_EXP_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
-            "f489d479371df32f6d280a0cb23b59a35ba2b833")); // Heretic Version 1.3 (Shadow of the Serpent Riders)
+    private static final List<String> HERETIC_EXP_SHA_VALUES = List.of(
+            "f489d479371df32f6d280a0cb23b59a35ba2b833"); // Heretic Version 1.3 (Shadow of the Serpent Riders)
 
-    private static final List<String> HERETIC_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
+    private static final List<String> HERETIC_SHA_VALUES = List.of(
             "a54c5d30629976a649119c5ce8babae2ddfb1a60", // Heretic Version 1.2
-            "b5a6cc79cde48d97905b44282e82c4c966a23a87")); // Heretic Version 1.0
+            "b5a6cc79cde48d97905b44282e82c4c966a23a87"); // Heretic Version 1.0
 
 //    private static final List<String> HEXEN_SHA_VALUES = Collections.unmodifiableList(Arrays.asList(
 //            "4b53832f0733c1e29e5f1de2428e5475e891af29")); // Hexen Version 1.1

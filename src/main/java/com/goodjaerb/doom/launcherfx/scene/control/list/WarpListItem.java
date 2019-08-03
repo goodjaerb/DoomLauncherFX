@@ -13,9 +13,9 @@ import java.util.Objects;
 public class WarpListItem implements Comparable<WarpListItem> {
     public static final WarpListItem DO_NOT_WARP = new WarpListItem("Do not warp.", null);
 
-    public final String display;
-    public final String arg;
-    public boolean highlight;
+    public final String  display;
+    public final String  arg;
+    public       boolean highlight;
 
     public WarpListItem(String display, String arg) {
         this.display = display;

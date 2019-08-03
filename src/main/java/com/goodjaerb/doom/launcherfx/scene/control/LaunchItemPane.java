@@ -31,30 +31,24 @@ import java.util.logging.Logger;
  */
 public class LaunchItemPane extends BorderPane {
 
-    public final IniConfigurableItem configurableItem;
+    private final IniConfigurableItem configurableItem;
 
     private final LaunchButton launchButton;
-    private final Text nameLabel;
-    private final Text versionLabel;
-    private final Text descriptionArea;
-    private final Hyperlink hyperLink;
+    private final Text         nameLabel;
+    private final Text         versionLabel;
+    private final Text         descriptionArea;
+    private final Hyperlink    hyperLink;
 
     public LaunchItemPane(IniConfigurableItem item) {
         launchButton = new LaunchButton(LauncherFX.resolvePathRelativeToConfig(item.get(Field.IMG), Config.DIR_IMAGES));
         launchButton.textProperty().bind(item.valueProperty(Field.NAME));
 
         configurableItem = item;
-        configurableItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            launchButton.setCheckmarkVisible(newValue);
-        });
+        configurableItem.selectedProperty().addListener((observable, oldValue, newValue) -> launchButton.setCheckmarkVisible(newValue));
 
-        configurableItem.enabledProperty().addListener((observable, oldValue, newValue) -> {
-            launchButton.setDisable(!newValue);
-        });
+        configurableItem.enabledProperty().addListener((observable, oldValue, newValue) -> launchButton.setDisable(!newValue));
 
-        configurableItem.valueProperty(Field.IMG).addListener((observable, oldValue, newValue) -> {
-            launchButton.setIcon(LauncherFX.resolvePathRelativeToConfig(newValue, Config.DIR_IMAGES));
-        });
+        configurableItem.valueProperty(Field.IMG).addListener((observable, oldValue, newValue) -> launchButton.setIcon(LauncherFX.resolvePathRelativeToConfig(newValue, Config.DIR_IMAGES)));
 
         nameLabel = new Text();
         nameLabel.textProperty().bind(item.valueProperty(Field.NAME));

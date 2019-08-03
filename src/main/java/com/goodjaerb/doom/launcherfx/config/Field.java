@@ -5,7 +5,10 @@
  */
 package com.goodjaerb.doom.launcherfx.config;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -13,9 +16,7 @@ import java.util.function.Function;
  */
 public enum Field {
     NAME("Name:", InputType.TEXT,
-            (t) -> {
-                return t != Config.Type.PWAD;
-            },
+            (t) -> t != Config.Type.PWAD,
             createHelpMap(
                     "The name of the source port being configured.\nWill be displayed in the main window.",
                     "The name of the total conversion being configured.\nWill be displayed in the main window.",
@@ -178,9 +179,7 @@ public enum Field {
             Config.Type.PORT,
             Config.Type.TC),
     PORT("Supported Port(s):", InputType.MULTI_LIST,
-            (t) -> {
-                return t == Config.Type.TC;
-            },
+            (t) -> t == Config.Type.TC,
             createHelpMap(
                     "Field.PORT not implemented for ports.",
                     "Select the ports that this total conversion can use to run.",
@@ -254,30 +253,26 @@ public enum Field {
                     "Ignored files will not be shown in the PWAD list by default."),
             Config.Type.PWAD);
 
-    public final String label;
-    public final InputType inputType;
+    public final String                   label;
+    public final InputType                inputType;
     public final Map<Config.Type, String> helpMap;
-    public final List<Config.Type> validTypes;
+    public final List<Config.Type>        validTypes;
 
     private final Function<Config.Type, Boolean> isRequiredFunc;
 
-    private Field(String label, InputType inputType, boolean isRequired, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
-        this(label, inputType, (t) -> {
-            return isRequired;
-        }, helpMap, validTypes);
+    Field(String label, InputType inputType, boolean isRequired, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
+        this(label, inputType, (t) -> isRequired, helpMap, validTypes);
     }
 
-    private Field(String label, InputType inputType, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
-        this(label, inputType, (t) -> {
-            return false;
-        }, helpMap, validTypes);
+    Field(String label, InputType inputType, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
+        this(label, inputType, (t) -> false, helpMap, validTypes);
     }
 
-    private Field(String label, InputType inputType, Function<Config.Type, Boolean> isRequiredFunc, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
+    Field(String label, InputType inputType, Function<Config.Type, Boolean> isRequiredFunc, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
         this.label = label;
         this.inputType = inputType;
         this.helpMap = helpMap;
-        this.validTypes = Collections.unmodifiableList(Arrays.asList(validTypes));
+        this.validTypes = List.of(validTypes);
         this.isRequiredFunc = isRequiredFunc;
     }
 

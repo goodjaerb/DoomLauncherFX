@@ -7,8 +7,6 @@ package com.goodjaerb.doom.launcherfx.data;
 
 import com.goodjaerb.doom.launcherfx.scene.control.list.WarpListItem;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -17,23 +15,24 @@ import java.util.List;
 final class GameData {
 
     static final List<String> DOOM_SKILL_LIST =
-            Collections.unmodifiableList(Arrays.asList(
+            List.of(
                     "I'm Too Young To Die",
                     "Hey, Not Too Rough",
                     "Hurt Me Plenty",
                     "Ultra-Violence",
-                    "Nightmare!"));
+                    "Nightmare!");
 
     static final List<String> HERETIC_SKILL_LIST =
-            Collections.unmodifiableList(Arrays.asList(
+            List.of(
                     "Thou Needeth a Wet-Nurse",
                     "Yellowbellies-R-Us",
                     "Bringest Them Oneth",
                     "Thou Art a Smite-Meister",
-                    "Black Plague Possesses Thee"));
+                    "Black Plague Possesses Thee");
 
     static final List<WarpListItem> DOOM_WARP_LIST =
-            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
+            List.of(
+                    WarpListItem.DO_NOT_WARP,
                     new WarpListItem("E1M1", "1 1"),
                     new WarpListItem("E1M2", "1 2"),
                     new WarpListItem("E1M3", "1 3"),
@@ -62,10 +61,11 @@ final class GameData {
                     new WarpListItem("E3M6", "3 6"),
                     new WarpListItem("E3M7", "3 7"),
                     new WarpListItem("E3M8", "3 8"),
-                    new WarpListItem("E3M9", "3 9")));
+                    new WarpListItem("E3M9", "3 9"));
 
     static final List<WarpListItem> ULTIMATE_DOOM_WARP_LIST =
-            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
+            List.of(
+                    WarpListItem.DO_NOT_WARP,
                     new WarpListItem("E1M1", "1 1"),
                     new WarpListItem("E1M2", "1 2"),
                     new WarpListItem("E1M3", "1 3"),
@@ -104,10 +104,11 @@ final class GameData {
                     new WarpListItem("E4M6", "4 6"),
                     new WarpListItem("E4M7", "4 7"),
                     new WarpListItem("E4M8", "4 8"),
-                    new WarpListItem("E4M9", "4 9")));
+                    new WarpListItem("E4M9", "4 9"));
 
     static final List<WarpListItem> DOOM2_WARP_LIST =
-            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
+            List.of(
+                    WarpListItem.DO_NOT_WARP,
                     new WarpListItem("MAP01", "1"),
                     new WarpListItem("MAP02", "2"),
                     new WarpListItem("MAP03", "3"),
@@ -139,10 +140,11 @@ final class GameData {
                     new WarpListItem("MAP29", "29"),
                     new WarpListItem("MAP30", "30"),
                     new WarpListItem("MAP31", "31"),
-                    new WarpListItem("MAP32", "32")));
+                    new WarpListItem("MAP32", "32"));
 
     static final List<WarpListItem> HERETIC_WARP_LIST =
-            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
+            List.of(
+                    WarpListItem.DO_NOT_WARP,
                     new WarpListItem("E1M1", "1 1"),
                     new WarpListItem("E1M2", "1 2"),
                     new WarpListItem("E1M3", "1 3"),
@@ -171,10 +173,11 @@ final class GameData {
                     new WarpListItem("E3M6", "3 6"),
                     new WarpListItem("E3M7", "3 7"),
                     new WarpListItem("E3M8", "3 8"),
-                    new WarpListItem("E3M9", "3 9")));
+                    new WarpListItem("E3M9", "3 9"));
 
     static final List<WarpListItem> HERETIC_EXP_WARP_LIST =
-            Collections.unmodifiableList(Arrays.asList(WarpListItem.DO_NOT_WARP,
+            List.of(
+                    WarpListItem.DO_NOT_WARP,
                     new WarpListItem("E1M1", "1 1"),
                     new WarpListItem("E1M2", "1 2"),
                     new WarpListItem("E1M3", "1 3"),
@@ -227,5 +230,5 @@ final class GameData {
 
                     new WarpListItem("E6M1", "6 1"),
                     new WarpListItem("E6M2", "6 2"),
-                    new WarpListItem("E6M3", "6 3")));
+                    new WarpListItem("E6M3", "6 3"));
 }
