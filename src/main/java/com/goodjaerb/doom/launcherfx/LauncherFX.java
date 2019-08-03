@@ -38,7 +38,6 @@ import javafx.stage.WindowEvent;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -87,7 +86,7 @@ public class LauncherFX extends Application {
     private PWadListItem selectedPwad = PWadListItem.NO_PWAD;
 
     @Override
-    public void start(Stage primaryStage) throws MalformedURLException, IOException {
+    public void start(Stage primaryStage) {
         portsList = new ArrayList<>();
         iwadsList = new ArrayList<>();
         modsList = new ArrayList<>();
@@ -131,13 +130,15 @@ public class LauncherFX extends Application {
                 }
                 else if(mod.get(Field.FILE) != null) {
                     String modFiles = mod.get(Field.FILE);
-                    Matcher m = Pattern.compile("\"(.*?)\"").matcher(modFiles);
-                    while(m.find()) {
-                        String group = m.group(1);
-                        String absPath = resolvePathRelativeToConfig(group, Config.DIR_MODS);
-                        modFiles = modFiles.replace(group, absPath);
+                    if(modFiles != null) {
+                        Matcher m = Pattern.compile("\"(.*?)\"").matcher(modFiles);
+                        while(m.find()) {
+                            String group = m.group(1);
+                            String absPath = resolvePathRelativeToConfig(group, Config.DIR_MODS);
+                            modFiles = modFiles.replace(group, absPath);
+                        }
+                        addArgsToProcess("-file " + modFiles);
                     }
-                    addArgsToProcess("-file " + modFiles);
                 }
 
                 if(mod.getBoolean(Field.SAVEDIR)) {
@@ -165,20 +166,20 @@ public class LauncherFX extends Application {
             }
             else {
                 //if they chose multiple files, ignore item.args.
-                String dehPaths = "";
-                String wadPaths = "";
+                StringBuilder dehPaths = new StringBuilder();
+                StringBuilder wadPaths = new StringBuilder();
                 for(PWadListItem item : selectedPwadItems) {
                     if(item.type == PWadListItem.Type.DEH) {
-                        dehPaths += " \"" + item.path.toString() + "\"";
+                        dehPaths.append(" \"").append(item.path.toString()).append("\"");
                     }
                     else if(item.type == PWadListItem.Type.WAD) {
-                        wadPaths += " \"" + item.path.toString() + "\"";
+                        wadPaths.append(" \"").append(item.path.toString()).append("\"");
                     }
                 }
-                if(!dehPaths.isEmpty()) {
+                if(dehPaths.length() > 0) {
                     addArgsToProcess("-deh" + dehPaths);
                 }
-                if(!wadPaths.isEmpty()) {
+                if(wadPaths.length() > 0) {
                     addArgsToProcess("-file" + wadPaths);
                 }
             }
@@ -199,10 +200,7 @@ public class LauncherFX extends Application {
                         }
                         return null;
                     });
-                    String skill = dialog.showAndWait().orElse(null);
-                    if(skill != null) {
-                        addArgsToProcess("-skill " + (skillList.indexOf(skill) + 1));
-                    }
+                    dialog.showAndWait().ifPresent(skill -> addArgsToProcess("-skill " + (skillList.indexOf(skill) + 1)));
                 }
             }
 
@@ -242,9 +240,7 @@ public class LauncherFX extends Application {
         launchNowButton.addEventHandler(ActionEvent.ACTION, launchHandler);
 
         clearSelectionsButton = new Button("Clear Selections");
-        clearSelectionsButton.addEventHandler(ActionEvent.ACTION, (event) -> {
-            reset();
-        });
+        clearSelectionsButton.addEventHandler(ActionEvent.ACTION, (event) -> reset());
 
         FlowPane buttonPane = new FlowPane(launchNowButton, clearSelectionsButton);
         buttonPane.setAlignment(Pos.CENTER);
@@ -255,21 +251,15 @@ public class LauncherFX extends Application {
         editPwadItem.setOnAction(new EditMenuConfigDialogEventHandler(Config.Type.PWAD, "Edit PWAD"));
 
         MenuItem ignorePwadItem = new MenuItem("Ignore");
-        ignorePwadItem.setOnAction((event) -> {
-            setPwadItemsToIgnore(pwadListView.getSelectionModel().getSelectedItems(), true);
-        });
+        ignorePwadItem.setOnAction((event) -> setPwadItemsToIgnore(pwadListView.getSelectionModel().getSelectedItems(), true));
 
         MenuItem unignorePwadItem = new MenuItem("Unignore");
-        unignorePwadItem.setOnAction((event) -> {
-            setPwadItemsToIgnore(pwadListView.getSelectionModel().getSelectedItems(), false);
-        });
+        unignorePwadItem.setOnAction((event) -> setPwadItemsToIgnore(pwadListView.getSelectionModel().getSelectedItems(), false));
 
         MenuItem deletePwadItem = new MenuItem("Delete Config");
         deletePwadItem.setOnAction((event) -> {
             List<PWadListItem> selectedItems = pwadListView.getSelectionModel().getSelectedItems();
-            selectedItems.stream().filter((listItem) -> (listItem != PWadListItem.NO_PWAD)).forEachOrdered((listItem) -> {
-                CONFIG.deleteSection(listItem.path.getFileName().toString());
-            });
+            selectedItems.stream().filter((listItem) -> (listItem != PWadListItem.NO_PWAD)).forEachOrdered((listItem) -> CONFIG.deleteSection(listItem.path.getFileName().toString()));
             try {
                 CONFIG.writeIni();
                 loadPwadList();
@@ -329,9 +319,7 @@ public class LauncherFX extends Application {
 
         showHiddenPwadItemsCheckBox = new CheckBox("Show Hidden Items");
         showHiddenPwadItemsCheckBox.setSelected(false);
-        showHiddenPwadItemsCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            loadPwadList();
-        });
+        showHiddenPwadItemsCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> loadPwadList());
 
         FlowPane pwadPane = new FlowPane(Orientation.HORIZONTAL, pwadListView, showHiddenPwadItemsCheckBox);
         pwadPane.setAlignment(Pos.CENTER);
@@ -380,9 +368,7 @@ public class LauncherFX extends Application {
         });
 
         MenuItem fileMenuResetSelections = new MenuItem("Reset Selections");
-        fileMenuResetSelections.addEventHandler(ActionEvent.ACTION, (event) -> {
-            reset();
-        });
+        fileMenuResetSelections.addEventHandler(ActionEvent.ACTION, (event) -> reset());
 
         CheckMenuItem fileMenuShowHiddenSections = new CheckMenuItem("Show Hidden");
         fileMenuShowHiddenSections.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -397,9 +383,7 @@ public class LauncherFX extends Application {
         });
 
         MenuItem fileMenuItemExit = new MenuItem("Exit");
-        fileMenuItemExit.addEventHandler(ActionEvent.ACTION, (event) -> {
-            Platform.exit();
-        });
+        fileMenuItemExit.addEventHandler(ActionEvent.ACTION, (event) -> Platform.exit());
 
         MenuItem editMenuItemAddPort = new MenuItem("Add Port");
         editMenuItemAddPort.addEventHandler(ActionEvent.ACTION, new EditMenuConfigDialogEventHandler(Config.Type.PORT, "Add New Port"));
@@ -426,9 +410,7 @@ public class LauncherFX extends Application {
         primaryStage.setTitle(APP_NAME);
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
-        primaryStage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, (event) -> {
-            Platform.exit();
-        });
+        primaryStage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, (event) -> Platform.exit());
         primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, (event) -> {
             if(CONFIG.isFirstRun()) {
                 ButtonType homeButton = new ButtonType("Use Home Directory");
@@ -439,7 +421,7 @@ public class LauncherFX extends Application {
                 firstRunAlert.setHeaderText("Configuration Not Found.");
 
                 Optional<ButtonType> result = firstRunAlert.showAndWait();
-                if(!result.isPresent() || result.get() == ButtonType.CANCEL) {
+                if(result.isEmpty() || result.get() == ButtonType.CANCEL) {
                     LauncherFX.info("Cancelled configuration alert. Exiting.");
                     Platform.exit();
                 }
@@ -1071,7 +1053,7 @@ public class LauncherFX extends Application {
 
         processCommand = null;
 
-        CONFIG.getConfigurables().stream().forEach((ic) -> {
+        CONFIG.getConfigurables().forEach(ic -> {
             ic.setEnabled(true);
             ic.setSelected(false);
         });
@@ -1106,22 +1088,27 @@ public class LauncherFX extends Application {
      * @param parentStr
      * @return
      */
-    public static String resolveRelativePathToAbsolute(String pathStr, String parentStr) {
+    private static String resolveRelativePathToAbsolute(String pathStr, String parentStr) {
+        String result;
         if(pathStr == null || "".equals(pathStr)) {
-            return null;
+            result = null;
+        }
+        else {
+            System.out.println("-----------------------");
+            System.out.println("resolveRelativePathToAbsolue");
+            Path path = Paths.get(pathStr);
+            if(path.isAbsolute()) {
+                System.out.println("pathStr='" + pathStr + "' is ABSOLUTE.");
+                result = path.toString();
+            }
+            else {
+                Path retPath = Paths.get(parentStr, path.toString());
+                System.out.println("pathStr='" + pathStr + "' is NOT ABSOLUTE, returning '" + retPath.toString() + "'.");
+                result = retPath.toString();
+            }
         }
 
-        System.out.println("-----------------------");
-        System.out.println("resolveRelativePathToAbsolue");
-        Path path = Paths.get(pathStr);
-        if(path.isAbsolute()) {
-            System.out.println("pathStr='" + pathStr + "' is ABSOLUTE.");
-            return path.toString();
-        }
-
-        Path retPath = Paths.get(parentStr, path.toString());
-        System.out.println("pathStr='" + pathStr + "' is NOT ABSOLUTE, returning '" + retPath.toString() + "'.");
-        return retPath.toString();
+        return result;
     }
 
     private void checkLaunchNowAvailable() {
@@ -1158,13 +1145,8 @@ public class LauncherFX extends Application {
         WarpListItem selectThis = WarpListItem.DO_NOT_WARP;
         //have to do this no matter what to clear any potential prior highlights.
         for(WarpListItem item : olist) {
-            if(warp.contains(item.display)) {
-                item.highlight = true;
-//                selectThis = item; //idk if i want to auto-select. plus would select last level in a multi-level wad...
-            }
-            else {
-                item.highlight = false;
-            }
+            //                selectThis = item; //idk if i want to auto-select. plus would select last level in a multi-level wad...
+            item.highlight = warp.contains(item.display);
         }
         WarpListItem selectedWarp = warpListView.getSelectionModel().getSelectedItem();
 
@@ -1240,7 +1222,7 @@ public class LauncherFX extends Application {
                     if(item.path != null && item.path.equals(toRemove)) {
                         if(showHiddenPwadItemsCheckBox.isSelected()) {
                             if(!item.display.endsWith("(ignored)")) {
-                                item.display += " (auto-hidden)";
+                                item.display = item.display.concat(" (auto-hidden)");
                             }
                         }
                         else {
@@ -1414,7 +1396,6 @@ public class LauncherFX extends Application {
      * Returns null if oldExtension isn't even the right extension!
      *
      * @param fileName
-     * @param oldExtension
      * @param newExtension
      * @return
      */
@@ -1439,27 +1420,27 @@ public class LauncherFX extends Application {
                 List<String> argsList = new ArrayList<>();
 
                 String[] splitArgs = args.split(" ");
-                String longArg = "";
+                StringBuilder longArg = new StringBuilder();
                 for(String arg : splitArgs) {
                     if(arg.isEmpty()) {
                         continue;
                     }
-                    if(!longArg.isEmpty()) {
-                        longArg += " " + arg;
+                    if(longArg.length() > 0) {
+                        longArg.append(" ").append(arg);
                     }
                     if(arg.startsWith("\"")) {
-                        longArg += arg;
-                        if(!longArg.endsWith("\"")) {
+                        longArg.append(arg);
+                        if(!longArg.toString().endsWith("\"")) {
                             continue;
                         }
                     }
-                    if(longArg.endsWith("\"")) {
-                        longArg = longArg.substring(1, longArg.length() - 1);
-                        argsList.add(longArg);
-                        longArg = "";
+                    if(longArg.toString().endsWith("\"")) {
+                        longArg = new StringBuilder(longArg.substring(1, longArg.length() - 1));
+                        argsList.add(longArg.toString());
+                        longArg = new StringBuilder();
                         continue;
                     }
-                    if(!longArg.isEmpty() && !longArg.endsWith("\"")) {
+                    if((longArg.length() > 0) && !longArg.toString().endsWith("\"")) {
                         continue;
                     }
                     argsList.add(arg);
@@ -1493,7 +1474,7 @@ public class LauncherFX extends Application {
         private String sectionName;
         private Path pwadPath;
 
-        public EditMenuConfigDialogEventHandler(Config.Type type, String title) {
+        EditMenuConfigDialogEventHandler(Config.Type type, String title) {
             this.type = type;
             this.item = null;
             this.title = title;
@@ -1501,7 +1482,7 @@ public class LauncherFX extends Application {
             this.pwadPath = null;
         }
 
-        public EditMenuConfigDialogEventHandler(IniConfigurableItem item, String title) {
+        EditMenuConfigDialogEventHandler(IniConfigurableItem item, String title) {
             this.type = null;
             this.item = item;
             this.title = title;
@@ -1509,19 +1490,19 @@ public class LauncherFX extends Application {
             this.pwadPath = null;
         }
 
-        public void setItem(IniConfigurableItem item) {
+        void setItem(IniConfigurableItem item) {
             this.item = item;
         }
 
-        public void setTitle(String title) {
+        void setTitle(String title) {
             this.title = title;
         }
 
-        public void setSectionName(String sectionName) {
+        void setSectionName(String sectionName) {
             this.sectionName = sectionName;
         }
 
-        public void setPwadPath(Path pwadPath) {
+        void setPwadPath(Path pwadPath) {
             this.pwadPath = pwadPath;
         }
 
@@ -1559,7 +1540,7 @@ public class LauncherFX extends Application {
     private class LaunchItemEventHandler implements EventHandler<ActionEvent> {
         private final IniConfigurableItem ic;
 
-        public LaunchItemEventHandler(IniConfigurableItem ic) {
+        LaunchItemEventHandler(IniConfigurableItem ic) {
             this.ic = ic;
         }
 
@@ -1595,6 +1576,7 @@ public class LauncherFX extends Application {
                         tcPortToUse = IniConfigurableItem.EMPTY_ITEM;
 
                         String portStr = ic.get(Field.PORT);
+                        assert portStr != null;
                         String[] splitPort = portStr.split(",");
                         if(splitPort.length == 1) {
                             tcPortToUse = CONFIG.getConfigurableByName(splitPort[0]);
