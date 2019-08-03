@@ -5,42 +5,17 @@
  */
 package com.goodjaerb.doom.launcherfx;
 
-import com.goodjaerb.doom.launcherfx.data.Game;
 import com.goodjaerb.doom.launcherfx.config.Config;
 import com.goodjaerb.doom.launcherfx.config.Field;
 import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
 import com.goodjaerb.doom.launcherfx.config.ui.ConfigurableItemDialog;
+import com.goodjaerb.doom.launcherfx.data.Game;
 import com.goodjaerb.doom.launcherfx.scene.control.LaunchButton;
-import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListItem;
-import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListCell;
 import com.goodjaerb.doom.launcherfx.scene.control.LaunchItemPane;
+import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListCell;
+import com.goodjaerb.doom.launcherfx.scene.control.list.PWadListItem;
 import com.goodjaerb.doom.launcherfx.scene.control.list.WarpListCell;
 import com.goodjaerb.doom.launcherfx.scene.control.list.WarpListItem;
-
-import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
@@ -54,17 +29,23 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.*;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author goodjaerb

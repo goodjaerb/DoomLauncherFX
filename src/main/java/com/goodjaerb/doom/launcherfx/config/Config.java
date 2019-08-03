@@ -6,39 +6,33 @@
 package com.goodjaerb.doom.launcherfx.config;
 
 import com.goodjaerb.doom.launcherfx.LauncherFX;
+import org.ini4j.Ini;
+import org.ini4j.Profile.Section;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.util.*;
 
-import org.ini4j.Ini;
-import org.ini4j.Profile.Section;
-
 /**
- *
- * @author goodjaerb<goodjaerb@gmail.com>
+ * @author goodjaerb<goodjaerb @ gmail.com>
  */
 public class Config {
     public enum Type {
         PORT, TC, MOD, IWAD, PWAD;
-        
+
         public String iniValue() {
             return name().toLowerCase();
         }
     }
+
     public static final String USER_HOME = System.getProperty("user.home");
     public static final String CONFIG_DIR = ".launcherfx";
     public static final String CONFIG_FILE = "launcherfx.ini";
     public static final String HIDE_FILE = "launcherfx_hide.ini";
-    
+
     public static final String DIR_IMAGES = "images";
     public static final String DIR_IWAD = "iwad";
     public static final String DIR_MODS = "mods";
@@ -48,47 +42,47 @@ public class Config {
     public static final String DIR_VANILLA = "vanilla";
     public static final String DIR_DOOM = "doom";
     public static final String DIR_DOOM2 = "doom2";
-    
+
     private static final String CONFIG_LAUNCHER_DATA_DIR_SECTION = "LauncherFXDataDir";
     private static final String CONFIG_LAUNCHER_DATA_DIR_KEY = "launcher-data";
-    
+
     private static final Path HOME_CONFIG_FILE_PATH = FileSystems.getDefault().getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
     private static final Ini INI_FILE = new Ini();
     private static final Config INSTANCE = new Config();
-    
+
     private final List<IniConfigurableItem> CONFIGURABLES = new ArrayList<>();
     private final Set<String> hiddenSections = new HashSet<>();
-    
+
     private String configHome;
-    
+
     private Config() {
-        
+
     }
-    
+
     public static Config getInstance() {
         return INSTANCE;
     }
-    
+
     public String getConfigHome() {
         return configHome;
     }
-    
+
     public Collection<IniConfigurableItem> getConfigurables() {
         SortedSet<IniConfigurableItem> sortedConfigurables = new TreeSet<>((o1, o2) -> {
             int sort1 = o1.getInt(Field.SORT, Integer.MAX_VALUE);
             int sort2 = o2.getInt(Field.SORT, Integer.MAX_VALUE);
-            
+
             return sort1 == sort2 ? 1 : sort1 - sort2;
         });
         sortedConfigurables.addAll(CONFIGURABLES);
         return Collections.unmodifiableCollection(sortedConfigurables);
     }
-    
+
     /**
      * Add a new section to INI_FILE.
      * If section name exists, append "_1", with increasing numbers until
      * no more conflict.
-     * 
+     *
      * @param sectionName
      * @return the section name created, which may differ from the sectionName
      * passed as a parameter if there was a name conflict resolution.
@@ -104,7 +98,7 @@ public class Config {
         LauncherFX.info("Added new INI section: " + sectionName);
         return sectionName;
     }
-    
+
     public void deleteSection(String sectionName) {
         INI_FILE.remove(sectionName);
     }
@@ -120,7 +114,7 @@ public class Config {
     public boolean isHidden(String sectionName) {
         return hiddenSections.contains(sectionName);
     }
-    
+
     public void update(String section, Field f, String value) {
         if(value == null || value.trim().equals("")) {
             INI_FILE.remove(section, f.iniKey());
@@ -131,11 +125,11 @@ public class Config {
             LauncherFX.info("Updated section '" + section + "'. Set " + f.iniKey() + "=" + value);
         }
     }
-    
+
     private List<IniConfigurableItem> getOfTypesSorted(Config.Type... types) {
         List<Config.Type> typesList = Arrays.asList(types);
         int sort = 0;
-        
+
         List<IniConfigurableItem> items = new ArrayList<>();
         for(IniConfigurableItem item : getConfigurables()) {
             if(typesList.contains(item.getType())) {
@@ -143,15 +137,15 @@ public class Config {
                 items.add(item);
             }
         }
-        
+
         return Collections.unmodifiableList(items);
     }
-    
+
     /**
      * Gets a list of IniConigurableItems where getType() == Config.Type.PORT.
      * Does NOT include total conversions (Config.Type.TC).
-     * 
-     * @return 
+     *
+     * @return
      */
     public List<IniConfigurableItem> getPorts() {
         List<IniConfigurableItem> ports = new ArrayList<>();
@@ -160,19 +154,19 @@ public class Config {
         });
         return Collections.unmodifiableList(ports);
     }
-    
+
     public List<IniConfigurableItem> getPortsAndTcs() {
         return getOfTypesSorted(Type.PORT, Type.TC);
     }
-    
+
     public List<IniConfigurableItem> getIwads() {
         return getOfTypesSorted(Type.IWAD);
     }
-    
+
     public List<IniConfigurableItem> getMods() {
         return getOfTypesSorted(Type.MOD);
     }
-    
+
     public IniConfigurableItem getConfigurableByName(String sectionName) {
         for(IniConfigurableItem ic : CONFIGURABLES) {
             if(ic.sectionName().equals(sectionName)) {
@@ -181,24 +175,23 @@ public class Config {
         }
         return null;
     }
-    
+
     /**
-     * 
      * @return true if config file exists in user.home. false otherwise.
      */
     public boolean isFirstRun() {
         Path configFilePath = FileSystems.getDefault().getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
         return !Files.exists(configFilePath);
     }
-    
+
     public void initializeConfig() throws IOException {
         initializeConfig(null);
     }
-    
+
     public void initializeConfig(Path configCustomPath) throws IOException {
         FileSystem fs = FileSystems.getDefault();
         Path homeConfigFilePath = fs.getPath(USER_HOME, CONFIG_DIR, CONFIG_FILE);
-        
+
         if(configCustomPath == null) {
             configHome = homeConfigFilePath.getParent().toString();
 
@@ -208,14 +201,14 @@ public class Config {
         }
         else {
             configHome = configCustomPath.toString();
-            
+
             if(!Files.exists(homeConfigFilePath)) {
                 createPointerConfig(homeConfigFilePath, configCustomPath);
             }
         }
         loadConfig();
     }
-    
+
     public void loadConfig() throws IOException {
         INI_FILE.load(Files.newBufferedReader(HOME_CONFIG_FILE_PATH));
         String datadir = INI_FILE.get(CONFIG_LAUNCHER_DATA_DIR_SECTION, CONFIG_LAUNCHER_DATA_DIR_KEY);
@@ -223,7 +216,7 @@ public class Config {
         FileSystem fs = FileSystems.getDefault();
         if(datadir != null) {
             configHome = datadir;
-            
+
             Path customConfigFilePath = fs.getPath(configHome, CONFIG_FILE);
             if(!Files.exists(customConfigFilePath)) {
                 createDefaultConfig(customConfigFilePath);
@@ -240,7 +233,7 @@ public class Config {
         if(Files.exists(hideFilePath)) {
             try(BufferedReader hideFileReader = Files.newBufferedReader(hideFilePath)) {
                 String line;
-                while ((line = hideFileReader.readLine()) != null) {
+                while((line = hideFileReader.readLine()) != null) {
                     hiddenSections.add(line);
                 }
             }
@@ -248,23 +241,23 @@ public class Config {
 
         //create the directory structure
         Path[] configDirs = {
-            fs.getPath(configHome, DIR_IMAGES),
-            fs.getPath(configHome, DIR_IWAD),
-            fs.getPath(configHome, DIR_MODS),
-            fs.getPath(configHome, DIR_WADS, DIR_BOOM, DIR_DOOM),
-            fs.getPath(configHome, DIR_WADS, DIR_BOOM, DIR_DOOM2),
-            fs.getPath(configHome, DIR_WADS, DIR_LIMIT_REMOVING, DIR_DOOM),
-            fs.getPath(configHome, DIR_WADS, DIR_LIMIT_REMOVING, DIR_DOOM2),
-            fs.getPath(configHome, DIR_WADS, DIR_VANILLA, DIR_DOOM),
-            fs.getPath(configHome, DIR_WADS, DIR_VANILLA, DIR_DOOM2),
+                fs.getPath(configHome, DIR_IMAGES),
+                fs.getPath(configHome, DIR_IWAD),
+                fs.getPath(configHome, DIR_MODS),
+                fs.getPath(configHome, DIR_WADS, DIR_BOOM, DIR_DOOM),
+                fs.getPath(configHome, DIR_WADS, DIR_BOOM, DIR_DOOM2),
+                fs.getPath(configHome, DIR_WADS, DIR_LIMIT_REMOVING, DIR_DOOM),
+                fs.getPath(configHome, DIR_WADS, DIR_LIMIT_REMOVING, DIR_DOOM2),
+                fs.getPath(configHome, DIR_WADS, DIR_VANILLA, DIR_DOOM),
+                fs.getPath(configHome, DIR_WADS, DIR_VANILLA, DIR_DOOM2),
         };
         for(Path p : configDirs) {
             Files.createDirectories(p);
         }
-        
+
         parseIni();
     }
-    
+
     public void writeIni() throws IOException {
         Iterator<Section> sectionItr = INI_FILE.values().iterator();
         while(sectionItr.hasNext()) {
@@ -284,7 +277,7 @@ public class Config {
         }
         else {
             try(PrintWriter hideWriter = new PrintWriter(Files.newBufferedWriter(hideFilePath))) {
-                for (String sectionName : hiddenSections) {
+                for(String sectionName : hiddenSections) {
                     hideWriter.println(sectionName);
                 }
             }
@@ -294,49 +287,49 @@ public class Config {
         parseIni();
         LauncherFX.info("launcherfx.ini wrote to disk.");
     }
-    
+
     private void parseIni() {
         CONFIGURABLES.clear();
         INI_FILE.values().forEach((section) -> {
             Type type = Type.valueOf(section.get(Field.TYPE.iniKey()).toUpperCase());
-            if (null != type) {
+            if(null != type) {
                 CONFIGURABLES.add(new IniConfigurableItem(section));
             }
         });
     }
-    
+
     private void createPointerConfig(Path configFilePath, Path pointToPath) throws IOException {        //check that .launcherfx directory exists.
         if(!Files.exists(configFilePath.getParent())) {
             Files.createDirectory(configFilePath.getParent());
         }
-        
+
         //check that launcherfx.ini file exists.
         if(!Files.exists(configFilePath)) {
             Files.createFile(configFilePath);
         }
-        
+
         //initialize with example data.
-        try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(configFilePath, StandardOpenOption.WRITE))) {
+        try(PrintWriter writer = new PrintWriter(Files.newBufferedWriter(configFilePath, StandardOpenOption.WRITE))) {
             writer.println("; Be safe and use a forward slash / in your paths. Backslash \\ will not parse well.");
             writer.println("[" + CONFIG_LAUNCHER_DATA_DIR_SECTION + "]");
             writer.println(CONFIG_LAUNCHER_DATA_DIR_KEY + "=" + pointToPath.toString().replaceAll("\\\\", "/"));
             writer.println();
         }
     }
-    
+
     private void createDefaultConfig(Path configFilePath) throws IOException {
         //check that .launcherfx directory exists.
         if(!Files.exists(configFilePath.getParent())) {
             Files.createDirectory(configFilePath.getParent());
         }
-        
+
         //check that launcherfx.ini file exists.
         if(!Files.exists(configFilePath)) {
             Files.createFile(configFilePath);
         }
-        
+
         //initialize with example data.
-        try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(configFilePath, StandardOpenOption.WRITE))) {
+        try(PrintWriter writer = new PrintWriter(Files.newBufferedWriter(configFilePath, StandardOpenOption.WRITE))) {
             writer.println("; A directory '" + CONFIG_DIR + "' will be created in the user's home directory. Within this directory will be another series of directories to store various wads and mods as described below. Also will be this '" + CONFIG_FILE + "' files.");
             writer.println("; The directory structure will be as follows:");
             writer.println("; <user home>/" + CONFIG_DIR + "/");

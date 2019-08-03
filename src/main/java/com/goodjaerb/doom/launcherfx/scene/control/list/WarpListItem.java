@@ -8,12 +8,11 @@ package com.goodjaerb.doom.launcherfx.scene.control.list;
 import java.util.Objects;
 
 /**
- *
- * @author goodjaerb<goodjaerb@gmail.com>
+ * @author goodjaerb<goodjaerb @ gmail.com>
  */
 public class WarpListItem implements Comparable<WarpListItem> {
     public static final WarpListItem DO_NOT_WARP = new WarpListItem("Do not warp.", null);
-    
+
     public final String display;
     public final String arg;
     public boolean highlight;
@@ -43,13 +42,13 @@ public class WarpListItem implements Comparable<WarpListItem> {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
+        if(this == obj) {
             return true;
         }
-        if (obj == null) {
+        if(obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if(getClass() != obj.getClass()) {
             return false;
         }
         final WarpListItem other = (WarpListItem) obj;

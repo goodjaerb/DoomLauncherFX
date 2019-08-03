@@ -8,10 +8,6 @@ package com.goodjaerb.doom.launcherfx.config.ui;
 import com.goodjaerb.doom.launcherfx.config.Config;
 import com.goodjaerb.doom.launcherfx.config.Field;
 import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
@@ -21,9 +17,13 @@ import javafx.scene.control.Dialog;
 import javafx.scene.layout.VBox;
 import org.apache.commons.lang3.SystemUtils;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- *
- * @author goodjaerb<goodjaerb@gmail.com>
+ * @author goodjaerb<goodjaerb @ gmail.com>
  */
 public class ConfigurableItemDialog extends Dialog<ButtonType> {
     private final IniConfigurableItem item;
@@ -32,7 +32,7 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
     private VBox contentPane;
     private List<FieldInputPane> fieldInputPanes;
     private String newSectionName;
-    
+
     public ConfigurableItemDialog(Config.Type type, String title, Path pwadPath) {
         this.item = null;
         this.type = type;
@@ -41,7 +41,7 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
         setTitle(title);
         layout();
     }
-    
+
     public ConfigurableItemDialog(IniConfigurableItem item, String title, Path pwadPath) {
         this.item = item;
         this.type = item.getType();
@@ -50,19 +50,19 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
         setTitle(title);
         layout();
     }
-    
+
     public boolean isType(Config.Type type) {
         return this.type == type;
     }
-    
+
     public Config.Type getType() {
         return type;
     }
-    
+
     public void setNewSectionName(String newSectionName) {
         this.newSectionName = newSectionName;
     }
-    
+
     public void applyValues() throws IOException {
         String sectionName;
         if(item == null) {
@@ -83,24 +83,24 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
         else {
             sectionName = item.sectionName();
         }
-        
+
         fieldInputPanes.forEach((fip) -> {
             Config.getInstance().update(sectionName, fip.getField(), fip.getValue());
         });
         Config.getInstance().writeIni();
     }
-    
+
     private boolean requiredFieldsArePresent() {
         return fieldInputPanes.stream().noneMatch((FieldInputPane fip) -> fip.isRequired() && (fip.getValue() == null || fip.getValue().trim().equals("")));
     }
-    
+
     private void layout() {
         fieldInputPanes = new ArrayList<>();
-        
+
         contentPane = new VBox();
         contentPane.setPadding(new Insets(4));
         contentPane.setSpacing(4);
-        
+
         for(Field f : Field.values()) {
             if(f.validTypes.contains(type)) {
                 if((f == Field.WIN_CMD && !SystemUtils.IS_OS_WINDOWS) || (f == Field.LINUX_CMD && !SystemUtils.IS_OS_LINUX)) {
@@ -119,8 +119,8 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
         }
         getDialogPane().setContent(contentPane);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        
-        final Button btOk = (Button)getDialogPane().lookupButton(ButtonType.OK);
+
+        final Button btOk = (Button) getDialogPane().lookupButton(ButtonType.OK);
         btOk.addEventFilter(ActionEvent.ACTION, event -> {
             if(!requiredFieldsArePresent()) {
                 Alert alert = new Alert(Alert.AlertType.ERROR, "Required fields not entered.", ButtonType.OK);

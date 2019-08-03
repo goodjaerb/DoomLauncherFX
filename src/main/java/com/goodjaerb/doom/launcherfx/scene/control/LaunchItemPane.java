@@ -9,12 +9,6 @@ import com.goodjaerb.doom.launcherfx.LauncherFX;
 import com.goodjaerb.doom.launcherfx.config.Config;
 import com.goodjaerb.doom.launcherfx.config.Field;
 import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
-import java.awt.Desktop;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -25,8 +19,14 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
+import java.awt.*;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
- *
  * @author goodjaerb
  */
 public class LaunchItemPane extends BorderPane {
@@ -47,7 +47,7 @@ public class LaunchItemPane extends BorderPane {
         configurableItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
             launchButton.setCheckmarkVisible(newValue);
         });
-        
+
         configurableItem.enabledProperty().addListener((observable, oldValue, newValue) -> {
             launchButton.setDisable(!newValue);
         });
@@ -63,27 +63,28 @@ public class LaunchItemPane extends BorderPane {
         versionLabel = new Text();
         versionLabel.textProperty().bind(item.valueProperty(Field.VERSION));
         versionLabel.setStyle("-fx-font-weight: bold; -fx-font-style: italic; -fx-font-size: 14px");
-        
+
         descriptionArea = new Text();
         descriptionArea.textProperty().bind(item.valueProperty(Field.DESC));
-        
+
         hyperLink = new Hyperlink();
         hyperLink.textProperty().bind(item.valueProperty(Field.HTTP));
         hyperLink.addEventHandler(ActionEvent.ACTION, (event) -> {
             try {
                 Desktop.getDesktop().browse(new URI(hyperLink.getText()));
-            } catch (URISyntaxException | IOException ex) {
+            }
+            catch(URISyntaxException | IOException ex) {
                 Logger.getLogger(LaunchItemPane.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
 
         layoutPane();
     }
-    
+
     public void addLaunchHandler(EventHandler<ActionEvent> handler) {
         launchButton.addEventHandler(ActionEvent.ACTION, handler);
     }
-    
+
     public void setContextMenu(ContextMenu menu) {
         launchButton.setContextMenu(menu);
     }
@@ -107,7 +108,7 @@ public class LaunchItemPane extends BorderPane {
         descriptionArea.maxHeight(170);
 
         TextFlow textFlow = new TextFlow(nameLabel, new Text("  "), versionLabel);
-        
+
         VBox vBox = new VBox();
         vBox.setSpacing(2);
         vBox.getChildren().add(textFlow);

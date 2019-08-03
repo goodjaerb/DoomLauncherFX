@@ -6,8 +6,17 @@
 package com.goodjaerb.doom.launcherfx.config.ui;
 
 import com.goodjaerb.doom.launcherfx.config.Config;
-import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
 import com.goodjaerb.doom.launcherfx.config.Field;
+import com.goodjaerb.doom.launcherfx.config.IniConfigurableItem;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.layout.FlowPane;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -18,30 +27,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.FlowPane;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 
 /**
- *
- * @author goodjaerb<goodjaerb@gmail.com>
+ * @author goodjaerb<goodjaerb @ gmail.com>
  */
 public final class FieldInputPane extends FlowPane {
     private final IniConfigurableItem item;
     private final Config.Type type;
     private final Field field;
-    
+
     private Label label;
     private TextField textField;
     private Button browseButton;
@@ -49,13 +43,13 @@ public final class FieldInputPane extends FlowPane {
     private DirectoryChooser dirChooser;
     private ListView<ListItem> listView;
     private CheckBox checkBox;
-    
+
     private Path pwadPath;
-    
+
     FieldInputPane(Config.Type type, Field field) {
         this(type, field, null);
     }
-    
+
     FieldInputPane(Config.Type type, Field field, Path pwadPath) {
         this.item = null;
         this.type = type;
@@ -63,18 +57,18 @@ public final class FieldInputPane extends FlowPane {
         this.pwadPath = pwadPath;
         doLayout();
     }
-    
+
     FieldInputPane(IniConfigurableItem item, Field field) {
         this(item, field, null);
     }
-    
+
     FieldInputPane(IniConfigurableItem item, Field field, Path pwadPath) {
         this.item = item;
         this.type = item.getType();
         this.field = field;
         this.pwadPath = pwadPath;
         doLayout();
-        
+
         switch(field.inputType) {
             case TEXT:
             case BROWSE:
@@ -103,36 +97,36 @@ public final class FieldInputPane extends FlowPane {
             default:
         }
     }
-    
+
     public boolean isRequired() {
         return field.isRequired(type);
     }
-    
+
     public Field getField() {
         return field;
     }
-    
+
     private void doLayout() {
         setHgap(4);
         switch(field.inputType) {
             case BOOLEAN:
                 initLabel();
                 initCheckBox();
-                
+
                 getChildren().addAll(checkBox, label);
                 break;
             case BROWSE_DIR:
                 initLabel();
                 initTextField();
                 initBrowseDirButton();
-                
-                getChildren().addAll(label,textField, browseButton);
+
+                getChildren().addAll(label, textField, browseButton);
                 break;
             case BROWSE:
                 initLabel();
                 initTextField();
                 initBrowseButton();
-                
+
                 switch(field) {
                     case FILE:
                         switch(type) {
@@ -166,7 +160,7 @@ public final class FieldInputPane extends FlowPane {
             case LIST:
                 initLabel();
                 initListView();
-                
+
                 switch(field) {
                     case GAME:
                         ObservableList<ListItem> list = FXCollections.observableArrayList(
@@ -185,7 +179,7 @@ public final class FieldInputPane extends FlowPane {
             case MULTI_LIST:
                 initLabel();
                 initMultiListView();
-                
+
                 ObservableList<ListItem> list = FXCollections.observableArrayList();
                 switch(field) {
                     case PORT:
@@ -206,13 +200,14 @@ public final class FieldInputPane extends FlowPane {
                                     list.add(new ListItem(wadPathItem.getFileName().toString()));
                                 }
                             });
-                        } catch (IOException ex) {
+                        }
+                        catch(IOException ex) {
                             Logger.getLogger(FieldInputPane.class.getName()).log(Level.SEVERE, null, ex);
                         }
                         break;
                     default:
                 }
-                
+
                 listView.setItems(list);
                 getChildren().addAll(label, listView);
                 break;
@@ -221,27 +216,27 @@ public final class FieldInputPane extends FlowPane {
             case TEXT:
                 initLabel();
                 initTextField();
-                
+
                 getChildren().addAll(label, textField);
                 break;
             default:
         }
     }
-    
+
     private void initBrowseDirButton() {
         browseButton = new Button("Browse...");
         dirChooser = new DirectoryChooser();
-        
+
         dirChooser.setInitialDirectory(new File(Config.getInstance().getConfigHome()));
-        
+
         browseButton.addEventHandler(ActionEvent.ACTION, (event) -> {
-            File file = dirChooser.showDialog(((Node)event.getTarget()).getScene().getWindow());
+            File file = dirChooser.showDialog(((Node) event.getTarget()).getScene().getWindow());
             if(file != null) {
                 textField.setText(file.getAbsolutePath());
             }
         });
     }
-    
+
     private void initBrowseButton() {
         browseButton = new Button("Browse...");
         chooser = new FileChooser();
@@ -254,16 +249,16 @@ public final class FieldInputPane extends FlowPane {
         browseButton.addEventHandler(ActionEvent.ACTION, (event) -> {
             List<File> files = null;
             if(type == Config.Type.MOD) {
-                files = chooser.showOpenMultipleDialog(((Node)event.getTarget()).getScene().getWindow());
+                files = chooser.showOpenMultipleDialog(((Node) event.getTarget()).getScene().getWindow());
             }
             else {
-                File file = chooser.showOpenDialog(((Node)event.getTarget()).getScene().getWindow());
+                File file = chooser.showOpenDialog(((Node) event.getTarget()).getScene().getWindow());
                 if(file != null) {
                     files = new ArrayList<>();
                     files.add(file);
                 }
             }
-            
+
             if(files != null && !files.isEmpty()) {
                 textField.clear();
                 for(File file : files) {
@@ -326,13 +321,13 @@ public final class FieldInputPane extends FlowPane {
             }
         });
     }
-    
+
     private void initLabel() {
         label = new Label((field.isRequired(type) ? "*" : "") + field.label + " (?)");
         label.setPrefWidth(350);
         label.setTooltip(new Tooltip(field.helpMap.get(type).replace("%CONFIGHOME%", Config.getInstance().getConfigHome())));
     }
-    
+
     private void initTextField() {
         textField = new TextField();
         textField.setPrefWidth(300);
@@ -340,23 +335,23 @@ public final class FieldInputPane extends FlowPane {
             item.get(field);
         }
     }
-    
+
     private void initListView() {
         listView = new ListView<>();
         listView.setPrefSize(200, 75);
         listView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
     }
-    
+
     private void initMultiListView() {
         initListView();
         listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
-    
+
     private void initCheckBox() {
         checkBox = new CheckBox();
         checkBox.setSelected(false);
     }
-    
+
     String getValue() {
         switch(field.inputType) {
             case TEXT:
@@ -380,7 +375,7 @@ public final class FieldInputPane extends FlowPane {
                     value = listView.getSelectionModel().getSelectedItems().stream().map((listitem) -> listitem.getValue() + ",").reduce(value, String::concat);
                     value = value.substring(0, value.length() - 1);
                 }
-                
+
                 if(value != null) {
                     return value;
                 }
@@ -400,26 +395,26 @@ public final class FieldInputPane extends FlowPane {
         }
         return null;
     }
-    
+
     private class ListItem {
         private final String display;
         private final String value;
-        
+
         public ListItem(String display, String value) {
             this.display = display;
             this.value = value;
         }
-        
+
         public ListItem(String displayAndValue) {
             this.display = displayAndValue;
             this.value = displayAndValue;
         }
-        
+
         @Override
         public String toString() {
             return display;
         }
-        
+
         public String getValue() {
             return value;
         }

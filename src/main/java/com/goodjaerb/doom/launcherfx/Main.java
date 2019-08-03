@@ -6,11 +6,10 @@
 package com.goodjaerb.doom.launcherfx;
 
 /**
- *
  * @author goodjaerb
  */
 public class Main {
-    
+
     public static void main(String[] args) {
         // Workaround because JDK11+ javafx applications must be modular but gradle
         // puts the javafx jars in the classpath, and java doesn't like that.

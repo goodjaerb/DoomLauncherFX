@@ -5,28 +5,23 @@
  */
 package com.goodjaerb.doom.launcherfx.config;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 /**
- *
- * @author goodjaerb<goodjaerb@gmail.com>
+ * @author goodjaerb<goodjaerb @ gmail.com>
  */
 public enum Field {
-    NAME("Name:", InputType.TEXT, 
+    NAME("Name:", InputType.TEXT,
             (t) -> {
                 return t != Config.Type.PWAD;
             },
             createHelpMap(
-                    "The name of the source port being configured.\nWill be displayed in the main window.", 
-                    "The name of the total conversion being configured.\nWill be displayed in the main window.", 
-                    "The name of the game defined by this IWAD file.\nWill be displayed in the main window.", 
-                    "The name of the mod being configured.\nWill be displayed in the main window.", 
-                    "The name of the PWAD being configured.\nWill be displayed in the PWAD list."), 
+                    "The name of the source port being configured.\nWill be displayed in the main window.",
+                    "The name of the total conversion being configured.\nWill be displayed in the main window.",
+                    "The name of the game defined by this IWAD file.\nWill be displayed in the main window.",
+                    "The name of the mod being configured.\nWill be displayed in the main window.",
+                    "The name of the PWAD being configured.\nWill be displayed in the PWAD list."),
             Config.Type.PORT,
             Config.Type.TC,
             Config.Type.IWAD,
@@ -54,7 +49,7 @@ public enum Field {
             Config.Type.TC,
             Config.Type.IWAD,
             Config.Type.MOD),
-    HTTP("Link:", InputType.TEXT, 
+    HTTP("Link:", InputType.TEXT,
             createHelpMap(
                     "Enter a web address for this source port.",
                     "Enter a web address for this total conversion.",
@@ -98,7 +93,7 @@ public enum Field {
             Config.Type.PORT,
             Config.Type.TC,
             Config.Type.MOD),
-    FILE("File:", InputType.BROWSE, 
+    FILE("File:", InputType.BROWSE,
             true,
             createHelpMap(
                     "Field.FILE not implemented for ports.",
@@ -126,7 +121,7 @@ public enum Field {
                     "n/a",
                     "n/a"),
             Config.Type.PORT),
-    SAVEDIR("Use Savedir:", InputType.BOOLEAN, 
+    SAVEDIR("Use Savedir:", InputType.BOOLEAN,
             false,
             createHelpMap(
                     "Tells the launcher that this port supports the -savedir command argument.",
@@ -183,7 +178,9 @@ public enum Field {
             Config.Type.PORT,
             Config.Type.TC),
     PORT("Supported Port(s):", InputType.MULTI_LIST,
-            (t) -> { return t == Config.Type.TC; },
+            (t) -> {
+                return t == Config.Type.TC;
+            },
             createHelpMap(
                     "Field.PORT not implemented for ports.",
                     "Select the ports that this total conversion can use to run.",
@@ -192,7 +189,7 @@ public enum Field {
                     "Field.PORT not implemented for PWAD's."),
             Config.Type.TC,
             Config.Type.MOD),
-    WIN_CMD("Command:", InputType.BROWSE, 
+    WIN_CMD("Command:", InputType.BROWSE,
             true,
             createHelpMap(
                     "Enter the command to run this source port.\nMust be an absolute path or just the executable name if it is on a system path.\nPaths with spaces will need to be encapsulated in \"double quotes\".\nCommand arguments can be placed in the Arguments field.",
@@ -201,7 +198,7 @@ public enum Field {
                     "Field.CMD not implemented for mods.",
                     "Field.CMD not implemented for PWAD's."),
             Config.Type.PORT),
-    LINUX_CMD("Command:", InputType.BROWSE, 
+    LINUX_CMD("Command:", InputType.BROWSE,
             true,
             createHelpMap(
                     "Enter the command to run this source port.\nMust be an absolute path or just the executable name if it is on a system path.\nPaths with spaces will need to be encapsulated in \"double quotes\".\nCommand arguments can be placed in the Arguments field.",
@@ -238,7 +235,7 @@ public enum Field {
                     "Field.AUTHOR not implemented for total conversions.",
                     "Field.AUTHOR not implemented for IWAD's.",
                     "Field.AUTHOR not implemented for mods.",
-                    "Enter the WAD author's name to have it displayed in the PWAD list."), 
+                    "Enter the WAD author's name to have it displayed in the PWAD list."),
             Config.Type.PWAD),
     TXT("Text File:", InputType.BROWSE,
             createHelpMap(
@@ -246,7 +243,7 @@ public enum Field {
                     "Field.TXT not implemented for total conversions.",
                     "Field.TXT not implemented for IWAD's.",
                     "Field.TXT not implemented for mods.",
-                    "Enter the filename of the text file associated with this wad.\nOnly necessary if the filenames do not match as the application will auto-detect matching text files."), 
+                    "Enter the filename of the text file associated with this wad.\nOnly necessary if the filenames do not match as the application will auto-detect matching text files."),
             Config.Type.PWAD),
     IGNORE("Ignore:", InputType.HIDDEN,
             createHelpMap(
@@ -254,24 +251,28 @@ public enum Field {
                     "Field.IGNORE not implemented for total conversions.",
                     "Field.IGNORE not implemented for IWAD's.",
                     "Field.IGNORE not implemented for mods.",
-                    "Ignored files will not be shown in the PWAD list by default."), 
+                    "Ignored files will not be shown in the PWAD list by default."),
             Config.Type.PWAD);
-    
+
     public final String label;
     public final InputType inputType;
     public final Map<Config.Type, String> helpMap;
     public final List<Config.Type> validTypes;
-    
+
     private final Function<Config.Type, Boolean> isRequiredFunc;
-    
+
     private Field(String label, InputType inputType, boolean isRequired, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
-        this(label, inputType, (t) -> { return isRequired; }, helpMap, validTypes);
+        this(label, inputType, (t) -> {
+            return isRequired;
+        }, helpMap, validTypes);
     }
-    
+
     private Field(String label, InputType inputType, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
-        this(label, inputType, (t) -> { return false; }, helpMap, validTypes);
+        this(label, inputType, (t) -> {
+            return false;
+        }, helpMap, validTypes);
     }
-        
+
     private Field(String label, InputType inputType, Function<Config.Type, Boolean> isRequiredFunc, Map<Config.Type, String> helpMap, Config.Type... validTypes) {
         this.label = label;
         this.inputType = inputType;
@@ -279,7 +280,7 @@ public enum Field {
         this.validTypes = Collections.unmodifiableList(Arrays.asList(validTypes));
         this.isRequiredFunc = isRequiredFunc;
     }
-    
+
     private static Map<Config.Type, String> createHelpMap(String portHelp, String tcHelp, String iwadHelp, String modHelp, String pwadHelp) {
         EnumMap<Config.Type, String> theMap = new EnumMap<>(Config.Type.class);
         theMap.put(Config.Type.PORT, portHelp);
@@ -287,10 +288,10 @@ public enum Field {
         theMap.put(Config.Type.IWAD, iwadHelp);
         theMap.put(Config.Type.MOD, modHelp);
         theMap.put(Config.Type.PWAD, pwadHelp);
-        
+
         return Collections.unmodifiableMap(theMap);
     }
-    
+
     public boolean isRequired(Config.Type type) {
         return isRequiredFunc.apply(type);
     }

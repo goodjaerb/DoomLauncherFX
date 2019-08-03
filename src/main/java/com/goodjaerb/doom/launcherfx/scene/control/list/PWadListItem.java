@@ -9,15 +9,15 @@ import java.nio.file.Path;
 import java.util.Objects;
 
 /**
- *
- * @author goodjaerb<goodjaerb@gmail.com>
+ * @author goodjaerb<goodjaerb @ gmail.com>
  */
 public class PWadListItem {
     public static final PWadListItem NO_PWAD = new PWadListItem(PWadListItem.Type.WAD, "No PWAD.", null, null);
-    
+
     public enum Type {
         WAD, TXT, DEH;
     }
+
     public final Type type;
     public String display;
     public final Path path;
@@ -32,23 +32,23 @@ public class PWadListItem {
         this.warp = "";
         this.txt = txt;
     }
-    
+
     @Override
     public int hashCode() {
         int hash = 7;
         hash = 11 * hash + Objects.hashCode(this.path);
         return hash;
     }
-    
-    @Override    
+
+    @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
+        if(this == obj) {
             return true;
         }
-        if (obj == null) {
+        if(obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if(getClass() != obj.getClass()) {
             return false;
         }
         final PWadListItem other = (PWadListItem) obj;

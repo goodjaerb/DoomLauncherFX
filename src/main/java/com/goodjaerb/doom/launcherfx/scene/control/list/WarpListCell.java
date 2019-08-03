@@ -8,8 +8,7 @@ package com.goodjaerb.doom.launcherfx.scene.control.list;
 import javafx.scene.control.ListCell;
 
 /**
- *
- * @author goodjaerb<goodjaerb@gmail.com>
+ * @author goodjaerb<goodjaerb @ gmail.com>
  */
 public class WarpListCell extends ListCell<WarpListItem> {
 
