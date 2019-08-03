@@ -108,6 +108,15 @@ public enum Field {
                     "Field.FILE not implemented for PWAD's."),
             Config.Type.IWAD,
             Config.Type.MOD),
+    DEFAULT_ON("Default On:", InputType.BOOLEAN,
+            false,
+            createHelpMap(
+                    "n/a",
+                    "n/a",
+                    "n/a",
+                    "This mod will automatically turn ON when a compatible port is selected.",
+                    "n/a"),
+            Config.Type.MOD),
     SAVELOC("Savedir Location:", InputType.BROWSE_DIR,
             false,
             createHelpMap(

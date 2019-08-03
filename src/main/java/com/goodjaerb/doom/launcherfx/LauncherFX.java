@@ -40,6 +40,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
@@ -66,7 +67,6 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 /**
- *
  * @author goodjaerb
  */
 public class LauncherFX extends Application {
@@ -80,31 +80,31 @@ public class LauncherFX extends Application {
     private Tab modsTab;
     private Tab pwadsTab;
     private Tab warpTab;
-    
+
     private VBox portsBox;
     private VBox iwadsBox;
     private VBox modsBox;
-    
+
     private CheckBox showHiddenPwadItemsCheckBox;
     private ListView<PWadListItem> pwadListView;
     private ListView<WarpListItem> warpListView;
-        
+
     private Button launchNowButton;
     private Button clearSelectionsButton;
-    
+
     private List<IniConfigurableItem> portsList;
     private List<IniConfigurableItem> iwadsList;
     private List<IniConfigurableItem> modsList;
     private List<IniConfigurableItem> selectedModsList;
     private Set<Path> removeFromWadList;
-    
+
     private List<String> processCommand;
     private Game selectedGame = Game.UNKNOWN_GAME;
     private IniConfigurableItem selectedIwad = IniConfigurableItem.EMPTY_ITEM;
     private IniConfigurableItem selectedPort = IniConfigurableItem.EMPTY_ITEM;
     private IniConfigurableItem tcPortToUse = IniConfigurableItem.EMPTY_ITEM;
     private PWadListItem selectedPwad = PWadListItem.NO_PWAD;
-    
+
     @Override
     public void start(Stage primaryStage) throws MalformedURLException, IOException {
         portsList = new ArrayList<>();
@@ -112,20 +112,20 @@ public class LauncherFX extends Application {
         modsList = new ArrayList<>();
         selectedModsList = new ArrayList<>();
         removeFromWadList = new HashSet<>();
-        
+
         portsBox = new VBox();
         iwadsBox = new VBox();
         modsBox = new VBox();
-        
+
         EventHandler<ActionEvent> launchHandler = (event) -> {
             String iwadPath = resolvePathRelativeToConfig(selectedIwad.get(Field.FILE), Config.DIR_IWAD);
             addArgsToProcess("-iwad " + iwadPath);
-            
+
             String currentSaveDir = null;
             if(selectedIwad.getBoolean(Field.SAVEDIR)) {
                 currentSaveDir = "saves/" + selectedIwad.sectionName();
             }
-            
+
             String portArgs = selectedPort.get(Field.ARGS);
             if(portArgs != null) {
                 Matcher m = Pattern.compile("\"(.*?)\"").matcher(portArgs);
@@ -136,7 +136,7 @@ public class LauncherFX extends Application {
                 }
                 addArgsToProcess(portArgs);
             }
-            
+
             for(IniConfigurableItem mod : selectedModsList) {
                 String modArgs = mod.get(Field.ARGS);
                 if(modArgs != null) {
@@ -158,12 +158,12 @@ public class LauncherFX extends Application {
                     }
                     addArgsToProcess("-file " + modFiles);
                 }
-                
+
                 if(mod.getBoolean(Field.SAVEDIR)) {
                     currentSaveDir = "saves/" + mod.sectionName();
                 }
             }
-            
+
             List<PWadListItem> selectedPwadItems = pwadListView.getSelectionModel().getSelectedItems();
             if(selectedPwadItems.size() == 1) {
                 PWadListItem pwadItem = pwadListView.getSelectionModel().getSelectedItem();
@@ -201,11 +201,11 @@ public class LauncherFX extends Application {
                     addArgsToProcess("-file" + wadPaths);
                 }
             }
-            
+
             WarpListItem warpItem = warpListView.getSelectionModel().getSelectedItem();
             if(warpItem != null && warpItem != WarpListItem.DO_NOT_WARP) {
                 addArgsToProcess("-warp " + warpItem.arg);
-                
+
                 List<String> skillList = selectedGame.skillList;
                 if(!skillList.isEmpty()) {
                     ChoiceDialog<String> dialog = new ChoiceDialog<>(skillList.get(2), skillList);
@@ -224,11 +224,11 @@ public class LauncherFX extends Application {
                     }
                 }
             }
-            
+
             if(selectedPort.isType(Config.Type.TC) && selectedPort.getBoolean(Field.SAVEDIR)) {
                 currentSaveDir = "saves/" + selectedPort.sectionName();
             }
-            
+
             if(currentSaveDir != null && ((selectedPort.isType(Config.Type.TC) && selectedPort.getBoolean(Field.SAVEDIR) && tcPortToUse.getBoolean(Field.SAVEDIR)) || (selectedPort.isType(Config.Type.PORT) && selectedPort.getBoolean(Field.SAVEDIR)))) {
                 if(selectedPort.isType(Config.Type.TC) && tcPortToUse.get(Field.SAVELOC) != null && !tcPortToUse.get(Field.SAVELOC).isEmpty()) {
                     currentSaveDir = tcPortToUse.get(Field.SAVELOC) + File.separator + currentSaveDir;
@@ -236,19 +236,19 @@ public class LauncherFX extends Application {
                 else if(selectedPort.isType(Config.Type.PORT) && selectedPort.get(Field.SAVELOC) != null && !selectedPort.get(Field.SAVELOC).isEmpty()) {
                     currentSaveDir = selectedPort.get(Field.SAVELOC) + File.separator + currentSaveDir;
                 }
-                
+
                 addArgsToProcess("-savedir " + currentSaveDir);
             }
-            
+
             ProcessBuilder processBuilder = new ProcessBuilder(processCommand);
             processBuilder.directory(new File(processCommand.get(0)).getParentFile());
-            
+
             LauncherFX.info("command=" + processBuilder.command() + ", workingdir=" + processBuilder.directory());
             try {
                 Process p = processBuilder.start();
                 p.waitFor();
             }
-            catch (IOException | InterruptedException ex) {
+            catch(IOException | InterruptedException ex) {
                 LauncherFX.error(ex);
                 new Alert(Alert.AlertType.ERROR, "An error occured accessing or running the program '" + processBuilder.command() + "'.", ButtonType.CLOSE).showAndWait();
             }
@@ -256,33 +256,33 @@ public class LauncherFX extends Application {
                 processCommand = processCommand.subList(0, 1);
             }
         };
-        
+
         launchNowButton = new Button("Launch Now!");
         launchNowButton.addEventHandler(ActionEvent.ACTION, launchHandler);
-        
+
         clearSelectionsButton = new Button("Clear Selections");
         clearSelectionsButton.addEventHandler(ActionEvent.ACTION, (event) -> {
             reset();
         });
-        
+
         FlowPane buttonPane = new FlowPane(launchNowButton, clearSelectionsButton);
         buttonPane.setAlignment(Pos.CENTER);
         buttonPane.setPadding(new Insets(4));
         buttonPane.setHgap(8);
-        
+
         MenuItem editPwadItem = new MenuItem("Edit");
         editPwadItem.setOnAction(new EditMenuConfigDialogEventHandler(Config.Type.PWAD, "Edit PWAD"));
-        
+
         MenuItem ignorePwadItem = new MenuItem("Ignore");
         ignorePwadItem.setOnAction((event) -> {
             setPwadItemsToIgnore(pwadListView.getSelectionModel().getSelectedItems(), true);
         });
-        
+
         MenuItem unignorePwadItem = new MenuItem("Unignore");
         unignorePwadItem.setOnAction((event) -> {
             setPwadItemsToIgnore(pwadListView.getSelectionModel().getSelectedItems(), false);
         });
-        
+
         MenuItem deletePwadItem = new MenuItem("Delete Config");
         deletePwadItem.setOnAction((event) -> {
             List<PWadListItem> selectedItems = pwadListView.getSelectionModel().getSelectedItems();
@@ -292,12 +292,13 @@ public class LauncherFX extends Application {
             try {
                 CONFIG.writeIni();
                 loadPwadList();
-            } catch (IOException ex) {
+            }
+            catch(IOException ex) {
                 LauncherFX.error(ex);
                 LauncherFX.info("Error writing ini.");
             }
         });
-        
+
         ContextMenu pwadContextMenu = new ContextMenu(editPwadItem, ignorePwadItem, unignorePwadItem, new SeparatorMenuItem(), deletePwadItem);
         pwadContextMenu.addEventHandler(WindowEvent.WINDOW_SHOWING, (event) -> {
             List<PWadListItem> selectedItems = pwadListView.getSelectionModel().getSelectedItems();
@@ -312,17 +313,17 @@ public class LauncherFX extends Application {
                 else {
                     editPwadItem.setDisable(false);
                     IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(listItem.path.getFileName().toString());
-                    ((EditMenuConfigDialogEventHandler)editPwadItem.getOnAction()).setItem(pwadItem);
-                    ((EditMenuConfigDialogEventHandler)editPwadItem.getOnAction()).setPwadPath(listItem.path);
-                    ((EditMenuConfigDialogEventHandler)editPwadItem.getOnAction()).setSectionName(listItem.path.getFileName().toString());
-                    ((EditMenuConfigDialogEventHandler)editPwadItem.getOnAction()).setTitle("Edit PWAD: " + listItem.path.getFileName().toString());
+                    ((EditMenuConfigDialogEventHandler) editPwadItem.getOnAction()).setItem(pwadItem);
+                    ((EditMenuConfigDialogEventHandler) editPwadItem.getOnAction()).setPwadPath(listItem.path);
+                    ((EditMenuConfigDialogEventHandler) editPwadItem.getOnAction()).setSectionName(listItem.path.getFileName().toString());
+                    ((EditMenuConfigDialogEventHandler) editPwadItem.getOnAction()).setTitle("Edit PWAD: " + listItem.path.getFileName().toString());
                 }
             }
             else {
                 event.consume();
             }
         });
-        
+
         pwadListView = new ListView<>();
         pwadListView.setMinSize(350, 450);
         pwadListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -344,27 +345,27 @@ public class LauncherFX extends Application {
                 loadWarpList();
             }
         });
-        
+
         showHiddenPwadItemsCheckBox = new CheckBox("Show Hidden Items");
         showHiddenPwadItemsCheckBox.setSelected(false);
         showHiddenPwadItemsCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             loadPwadList();
         });
-        
+
         FlowPane pwadPane = new FlowPane(Orientation.HORIZONTAL, pwadListView, showHiddenPwadItemsCheckBox);
         pwadPane.setAlignment(Pos.CENTER);
         pwadPane.setPadding(new Insets(8));
         pwadPane.setHgap(8);
-        
+
         warpListView = new ListView<>();
         warpListView.setMinSize(200, 450);
         warpListView.setCellFactory((ListView<WarpListItem> list) -> new WarpListCell());
-        
+
         FlowPane warpPane = new FlowPane(Orientation.HORIZONTAL, warpListView);
         warpPane.setAlignment(Pos.CENTER);
         warpPane.setPadding(new Insets(8));
         warpPane.setHgap(8);
-        
+
         portsTab = new Tab("Ports & TC's", new ScrollPane(portsBox));
         portsTab.setClosable(false);
         iwadsTab = new Tab("IWADS", new ScrollPane(iwadsBox));
@@ -375,27 +376,28 @@ public class LauncherFX extends Application {
         pwadsTab.setClosable(false);
         warpTab = new Tab("Warp", new BorderPane(null, warpPane, null, null, null));
         warpTab.setClosable(false);
-        
+
         tabPane = new TabPane();
         tabPane.getTabs().add(portsTab);
         tabPane.getTabs().add(iwadsTab);
         tabPane.getTabs().add(modsTab);
         tabPane.getTabs().add(pwadsTab);
         tabPane.getTabs().add(warpTab);
-        
+
         MenuItem fileMenuItemReloadIni = new MenuItem("Reload launcherfx.ini");
         fileMenuItemReloadIni.addEventHandler(ActionEvent.ACTION, (event) -> {
             try {
                 CONFIG.loadConfig();
                 refreshFromIni();
-            } catch (IOException ex) {
+            }
+            catch(IOException ex) {
                 LauncherFX.error(ex);
-                
+
                 Alert exceptionAlert = new Alert(Alert.AlertType.ERROR, "There was a problem loading the configuration file.\nMake sure you have a " + Config.CONFIG_FILE + " located in " + Config.USER_HOME + File.separator + Config.CONFIG_DIR + ", even if you use a custom data location.\nRestart the application to recreate it and if necessary point it to your custom directory.", ButtonType.OK);
                 exceptionAlert.showAndWait();
             }
         });
-        
+
         MenuItem fileMenuResetSelections = new MenuItem("Reset Selections");
         fileMenuResetSelections.addEventHandler(ActionEvent.ACTION, (event) -> {
             reset();
@@ -412,34 +414,34 @@ public class LauncherFX extends Application {
                 LauncherFX.error(ex);
             }
         });
-        
+
         MenuItem fileMenuItemExit = new MenuItem("Exit");
         fileMenuItemExit.addEventHandler(ActionEvent.ACTION, (event) -> {
             Platform.exit();
         });
-        
+
         MenuItem editMenuItemAddPort = new MenuItem("Add Port");
         editMenuItemAddPort.addEventHandler(ActionEvent.ACTION, new EditMenuConfigDialogEventHandler(Config.Type.PORT, "Add New Port"));
-        
+
         MenuItem editMenuItemAddTc = new MenuItem("Add Total Conversion");
         editMenuItemAddTc.addEventHandler(ActionEvent.ACTION, new EditMenuConfigDialogEventHandler(Config.Type.TC, "Add New TC"));
-        
+
         MenuItem editMenuItemAddIwad = new MenuItem("Add IWAD");
         editMenuItemAddIwad.addEventHandler(ActionEvent.ACTION, new EditMenuConfigDialogEventHandler(Config.Type.IWAD, "Add New IWAD"));
-        
+
         MenuItem editMenuItemAddMod = new MenuItem("Add Mod");
         editMenuItemAddMod.addEventHandler(ActionEvent.ACTION, new EditMenuConfigDialogEventHandler(Config.Type.MOD, "Add New Mod"));
-        
+
         MenuItem menuSeparator = new SeparatorMenuItem();
-        
+
         Menu fileMenu = new Menu("File", null, fileMenuItemReloadIni, fileMenuResetSelections, fileMenuShowHiddenSections, menuSeparator, fileMenuItemExit);
         Menu editMenu = new Menu("Edit", null, editMenuItemAddPort, editMenuItemAddTc, editMenuItemAddIwad, editMenuItemAddMod);
         MenuBar menuBar = new MenuBar(fileMenu, editMenu);
-        
+
         VBox root = new VBox(menuBar, tabPane, buttonPane);
         root.setMinSize(600, 550);
         Scene scene = new Scene(root, 600, 550);
-        
+
         primaryStage.setTitle(APP_NAME);
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
@@ -464,7 +466,8 @@ public class LauncherFX extends Application {
                     if(result.get() == homeButton) {
                         try {
                             CONFIG.initializeConfig();
-                        } catch (IOException ex) {
+                        }
+                        catch(IOException ex) {
                             LauncherFX.error(ex);
                         }
                     }
@@ -480,7 +483,8 @@ public class LauncherFX extends Application {
                         else {
                             try {
                                 CONFIG.initializeConfig(dir.toPath());
-                            } catch (IOException ex) {
+                            }
+                            catch(IOException ex) {
                                 LauncherFX.error(ex);
                             }
                         }
@@ -490,17 +494,18 @@ public class LauncherFX extends Application {
             else {
                 try {
                     CONFIG.loadConfig();
-                } catch (IOException ex) {
+                }
+                catch(IOException ex) {
                     LauncherFX.error(ex);
                 }
             }
 
             refreshFromIni();
         });
-        
+
         primaryStage.show();
     }
-    
+
     private void refreshFromIni() {
         portsList.clear();
         iwadsList.clear();
@@ -508,94 +513,106 @@ public class LauncherFX extends Application {
         portsBox.getChildren().clear();
         iwadsBox.getChildren().clear();
         modsBox.getChildren().clear();
-        
+
         for(IniConfigurableItem ic : CONFIG.getConfigurables()) {
             if(!CONFIG.isHidden(ic.sectionName()) || showHidden) {
                 Config.Type type = ic.getType();
                 LaunchItemPane lip = new LaunchItemPane(ic);
                 lip.addLaunchHandler(new LaunchItemEventHandler(ic));
 
-                switch (type) {
+                switch(type) {
                     case PORT:
                         portsList.add(ic);
                         portsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit Port")));
                         lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit Port"));
                         ic.selectedProperty().addListener((observable, oldValue, newValue) -> {
-                            if (!newValue) { //false. this port has been deselected.
+                            if(!newValue) { //false. this port has been deselected.
                                 // check mods/iwads with currently selected port in the event they were disabled
                                 // because of this port but may now be available.
-                                if (selectedPort == IniConfigurableItem.EMPTY_ITEM) {
-                                    for (IniConfigurableItem iwad : iwadsList) {
+                                if(selectedPort == IniConfigurableItem.EMPTY_ITEM) {
+                                    for(IniConfigurableItem iwad : iwadsList) {
                                         iwad.setEnabled(true);
                                     }
 
-                                    for (IniConfigurableItem mod : modsList) {
+                                    for(IniConfigurableItem mod : modsList) {
                                         mod.setEnabled(true);
                                     }
-                                } else {
-                                    if (selectedPort.getBoolean(Field.SKIPMODS) || tcPortToUse.getBoolean(Field.SKIPMODS)) {
-                                        for (IniConfigurableItem mod : modsList) {
+                                }
+                                else {
+                                    if(selectedPort.getBoolean(Field.SKIPMODS) || tcPortToUse.getBoolean(Field.SKIPMODS)) {
+                                        for(IniConfigurableItem mod : modsList) {
                                             mod.setEnabled(false);
                                         }
-                                    } else {
+                                    }
+                                    else {
                                         IniConfigurableItem checkAgainstPort = selectedPort;
-                                        if (selectedPort.isType(Config.Type.TC)) {
+                                        if(selectedPort.isType(Config.Type.TC)) {
                                             checkAgainstPort = tcPortToUse;
                                         }
-                                        for (IniConfigurableItem mod : modsList) {
+                                        for(IniConfigurableItem mod : modsList) {
                                             String modSupportedPorts = mod.get(Field.PORT);
-                                            if (modSupportedPorts == null || modSupportedPorts.toLowerCase().contains(checkAgainstPort.sectionName().toLowerCase())) {
+                                            if(modSupportedPorts == null || modSupportedPorts.toLowerCase().contains(checkAgainstPort.sectionName().toLowerCase())) {
                                                 mod.setEnabled(true);
-                                            } else {
+                                            }
+                                            else {
                                                 mod.setEnabled(false);
                                             }
                                         }
                                     }
 
                                     String portSupportedIwads = selectedPort.get(Field.IWAD);
-                                    for (IniConfigurableItem iwad : iwadsList) {
+                                    for(IniConfigurableItem iwad : iwadsList) {
 
                                         String iwadSupportedPorts = iwad.get(Field.PORT);
-                                        if (iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())
+                                        if(iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())
                                                 && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
                                             iwad.setEnabled(true);
-                                        } else {
+                                        }
+                                        else {
                                             iwad.setEnabled(false);
                                         }
                                     }
                                 }
-                            } else { // true. this port has been selected.
+                            }
+                            else { // true. this port has been selected.
                                 // deselect other ports
-                                for (IniConfigurableItem port : portsList) {
-                                    if (port != ic) {
+                                for(IniConfigurableItem port : portsList) {
+                                    if(port != ic) {
                                         port.setSelected(false);
                                     }
                                 }
 
                                 // enabled/disable mods/iwads according to this port's compatibility settings.
-                                if (ic.getBoolean(Field.SKIPMODS)) {
-                                    for (IniConfigurableItem mod : modsList) {
+                                if(ic.getBoolean(Field.SKIPMODS)) {
+                                    for(IniConfigurableItem mod : modsList) {
                                         mod.setEnabled(false);
                                     }
-                                } else {
-                                    for (IniConfigurableItem mod : modsList) {
+                                }
+                                else {
+                                    for(IniConfigurableItem mod : modsList) {
                                         String modSupportedPorts = mod.get(Field.PORT);
-                                        if (modSupportedPorts == null || modSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase())) {
+                                        if(modSupportedPorts == null || modSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase())) {
                                             mod.setEnabled(true);
-                                        } else {
+
+                                            if(mod.getBoolean(Field.DEFAULT_ON)) {
+                                                mod.setSelected(true);
+                                            }
+                                        }
+                                        else {
                                             mod.setEnabled(false);
                                         }
                                     }
                                 }
 
                                 String portSupportedIwads = ic.get(Field.IWAD);
-                                for (IniConfigurableItem iwad : iwadsList) {
+                                for(IniConfigurableItem iwad : iwadsList) {
 
                                     String iwadSupportedPorts = iwad.get(Field.PORT);
-                                    if ((iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase()))
+                                    if((iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase()))
                                             && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
                                         iwad.setEnabled(true);
-                                    } else {
+                                    }
+                                    else {
                                         iwad.setEnabled(false);
                                     }
                                 }
@@ -604,20 +621,21 @@ public class LauncherFX extends Application {
 
                         ic.enabledProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
                             // if this port is enabled, reverse check that this port is compatible with currently selected mods/iwads and disable if it is not.
-                            if (newValue) {
+                            if(newValue) {
                                 String portSupportedIwads = ic.get(Field.IWAD);
-                                if (portSupportedIwads != null && !portSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase())) {
+                                if(portSupportedIwads != null && !portSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase())) {
                                     ic.setEnabled(false);
                                     return;
                                 }
 
-                                if (ic.getBoolean(Field.SKIPMODS) && !selectedModsList.isEmpty()) {
+                                if(ic.getBoolean(Field.SKIPMODS) && !selectedModsList.isEmpty()) {
                                     ic.setEnabled(false);
                                     return;
-                                } else {
-                                    for (IniConfigurableItem mod : selectedModsList) {
+                                }
+                                else {
+                                    for(IniConfigurableItem mod : selectedModsList) {
                                         String modSupportedPorts = mod.get(Field.PORT);
-                                        if (modSupportedPorts != null && !modSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase())) {
+                                        if(modSupportedPorts != null && !modSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase())) {
                                             ic.setEnabled(false);
                                             return;
                                         }
@@ -631,79 +649,87 @@ public class LauncherFX extends Application {
                         portsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit TC")));
                         lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit TC"));
                         ic.selectedProperty().addListener((observable, oldValue, newValue) -> {
-                            if (!newValue) { //false. this port has been deselected.
+                            if(!newValue) { //false. this port has been deselected.
                                 // check mods/iwads with currently selected port in the event they were disabled
                                 // because of this port but may now be available.
-                                if (selectedPort == IniConfigurableItem.EMPTY_ITEM) {
-                                    for (IniConfigurableItem iwad : iwadsList) {
+                                if(selectedPort == IniConfigurableItem.EMPTY_ITEM) {
+                                    for(IniConfigurableItem iwad : iwadsList) {
                                         iwad.setEnabled(true);
                                     }
 
-                                    for (IniConfigurableItem mod : modsList) {
+                                    for(IniConfigurableItem mod : modsList) {
                                         mod.setEnabled(true);
                                     }
-                                } else {
-                                    if (selectedPort.getBoolean(Field.SKIPMODS) || tcPortToUse.getBoolean(Field.SKIPMODS)) {
-                                        for (IniConfigurableItem mod : modsList) {
+                                }
+                                else {
+                                    if(selectedPort.getBoolean(Field.SKIPMODS) || tcPortToUse.getBoolean(Field.SKIPMODS)) {
+                                        for(IniConfigurableItem mod : modsList) {
                                             mod.setEnabled(false);
                                         }
-                                    } else {
+                                    }
+                                    else {
                                         IniConfigurableItem checkAgainstPort = selectedPort;
-                                        if (selectedPort.isType(Config.Type.TC)) {
+                                        if(selectedPort.isType(Config.Type.TC)) {
                                             checkAgainstPort = tcPortToUse;
                                         }
-                                        for (IniConfigurableItem mod : modsList) {
+                                        for(IniConfigurableItem mod : modsList) {
                                             String modSupportedPorts = mod.get(Field.PORT);
-                                            if (modSupportedPorts == null || modSupportedPorts.toLowerCase().contains(checkAgainstPort.sectionName().toLowerCase())) {
+                                            if(modSupportedPorts == null || modSupportedPorts.toLowerCase().contains(checkAgainstPort.sectionName().toLowerCase())) {
                                                 mod.setEnabled(true);
-                                            } else {
+                                            }
+                                            else {
                                                 mod.setEnabled(false);
                                             }
                                         }
                                     }
 
                                     String portSupportedIwads = selectedPort.get(Field.IWAD);
-                                    for (IniConfigurableItem iwad : iwadsList) {
+                                    for(IniConfigurableItem iwad : iwadsList) {
                                         String iwadSupportedPorts = iwad.get(Field.PORT);
-                                        if (iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())
+                                        if(iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())
                                                 && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
                                             iwad.setEnabled(true);
-                                        } else {
+                                        }
+                                        else {
                                             iwad.setEnabled(false);
                                         }
                                     }
                                 }
-                            } else { // true. this port has been selected.
+                            }
+                            else { // true. this port has been selected.
                                 // deselect other ports
-                                for (IniConfigurableItem port : portsList) {
-                                    if (port != ic) {
+                                for(IniConfigurableItem port : portsList) {
+                                    if(port != ic) {
                                         port.setSelected(false);
                                     }
                                 }
 
                                 // enabled/disable mods/iwads according to this port's compatibility settings.
-                                if (ic.getBoolean(Field.SKIPMODS)) {
-                                    for (IniConfigurableItem mod : modsList) {
+                                if(ic.getBoolean(Field.SKIPMODS)) {
+                                    for(IniConfigurableItem mod : modsList) {
                                         mod.setEnabled(false);
                                     }
-                                } else {
-                                    for (IniConfigurableItem mod : modsList) {
+                                }
+                                else {
+                                    for(IniConfigurableItem mod : modsList) {
                                         String modSupportedPorts = mod.get(Field.PORT);
-                                        if (modSupportedPorts == null || modSupportedPorts.toLowerCase().contains(tcPortToUse.sectionName().toLowerCase())) {
+                                        if(modSupportedPorts == null || modSupportedPorts.toLowerCase().contains(tcPortToUse.sectionName().toLowerCase())) {
                                             mod.setEnabled(true);
-                                        } else {
+                                        }
+                                        else {
                                             mod.setEnabled(false);
                                         }
                                     }
                                 }
 
                                 String portSupportedIwads = ic.get(Field.IWAD);
-                                for (IniConfigurableItem iwad : iwadsList) {
+                                for(IniConfigurableItem iwad : iwadsList) {
                                     String iwadSupportedPorts = iwad.get(Field.PORT);
-                                    if ((iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase()))
+                                    if((iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase()))
                                             && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
                                         iwad.setEnabled(true);
-                                    } else {
+                                    }
+                                    else {
                                         iwad.setEnabled(false);
                                     }
                                 }
@@ -712,20 +738,21 @@ public class LauncherFX extends Application {
 
                         ic.enabledProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
                             // if this port is enabled, reverse check that this tc is compatible with currently selected mods/iwads and disable if it is not.
-                            if (newValue) {
+                            if(newValue) {
                                 String portSupportedIwads = ic.get(Field.IWAD);
-                                if (portSupportedIwads != null && !portSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase())) {
+                                if(portSupportedIwads != null && !portSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase())) {
                                     ic.setEnabled(false);
                                     return;
                                 }
 
-                                if ((ic.getBoolean(Field.SKIPMODS) || tcPortToUse.getBoolean(Field.SKIPMODS)) && !selectedModsList.isEmpty()) {
+                                if((ic.getBoolean(Field.SKIPMODS) || tcPortToUse.getBoolean(Field.SKIPMODS)) && !selectedModsList.isEmpty()) {
                                     ic.setEnabled(false);
                                     return;
-                                } else {
-                                    for (IniConfigurableItem mod : selectedModsList) {
+                                }
+                                else {
+                                    for(IniConfigurableItem mod : selectedModsList) {
                                         String modSupportedPorts = mod.get(Field.PORT);
-                                        if (modSupportedPorts != null && !modSupportedPorts.toLowerCase().contains(tcPortToUse.sectionName().toLowerCase())) {
+                                        if(modSupportedPorts != null && !modSupportedPorts.toLowerCase().contains(tcPortToUse.sectionName().toLowerCase())) {
                                             ic.setEnabled(false);
                                             return;
                                         }
@@ -739,63 +766,69 @@ public class LauncherFX extends Application {
                         iwadsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit IWAD")));
                         lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit IWAD"));
                         ic.selectedProperty().addListener((observable, oldValue, newValue) -> {
-                            if (!newValue) { //false. this iwad has been deselected.
+                            if(!newValue) { //false. this iwad has been deselected.
                                 // check ports/mods with currently selected iwad in the event they were disabled
                                 // because of this iwad but may now be available.
-                                if (selectedIwad == IniConfigurableItem.EMPTY_ITEM) {
-                                    for (IniConfigurableItem port : portsList) {
+                                if(selectedIwad == IniConfigurableItem.EMPTY_ITEM) {
+                                    for(IniConfigurableItem port : portsList) {
                                         port.setEnabled(true);
                                     }
 
-                                    for (IniConfigurableItem mod : modsList) {
+                                    for(IniConfigurableItem mod : modsList) {
                                         mod.setEnabled(true);
                                     }
-                                } else {
-                                    for (IniConfigurableItem mod : modsList) {
+                                }
+                                else {
+                                    for(IniConfigurableItem mod : modsList) {
                                         String modSupportedIwads = mod.get(Field.IWAD);
-                                        if (modSupportedIwads == null || modSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase())) {
+                                        if(modSupportedIwads == null || modSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase())) {
                                             mod.setEnabled(true);
-                                        } else {
+                                        }
+                                        else {
                                             mod.setEnabled(false);
                                         }
                                     }
 
                                     String iwadSupportedPorts = selectedIwad.get(Field.PORT);
-                                    for (IniConfigurableItem port : portsList) {
+                                    for(IniConfigurableItem port : portsList) {
                                         String portSupportedIwads = port.get(Field.IWAD);
-                                        if (iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(port.sectionName().toLowerCase())
+                                        if(iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(port.sectionName().toLowerCase())
                                                 && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase()))) {
                                             port.setEnabled(true);
-                                        } else {
+                                        }
+                                        else {
                                             port.setEnabled(false);
                                         }
                                     }
                                 }
-                            } else { // true. this iwad has been selected.
+                            }
+                            else { // true. this iwad has been selected.
                                 // deselect other iwads
-                                for (IniConfigurableItem iwad : iwadsList) {
-                                    if (iwad != ic) {
+                                for(IniConfigurableItem iwad : iwadsList) {
+                                    if(iwad != ic) {
                                         iwad.setSelected(false);
                                     }
                                 }
 
                                 // enabled/disable ports/mods according to this iwad's compatibility settings.
-                                for (IniConfigurableItem mod : modsList) {
+                                for(IniConfigurableItem mod : modsList) {
                                     String modSupportedIwads = mod.get(Field.IWAD);
-                                    if (modSupportedIwads == null || modSupportedIwads.toLowerCase().contains(ic.sectionName().toLowerCase())) {
+                                    if(modSupportedIwads == null || modSupportedIwads.toLowerCase().contains(ic.sectionName().toLowerCase())) {
                                         mod.setEnabled(true);
-                                    } else {
+                                    }
+                                    else {
                                         mod.setEnabled(false);
                                     }
                                 }
 
                                 String iwadSupportedPorts = ic.get(Field.PORT);
-                                for (IniConfigurableItem port : portsList) {
+                                for(IniConfigurableItem port : portsList) {
                                     String portSupportedIwads = port.get(Field.IWAD);
-                                    if ((iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(port.sectionName().toLowerCase()))
+                                    if((iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(port.sectionName().toLowerCase()))
                                             && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(ic.sectionName().toLowerCase()))) {
                                         port.setEnabled(true);
-                                    } else {
+                                    }
+                                    else {
                                         port.setEnabled(false);
                                     }
                                 }
@@ -804,16 +837,16 @@ public class LauncherFX extends Application {
 
                         ic.enabledProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
                             // if this iwad is enabled, reverse check that this iwad is compatible with currently selected ports/mods and disable if it is not.
-                            if (newValue) {
+                            if(newValue) {
                                 String portSupportedIwads = selectedPort.get(Field.IWAD);
-                                if (portSupportedIwads != null && !portSupportedIwads.toLowerCase().contains(ic.sectionName().toLowerCase())) {
+                                if(portSupportedIwads != null && !portSupportedIwads.toLowerCase().contains(ic.sectionName().toLowerCase())) {
                                     ic.setEnabled(false);
                                     return;
                                 }
 
-                                for (IniConfigurableItem mod : selectedModsList) {
+                                for(IniConfigurableItem mod : selectedModsList) {
                                     String modSupportedIwads = mod.get(Field.IWAD);
-                                    if (modSupportedIwads != null && !modSupportedIwads.toLowerCase().contains(ic.sectionName().toLowerCase())) {
+                                    if(modSupportedIwads != null && !modSupportedIwads.toLowerCase().contains(ic.sectionName().toLowerCase())) {
                                         ic.setEnabled(false);
                                         return;
                                     }
@@ -826,58 +859,62 @@ public class LauncherFX extends Application {
                         modsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit Mod")));
                         lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit Mod"));
                         ic.selectedProperty().addListener((observable, oldValue, newValue) -> {
-                            if (!newValue) { //false. this mod has been deselected.
+                            if(!newValue) { //false. this mod has been deselected.
                                 // check ports/iwads with currently selected mod in the event they were disabled
                                 // because of this mod but may now be available.
                                 selectedModsList.remove(ic);
-                                if (selectedModsList.isEmpty()) {
-                                    for (IniConfigurableItem port : portsList) {
+                                if(selectedModsList.isEmpty()) {
+                                    for(IniConfigurableItem port : portsList) {
                                         port.setEnabled(true);
                                     }
 
-                                    for (IniConfigurableItem iwad : iwadsList) {
+                                    for(IniConfigurableItem iwad : iwadsList) {
                                         iwad.setEnabled(true);
                                     }
-                                } else {
-                                    for (IniConfigurableItem port : portsList) {
+                                }
+                                else {
+                                    for(IniConfigurableItem port : portsList) {
                                         boolean enablePort = true;
-                                        for (IniConfigurableItem mod : selectedModsList) {
+                                        for(IniConfigurableItem mod : selectedModsList) {
                                             String modSupportedPorts = mod.get(Field.PORT);
-                                            if (modSupportedPorts != null && !modSupportedPorts.toLowerCase().contains(port.sectionName().toLowerCase())) {
+                                            if(modSupportedPorts != null && !modSupportedPorts.toLowerCase().contains(port.sectionName().toLowerCase())) {
                                                 enablePort = false;
                                             }
                                         }
                                         port.setEnabled(enablePort);
                                     }
 
-                                    for (IniConfigurableItem iwad : iwadsList) {
+                                    for(IniConfigurableItem iwad : iwadsList) {
                                         boolean enableIwad = true;
-                                        for (IniConfigurableItem mod : selectedModsList) {
+                                        for(IniConfigurableItem mod : selectedModsList) {
                                             String modSupportedIwads = mod.get(Field.IWAD);
-                                            if (modSupportedIwads != null && !modSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase())) {
+                                            if(modSupportedIwads != null && !modSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase())) {
                                                 enableIwad = false;
                                             }
                                         }
                                         iwad.setEnabled(enableIwad);
                                     }
                                 }
-                            } else { // true. this mod has been selected.
+                            }
+                            else { // true. this mod has been selected.
                                 // enabled/disable ports/iwads according to this mod's compatibility settings.
                                 selectedModsList.add(ic);
                                 String modSupportedPorts = ic.get(Field.PORT);
-                                for (IniConfigurableItem port : portsList) {
-                                    if (modSupportedPorts != null && !modSupportedPorts.toLowerCase().contains(port.sectionName().toLowerCase())) {
+                                for(IniConfigurableItem port : portsList) {
+                                    if(modSupportedPorts != null && !modSupportedPorts.toLowerCase().contains(port.sectionName().toLowerCase())) {
                                         port.setEnabled(false);
-                                    } else {
+                                    }
+                                    else {
                                         port.setEnabled(true);
                                     }
                                 }
 
                                 String modSupportedIwads = ic.get(Field.IWAD);
-                                for (IniConfigurableItem iwad : iwadsList) {
-                                    if (modSupportedIwads != null && !modSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase())) {
+                                for(IniConfigurableItem iwad : iwadsList) {
+                                    if(modSupportedIwads != null && !modSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase())) {
                                         iwad.setEnabled(false);
-                                    } else {
+                                    }
+                                    else {
                                         iwad.setEnabled(true);
                                     }
                                 }
@@ -886,18 +923,19 @@ public class LauncherFX extends Application {
 
                         ic.enabledProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
                             // if this mod is enabled, reverse check that this mod is compatible with currently selected ports/iwads and disable if it is not.
-                            if (newValue) {
-                                if (selectedPort.getBoolean(Field.SKIPMODS) || tcPortToUse.getBoolean(Field.SKIPMODS)) {
+                            if(newValue) {
+                                if(selectedPort.getBoolean(Field.SKIPMODS) || tcPortToUse.getBoolean(Field.SKIPMODS)) {
                                     ic.setEnabled(false);
-                                } else {
+                                }
+                                else {
                                     String modSupportedPorts = ic.get(Field.PORT);
-                                    if (modSupportedPorts != null && !modSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())) {
+                                    if(modSupportedPorts != null && !modSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())) {
                                         ic.setEnabled(false);
                                     }
                                 }
 
                                 String modSupportedIwads = ic.get(Field.IWAD);
-                                if (modSupportedIwads != null && !modSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase())) {
+                                if(modSupportedIwads != null && !modSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase())) {
                                     ic.setEnabled(false);
                                 }
                             }
@@ -910,11 +948,11 @@ public class LauncherFX extends Application {
         }
         reset();
     }
-    
+
     private ContextMenu createLaunchButtonContextMenu(IniConfigurableItem ic, String title) {
         MenuItem editItem = new MenuItem("Edit");
         editItem.addEventHandler(ActionEvent.ACTION, new EditMenuConfigDialogEventHandler(ic, title));
-        
+
         MenuItem deleteItem = new MenuItem("Delete");
         deleteItem.addEventHandler(ActionEvent.ACTION, (event) -> {
             Alert confirmDelete = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to delete '" + ic.get(Field.NAME) + "'?", ButtonType.YES, ButtonType.CANCEL);
@@ -925,7 +963,8 @@ public class LauncherFX extends Application {
                     CONFIG.writeIni();
                     refreshFromIni();
                     LauncherFX.info("Deleted INI Section '" + ic.sectionName());
-                } catch (IOException ex) {
+                }
+                catch(IOException ex) {
                     LauncherFX.error(ex);
                     LauncherFX.info("An error occured writing to launcherfx.ini");
                 }
@@ -949,7 +988,7 @@ public class LauncherFX extends Application {
                 }
             }
         });
-        
+
         MenuItem moveUpItem = new MenuItem("Move Up");
         moveUpItem.addEventHandler(ActionEvent.ACTION, (event) -> {
             List<IniConfigurableItem> items;
@@ -968,27 +1007,28 @@ public class LauncherFX extends Application {
                     LauncherFX.info("Unknown Type. Cannot move up.");
                     return;
             }
-            
+
             int index = items.indexOf(ic);
             if(index > 0) {
                 String mySort = ic.get(Field.SORT);
-                
+
                 IniConfigurableItem other = items.get(index - 1);
                 String otherSort = other.get(Field.SORT);
-                
+
                 CONFIG.update(ic.sectionName(), Field.SORT, otherSort);
                 CONFIG.update(other.sectionName(), Field.SORT, mySort);
-                
+
                 try {
                     CONFIG.writeIni();
                     refreshFromIni();
-                } catch (IOException ex) {
+                }
+                catch(IOException ex) {
                     LauncherFX.error(ex);
                     LauncherFX.info("An error occured writing to launcherfx.ini");
                 }
             }
         });
-        
+
         MenuItem moveDownItem = new MenuItem("Move Down");
         moveDownItem.addEventHandler(ActionEvent.ACTION, (event) -> {
             List<IniConfigurableItem> items;
@@ -1007,88 +1047,89 @@ public class LauncherFX extends Application {
                     LauncherFX.info("Unknown Type. Cannot move down.");
                     return;
             }
-            
+
             int index = items.indexOf(ic);
             if(index < items.size() - 1) {
                 String mySort = ic.get(Field.SORT);
-                
+
                 IniConfigurableItem other = items.get(index + 1);
                 String otherSort = other.get(Field.SORT);
-                
+
                 CONFIG.update(ic.sectionName(), Field.SORT, otherSort);
                 CONFIG.update(other.sectionName(), Field.SORT, mySort);
-                
+
                 try {
                     CONFIG.writeIni();
                     refreshFromIni();
-                } catch (IOException ex) {
+                }
+                catch(IOException ex) {
                     LauncherFX.error(ex);
                     LauncherFX.info("An error occured writing to launcherfx.ini");
                 }
             }
         });
-        
+
         return new ContextMenu(editItem, deleteItem, hideItem, new SeparatorMenuItem(), moveUpItem, moveDownItem);
     }
-    
+
     private void reset() {
         launchNowButton.setDisable(true);
-        
+
         pwadListView.getItems().clear();
         warpListView.getItems().clear();
-        
+
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
-        
+
         portsTab.setDisable(false);
         iwadsTab.setDisable(false);
         modsTab.setDisable(false);
         pwadsTab.setDisable(true);
         warpTab.setDisable(true);
-        
+
         tabPane.getSelectionModel().select(selectedTab);
 
         processCommand = null;
-        
+
         CONFIG.getConfigurables().stream().forEach((ic) -> {
             ic.setEnabled(true);
             ic.setSelected(false);
         });
-        
+
         selectedPort = IniConfigurableItem.EMPTY_ITEM;
         tcPortToUse = IniConfigurableItem.EMPTY_ITEM;
         selectedIwad = IniConfigurableItem.EMPTY_ITEM;
         selectedModsList.clear();
     }
-    
+
     /**
      * If pathStr is a relative path, it will be resolved to an absolute path stemming from
      * the subdir configSubDir of configHome.
-     * 
+     * <p>
      * If pathStr is absolute, it is returned unchanged.
-     * 
+     *
      * @param pathStr
      * @param configSubDir
-     * @return 
+     * @return
      */
     public static String resolvePathRelativeToConfig(String pathStr, String configSubDir) {
         return resolveRelativePathToAbsolute(pathStr, Paths.get(CONFIG.getConfigHome(), configSubDir).toString());
     }
-    
+
     /**
      * If pathStr is a relative path, it will be resolved to an absolute path with the parent
      * of parentStr.
-     * 
+     * <p>
      * If pathStr is absolute, it is returned unchanged.
-     * 
+     *
      * @param pathStr
      * @param parentStr
-     * @return 
+     * @return
      */
     public static String resolveRelativePathToAbsolute(String pathStr, String parentStr) {
         if(pathStr == null || "".equals(pathStr)) {
             return null;
         }
-        
+
         System.out.println("-----------------------");
         System.out.println("resolveRelativePathToAbsolue");
         Path path = Paths.get(pathStr);
@@ -1096,12 +1137,12 @@ public class LauncherFX extends Application {
             System.out.println("pathStr='" + pathStr + "' is ABSOLUTE.");
             return path.toString();
         }
-        
+
         Path retPath = Paths.get(parentStr, path.toString());
         System.out.println("pathStr='" + pathStr + "' is NOT ABSOLUTE, returning '" + retPath.toString() + "'.");
         return retPath.toString();
     }
-    
+
     private void checkLaunchNowAvailable() {
         if(selectedPort.isSelected() && selectedIwad.isSelected()) {
             launchNowButton.setDisable(false);
@@ -1110,7 +1151,7 @@ public class LauncherFX extends Application {
             launchNowButton.setDisable(true);
         }
     }
-    
+
     private void loadWarpList() {
         if(selectedGame == Game.UNKNOWN_GAME) {
             warpTab.setDisable(true);
@@ -1120,10 +1161,10 @@ public class LauncherFX extends Application {
             populateWarpList(selectedGame.warpList);
         }
     }
-    
+
     private void populateWarpList(List<WarpListItem> list) {
         ObservableList<WarpListItem> olist = FXCollections.observableArrayList(list);
-        
+
         String warp;
         String tcWarp = selectedPort.get(Field.WARP);
         if(tcWarp == null) {
@@ -1132,7 +1173,7 @@ public class LauncherFX extends Application {
         else {
             warp = tcWarp;
         }
-        
+
         WarpListItem selectThis = WarpListItem.DO_NOT_WARP;
         //have to do this no matter what to clear any potential prior highlights.
         for(WarpListItem item : olist) {
@@ -1145,32 +1186,32 @@ public class LauncherFX extends Application {
             }
         }
         WarpListItem selectedWarp = warpListView.getSelectionModel().getSelectedItem();
-        
+
         warpListView.getItems().clear();
         warpListView.setItems(olist);
         warpListView.getSelectionModel().select(selectThis);
-        
+
         int previousSelectedWarpIndex = warpListView.getItems().indexOf(selectedWarp);
         if(previousSelectedWarpIndex != -1) {
             warpListView.getSelectionModel().selectIndices(previousSelectedWarpIndex);
         }
     }
-    
+
     private void loadPwadList() {
         pwadsTab.setDisable(true);
         pwadListView.getItems().clear();
         removeFromWadList.clear();
         if(selectedPort != null && selectedPort != IniConfigurableItem.EMPTY_ITEM && selectedGame != Game.UNKNOWN_GAME) {
             SortedSet<PWadListItem> pwadList = new TreeSet<>((o1, o2) -> {
-                if (o1 == PWadListItem.NO_PWAD) {
+                if(o1 == PWadListItem.NO_PWAD) {
                     return -1;
                 }
-                if (o2 == PWadListItem.NO_PWAD) {
+                if(o2 == PWadListItem.NO_PWAD) {
                     return 1;
                 }
                 return o1.display.compareToIgnoreCase(o2.display);
             });
-            
+
             pwadList.add(PWadListItem.NO_PWAD);
 
             String skipWads = selectedPort.get(Field.SKIPWADS);
@@ -1192,7 +1233,7 @@ public class LauncherFX extends Application {
                                 try {
                                     addFilesToPwadList(path.resolve(gameWadFolder), pwadList);
                                 }
-                                catch (IOException ex) {
+                                catch(IOException ex) {
                                     LauncherFX.error(ex);
                                 }
                             }
@@ -1206,7 +1247,8 @@ public class LauncherFX extends Application {
                             addFilesToPwadList(wadBasePath.resolve(gameWadFolder), pwadList);
                         }
                     }
-                } catch (IOException ex) {
+                }
+                catch(IOException ex) {
                     LauncherFX.error(ex);
                 }
             }
@@ -1230,7 +1272,7 @@ public class LauncherFX extends Application {
             pwadListView.getSelectionModel().select(PWadListItem.NO_PWAD);
         }
     }
-    
+
     private void addFilesToPwadList(Path wadPath, Set<PWadListItem> theWadSet) throws IOException {
         if(Files.exists(wadPath)) {
             Files.list(wadPath).forEach((file) -> {
@@ -1238,7 +1280,7 @@ public class LauncherFX extends Application {
                 if(Files.isRegularFile(file)) {
                     if(filename.endsWith(".txt")) {
                         PWadListItem txtListItem = new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file, null);
-                        
+
                         IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(file.getFileName().toString());
                         if(pwadItem != null && "true".equals(pwadItem.get(Field.IGNORE))) {
                             removeFromWadList.add(file);
@@ -1248,7 +1290,7 @@ public class LauncherFX extends Application {
                     }
                     else if(filename.endsWith(".deh")) {
                         PWadListItem dehListItem = new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file, null);
-                        
+
                         IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(file.getFileName().toString());
                         if(pwadItem != null && "true".equals(pwadItem.get(Field.IGNORE))) {
                             removeFromWadList.add(file);
@@ -1266,7 +1308,7 @@ public class LauncherFX extends Application {
             });
         }
     }
-    
+
     private PWadListItem handlePwad(Path pwadPath) {
         String fileName = pwadPath.getFileName().toString();
 
@@ -1284,11 +1326,11 @@ public class LauncherFX extends Application {
                 else {
                     name += " (" + fileName + ")";
                 }
-                
+
                 if("true".equals(pwadItem.get(Field.IGNORE))) {
                     name += " (ignored)";
                 }
-                
+
                 String txt = pwadItem.get(Field.TXT);
                 if(txt != null) {
                     name += " (.txt)";
@@ -1302,7 +1344,7 @@ public class LauncherFX extends Application {
                         removeFromWadList.add(txtPath);
                     }
                 }
-                
+
                 String author = pwadItem.get(Field.AUTHOR);
                 if(author != null) {
                     name += " by " + author;
@@ -1341,14 +1383,14 @@ public class LauncherFX extends Application {
         }
         else {
             PWadListItem item = new PWadListItem(PWadListItem.Type.WAD, pwadPath.getFileName().toString(), pwadPath, null);
-            
+
             //if args isn't defined, innocently check for a .deh file that matches the wad filename and create the args for it.
             Path dehPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "deh"));
             if(Files.exists(dehPath)) {
                 item.args = "-deh \"" + dehPath.toString() + "\" -file \"" + pwadPath.toString() + "\"";
                 removeFromWadList.add(dehPath); // do i want to do this?
             }
-            
+
             Path txtPath = pwadPath.resolveSibling(changeExtensionRetainingCase(fileName, "txt"));
             if(Files.exists(txtPath)) {
                 item.display += " (.txt)";
@@ -1358,7 +1400,7 @@ public class LauncherFX extends Application {
             return item;
         }
     }
-    
+
     private void setPwadItemsToIgnore(List<PWadListItem> items, boolean ignore) {
         items.stream().filter((listItem) -> (listItem != PWadListItem.NO_PWAD)).map((listItem) -> listItem.path.getFileName().toString()).forEachOrdered((sectionName) -> {
             IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(sectionName);
@@ -1373,26 +1415,27 @@ public class LauncherFX extends Application {
                 CONFIG.update(sectionName, Field.IGNORE, null);
             }
         });
-        
+
         try {
             CONFIG.writeIni();
             loadPwadList();
-        } catch (IOException ex) {
+        }
+        catch(IOException ex) {
             LauncherFX.error(ex);
             LauncherFX.info("Error writing ini.");
         }
     }
-    
+
     /**
      * Takes the fileName and checks whether the extension oldExtension is upper or lower case and
      * replaces it with newExtension using the same case as the original.
-     * 
+     * <p>
      * Returns null if oldExtension isn't even the right extension!
-     * 
+     *
      * @param fileName
      * @param oldExtension
      * @param newExtension
-     * @return 
+     * @return
      */
     private String changeExtensionRetainingCase(String fileName, String newExtension) {
         String oldExtension = fileName.substring(fileName.length() - 3);
@@ -1400,15 +1443,15 @@ public class LauncherFX extends Application {
         if(m.matches()) {
             return fileName.replaceAll("\\." + oldExtension.toLowerCase() + "$", "." + newExtension.toLowerCase());
         }
-        
+
         m = Pattern.compile(".*\\.(" + oldExtension.toUpperCase() + ")$").matcher(fileName);
         if(m.matches()) {
             return fileName.replaceAll("\\." + oldExtension.toUpperCase() + "$", "." + newExtension.toUpperCase());
         }
-        
+
         return null;
     }
-    
+
     private void addArgsToProcess(String args) {
         if(processCommand != null) {
             if(args != null) {
@@ -1445,22 +1488,22 @@ public class LauncherFX extends Application {
             }
         }
     }
-    
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         launch(args);
     }
-    
+
     public static void info(String message) {
         Logger.getLogger(LauncherFX.class.getName()).log(Level.INFO, message);
     }
-    
+
     public static void error(Exception ex) {
         Logger.getLogger(LauncherFX.class.getName()).log(Level.SEVERE, null, ex);
     }
-    
+
     private class EditMenuConfigDialogEventHandler implements EventHandler<ActionEvent> {
 
         private final Config.Type type;
@@ -1468,7 +1511,7 @@ public class LauncherFX extends Application {
         private IniConfigurableItem item;
         private String sectionName;
         private Path pwadPath;
-        
+
         public EditMenuConfigDialogEventHandler(Config.Type type, String title) {
             this.type = type;
             this.item = null;
@@ -1476,7 +1519,7 @@ public class LauncherFX extends Application {
             this.sectionName = null;
             this.pwadPath = null;
         }
-        
+
         public EditMenuConfigDialogEventHandler(IniConfigurableItem item, String title) {
             this.type = null;
             this.item = item;
@@ -1484,23 +1527,23 @@ public class LauncherFX extends Application {
             this.sectionName = null;
             this.pwadPath = null;
         }
-        
+
         public void setItem(IniConfigurableItem item) {
             this.item = item;
         }
-        
+
         public void setTitle(String title) {
             this.title = title;
         }
-        
+
         public void setSectionName(String sectionName) {
             this.sectionName = sectionName;
         }
-        
+
         public void setPwadPath(Path pwadPath) {
             this.pwadPath = pwadPath;
         }
-        
+
         @Override
         public void handle(ActionEvent event) {
             ConfigurableItemDialog dialog;
@@ -1523,24 +1566,25 @@ public class LauncherFX extends Application {
                     else {
                         refreshFromIni();
                     }
-                } catch (IOException ex) {
+                }
+                catch(IOException ex) {
                     LauncherFX.error(ex);
                     LauncherFX.info("An error occured writing to launcherfx.ini");
                 }
             }
         }
     }
-    
+
     private class LaunchItemEventHandler implements EventHandler<ActionEvent> {
         private final IniConfigurableItem ic;
-        
+
         public LaunchItemEventHandler(IniConfigurableItem ic) {
             this.ic = ic;
         }
-        
+
         @Override
         public void handle(ActionEvent e) {
-            LaunchButton myButton = (LaunchButton)e.getSource();
+            LaunchButton myButton = (LaunchButton) e.getSource();
             switch(ic.getType()) {
                 case PORT:
                     if(selectedPort == ic) {
@@ -1568,7 +1612,7 @@ public class LauncherFX extends Application {
                     }
                     else {
                         tcPortToUse = IniConfigurableItem.EMPTY_ITEM;
-                        
+
                         String portStr = ic.get(Field.PORT);
                         String[] splitPort = portStr.split(",");
                         if(splitPort.length == 1) {
@@ -1581,7 +1625,7 @@ public class LauncherFX extends Application {
                                     validChoices.add(portSectionName);
                                 }
                             }
-                            
+
                             if(validChoices.isEmpty()) {
                                 tcPortToUse = IniConfigurableItem.EMPTY_ITEM;
                             }
@@ -1649,14 +1693,14 @@ public class LauncherFX extends Application {
                     else {
                         try {
                             selectedGame = Game.getGameData(iwadPath);
-                        } 
-                        catch (IOException ex) {
+                        }
+                        catch(IOException ex) {
                             LauncherFX.error(ex);
                             LauncherFX.info("IWAD file not found.");
                             new Alert(Alert.AlertType.ERROR, "IWAD file not found.", ButtonType.CLOSE).showAndWait();
                             selectedGame = Game.UNKNOWN_GAME;
                         }
-                        catch (NoSuchAlgorithmException ex) {
+                        catch(NoSuchAlgorithmException ex) {
                             LauncherFX.error(ex);
                             LauncherFX.info("Error occured detecting game.");
                             new Alert(Alert.AlertType.ERROR, "Error occured detecting game.", ButtonType.CLOSE).showAndWait();
