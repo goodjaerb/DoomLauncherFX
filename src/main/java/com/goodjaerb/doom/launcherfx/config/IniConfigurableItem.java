@@ -88,7 +88,7 @@ public final class IniConfigurableItem {
 
     public final Boolean getBoolean(Field f) {
         String value = get(f);
-        return value != null && Boolean.parseBoolean(value);
+        return Boolean.parseBoolean(value);
     }
 
     public final String getCmd() {

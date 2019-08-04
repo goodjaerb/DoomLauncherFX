@@ -76,9 +76,7 @@ final class FieldInputPane extends FlowPane {
                 textField.setText(item.get(field));
                 break;
             case BOOLEAN:
-                if("true".equals(item.get(field))) {
-                    checkBox.setSelected(true);
-                }
+                checkBox.setSelected(item.getBoolean(field));
                 break;
             case LIST:
             case MULTI_LIST:
