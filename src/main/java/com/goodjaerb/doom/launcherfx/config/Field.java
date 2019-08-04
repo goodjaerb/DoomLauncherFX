@@ -113,7 +113,16 @@ public enum Field {
                     "This mod will automatically turn ON when a compatible port is selected.",
                     "n/a"),
             Config.Type.MOD),
-    SAVELOC("Savedir Location:", InputType.BROWSE_DIR,
+    WIN_SAVELOC("Savedir Location:", InputType.BROWSE_DIR,
+            false,
+            createHelpMap(
+                    "Tells the port the root directory to use for -savedir.",
+                    "n/a",
+                    "n/a",
+                    "n/a",
+                    "n/a"),
+            Config.Type.PORT),
+    LINUX_SAVELOC("Savedir Location:", InputType.BROWSE_DIR,
             false,
             createHelpMap(
                     "Tells the port the root directory to use for -savedir.",

@@ -101,6 +101,16 @@ public final class IniConfigurableItem {
         return null;
     }
 
+    public final String getSaveLoc() {
+        if(SystemUtils.IS_OS_WINDOWS) {
+            return get(Field.WIN_SAVELOC);
+        }
+        else if(SystemUtils.IS_OS_LINUX) {
+            return get(Field.LINUX_SAVELOC);
+        }
+        return null;
+    }
+
     public final boolean isType(Config.Type type) {
         return getType() == type;
     }

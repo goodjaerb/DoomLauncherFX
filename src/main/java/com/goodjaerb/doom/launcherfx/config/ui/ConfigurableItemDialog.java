@@ -101,7 +101,8 @@ public class ConfigurableItemDialog extends Dialog<ButtonType> {
 
         for(Field f : Field.values()) {
             if(f.validTypes.contains(type)) {
-                if((f == Field.WIN_CMD && !SystemUtils.IS_OS_WINDOWS) || (f == Field.LINUX_CMD && !SystemUtils.IS_OS_LINUX)) {
+                if((f == Field.WIN_CMD && !SystemUtils.IS_OS_WINDOWS) || (f == Field.LINUX_CMD && !SystemUtils.IS_OS_LINUX)
+                        || (f == Field.WIN_SAVELOC && !SystemUtils.IS_OS_WINDOWS) || (f == Field.LINUX_SAVELOC && !SystemUtils.IS_OS_LINUX)) {
                     continue;
                 }
                 FieldInputPane fip;
