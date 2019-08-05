@@ -351,7 +351,7 @@ final class FieldInputPane extends FlowPane {
                 return textField.getText();
             case BOOLEAN:
                 if(checkBox.isSelected()) {
-                    return "true";
+                    return Config.TRUE;
                 }
                 break;
             case LIST:

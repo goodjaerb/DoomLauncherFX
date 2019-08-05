@@ -28,6 +28,9 @@ public class Config {
         }
     }
 
+    public static final String TRUE  = "true";
+    public static final String FALSE = "false";
+
     public static final String USER_HOME   = System.getProperty("user.home");
     public static final String CONFIG_DIR  = ".launcherfx";
     public static final String CONFIG_FILE = "launcherfx.ini";
@@ -115,6 +118,13 @@ public class Config {
 
     public boolean isHidden(String sectionName) {
         return hiddenSections.contains(sectionName);
+    }
+
+    public void update(String section, Field f, boolean value) {
+        if(value) {
+            update(section, f, TRUE);
+        }
+        update(section, f, null);
     }
 
     public void update(String section, Field f, String value) {

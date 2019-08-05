@@ -1159,8 +1159,8 @@ public class LauncherFX extends Application {
 
             pwadList.add(PWadListItem.NO_PWAD);
 
-            String skipWads = selectedPort.get(Field.SKIPWADS);
-            if("true".equals(skipWads)) {
+            final boolean skipWads = selectedPort.getBoolean(Field.SKIPWADS);
+            if(skipWads) {
                 selectedPwad = PWadListItem.NO_PWAD;
             }
             else {
@@ -1227,7 +1227,7 @@ public class LauncherFX extends Application {
                         PWadListItem txtListItem = new PWadListItem(PWadListItem.Type.TXT, file.getFileName().toString(), file, null);
 
                         IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(file.getFileName().toString());
-                        if(pwadItem != null && "true".equals(pwadItem.get(Field.IGNORE))) {
+                        if(pwadItem != null && pwadItem.getBoolean(Field.IGNORE)) {
                             removeFromWadList.add(file);
                             txtListItem.display += " (ignored)";
                         }
@@ -1237,7 +1237,7 @@ public class LauncherFX extends Application {
                         PWadListItem dehListItem = new PWadListItem(PWadListItem.Type.DEH, file.getFileName().toString(), file, null);
 
                         IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(file.getFileName().toString());
-                        if(pwadItem != null && "true".equals(pwadItem.get(Field.IGNORE))) {
+                        if(pwadItem != null && pwadItem.getBoolean(Field.IGNORE)) {
                             removeFromWadList.add(file);
                             dehListItem.display += " (ignored)";
                         }
@@ -1259,8 +1259,8 @@ public class LauncherFX extends Application {
 
         IniConfigurableItem pwadItem = CONFIG.getConfigurableByName(fileName);
         if(pwadItem != null) {
-            String ignore = pwadItem.get(Field.IGNORE);
-            if(ignore != null && ("true".equals(ignore) && !showHiddenPwadItemsCheckBox.isSelected())) {
+            final boolean ignore = pwadItem.getBoolean(Field.IGNORE);
+            if(ignore && !showHiddenPwadItemsCheckBox.isSelected()) {
                 return null;
             }
             else {
@@ -1272,7 +1272,7 @@ public class LauncherFX extends Application {
                     name += " (" + fileName + ")";
                 }
 
-                if("true".equals(pwadItem.get(Field.IGNORE))) {
+                if(ignore) {
                     name += " (ignored)";
                 }
 
@@ -1354,7 +1354,7 @@ public class LauncherFX extends Application {
                     CONFIG.addNewSection(sectionName);
                     CONFIG.update(sectionName, Field.TYPE, Config.Type.PWAD.iniValue());
                 }
-                CONFIG.update(sectionName, Field.IGNORE, "true");
+                CONFIG.update(sectionName, Field.IGNORE, true);
             }
             else {
                 CONFIG.update(sectionName, Field.IGNORE, null);
