@@ -466,7 +466,7 @@ public class LauncherFX extends Application {
                 lip.addLaunchHandler(new LaunchItemEventHandler(ic));
 
                 switch(type) {
-                    case PORT:
+                    case PORT -> {
                         portsList.add(ic);
                         portsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit Port")));
                         lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit Port"));
@@ -563,7 +563,6 @@ public class LauncherFX extends Application {
                                 }
                             }
                         });
-
                         ic.enabledProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
                             // if this port is enabled, reverse check that this port is compatible with currently selected mods/iwads and disable if it is not.
                             if(newValue) {
@@ -575,7 +574,6 @@ public class LauncherFX extends Application {
 
                                 if(ic.getBoolean(Field.SKIPMODS) && !selectedModsList.isEmpty()) {
                                     ic.setEnabled(false);
-                                    return;
                                 }
                                 else {
                                     for(IniConfigurableItem mod : selectedModsList) {
@@ -588,8 +586,8 @@ public class LauncherFX extends Application {
                                 }
                             }
                         });
-                        break;
-                    case TC:
+                    }
+                    case TC -> {
                         portsList.add(ic);
                         portsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit TC")));
                         lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit TC"));
@@ -680,7 +678,6 @@ public class LauncherFX extends Application {
                                 }
                             }
                         });
-
                         ic.enabledProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
                             // if this port is enabled, reverse check that this tc is compatible with currently selected mods/iwads and disable if it is not.
                             if(newValue) {
@@ -692,7 +689,6 @@ public class LauncherFX extends Application {
 
                                 if((ic.getBoolean(Field.SKIPMODS) || tcPortToUse.getBoolean(Field.SKIPMODS)) && !selectedModsList.isEmpty()) {
                                     ic.setEnabled(false);
-                                    return;
                                 }
                                 else {
                                     for(IniConfigurableItem mod : selectedModsList) {
@@ -705,8 +701,8 @@ public class LauncherFX extends Application {
                                 }
                             }
                         });
-                        break;
-                    case IWAD:
+                    }
+                    case IWAD -> {
                         iwadsList.add(ic);
                         iwadsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit IWAD")));
                         lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit IWAD"));
@@ -779,7 +775,6 @@ public class LauncherFX extends Application {
                                 }
                             }
                         });
-
                         ic.enabledProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
                             // if this iwad is enabled, reverse check that this iwad is compatible with currently selected ports/mods and disable if it is not.
                             if(newValue) {
@@ -798,8 +793,8 @@ public class LauncherFX extends Application {
                                 }
                             }
                         });
-                        break;
-                    case MOD:
+                    }
+                    case MOD -> {
                         modsList.add(ic);
                         modsBox.getChildren().add(lip);//new LaunchItemPane(ic, new LaunchItemEventHandler(ic), new EditMenuConfigDialogEventHandler(ic, "Edit Mod")));
                         lip.setContextMenu(createLaunchButtonContextMenu(ic, "Edit Mod"));
@@ -865,7 +860,6 @@ public class LauncherFX extends Application {
                                 }
                             }
                         });
-
                         ic.enabledProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
                             // if this mod is enabled, reverse check that this mod is compatible with currently selected ports/iwads and disable if it is not.
                             if(newValue) {
@@ -885,9 +879,7 @@ public class LauncherFX extends Application {
                                 }
                             }
                         });
-                        break;
-                    default:
-                        break;
+                    }
                 }
             }
         }
@@ -938,19 +930,13 @@ public class LauncherFX extends Application {
         moveUpItem.addEventHandler(ActionEvent.ACTION, (event) -> {
             List<IniConfigurableItem> items;
             switch(ic.getType()) {
-                case PORT:
-                case TC:
-                    items = CONFIG.getPortsAndTcs();
-                    break;
-                case IWAD:
-                    items = CONFIG.getIwads();
-                    break;
-                case MOD:
-                    items = CONFIG.getMods();
-                    break;
-                default:
+                case PORT, TC -> items = CONFIG.getPortsAndTcs();
+                case IWAD -> items = CONFIG.getIwads();
+                case MOD -> items = CONFIG.getMods();
+                default -> {
                     LauncherFX.info("Unknown Type. Cannot move up.");
                     return;
+                }
             }
 
             int index = items.indexOf(ic);
@@ -978,19 +964,13 @@ public class LauncherFX extends Application {
         moveDownItem.addEventHandler(ActionEvent.ACTION, (event) -> {
             List<IniConfigurableItem> items;
             switch(ic.getType()) {
-                case PORT:
-                case TC:
-                    items = CONFIG.getPortsAndTcs();
-                    break;
-                case IWAD:
-                    items = CONFIG.getIwads();
-                    break;
-                case MOD:
-                    items = CONFIG.getMods();
-                    break;
-                default:
+                case PORT, TC -> items = CONFIG.getPortsAndTcs();
+                case IWAD -> items = CONFIG.getIwads();
+                case MOD -> items = CONFIG.getMods();
+                default -> {
                     LauncherFX.info("Unknown Type. Cannot move down.");
                     return;
+                }
             }
 
             int index = items.indexOf(ic);
@@ -1661,8 +1641,6 @@ public class LauncherFX extends Application {
                     checkLaunchNowAvailable();
                     loadPwadList();
                     loadWarpList();
-                    break;
-                default:
                     break;
             }
         }

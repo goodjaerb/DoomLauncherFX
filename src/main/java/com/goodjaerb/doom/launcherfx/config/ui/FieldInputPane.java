@@ -107,58 +107,52 @@ final class FieldInputPane extends FlowPane {
     private void doLayout() {
         setHgap(4);
         switch(field.inputType) {
-            case BOOLEAN:
+            case BOOLEAN -> {
                 initLabel();
                 initCheckBox();
-
                 getChildren().addAll(checkBox, label);
-                break;
-            case BROWSE_DIR:
+            }
+            case BROWSE_DIR -> {
                 initLabel();
                 initTextField();
                 initBrowseDirButton();
-
                 getChildren().addAll(label, textField, browseButton);
-                break;
-            case BROWSE:
+            }
+            case BROWSE -> {
                 initLabel();
                 initTextField();
                 initBrowseButton();
-
                 switch(field) {
-                    case FILE:
+                    case FILE -> {
                         switch(type) {
-                            case IWAD:
+                            case IWAD -> {
                                 chooser.setInitialDirectory(Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IWAD).toFile());
                                 chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(".WAD files", "*.WAD"));
-                                break;
-                            case MOD:
+                            }
+                            case MOD -> {
                                 chooser.setInitialDirectory(Paths.get(Config.getInstance().getConfigHome(), Config.DIR_MODS).toFile());
                                 chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All Files", "*.*"));
                                 chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(".PK3 files", "*.PK3"));
                                 chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(".PK7 files", "*.PK7"));
-                                break;
-                            default:
+                            }
                         }
-                        break;
-                    case IMG:
+                    }
+                    case IMG -> {
                         chooser.setInitialDirectory(Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IMAGES).toFile());
                         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image File", "*.PNG", "*.JPG", "*.JPEG", "*.GIF"));
-                        break;
-                    case TXT:
+                    }
+                    case TXT -> {
                         if(pwadPath != null) {
                             chooser.setInitialDirectory(pwadPath.getParent().toFile());
                         }
                         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text File", "*.TXT"));
-                        break;
-                    default:
+                    }
                 }
                 getChildren().addAll(label, textField, browseButton);
-                break;
-            case LIST:
+            }
+            case LIST -> {
                 initLabel();
                 initListView();
-
                 if(field == Field.GAME) {
                     ObservableList<ListItem> list = FXCollections.observableArrayList(
                             new ListItem("Doom", "DOOM"),
@@ -170,20 +164,15 @@ final class FieldInputPane extends FlowPane {
                     listView.setItems(list);
                 }
                 getChildren().addAll(label, listView);
-                break;
-            case MULTI_LIST:
+            }
+            case MULTI_LIST -> {
                 initLabel();
                 initMultiListView();
-
                 ObservableList<ListItem> list = FXCollections.observableArrayList();
                 switch(field) {
-                    case PORT:
-                        Config.getInstance().getPorts().forEach((port) -> list.add(new ListItem(port.get(Field.NAME), port.sectionName())));
-                        break;
-                    case IWAD:
-                        Config.getInstance().getIwads().forEach((iwad) -> list.add(new ListItem(iwad.get(Field.NAME), iwad.sectionName())));
-                        break;
-                    case WADFOLDER:
+                    case PORT -> Config.getInstance().getPorts().forEach((port) -> list.add(new ListItem(port.get(Field.NAME), port.sectionName())));
+                    case IWAD -> Config.getInstance().getIwads().forEach((iwad) -> list.add(new ListItem(iwad.get(Field.NAME), iwad.sectionName())));
+                    case WADFOLDER -> {
                         Path wadPath = FileSystems.getDefault().getPath(Config.getInstance().getConfigHome(), Config.DIR_WADS);
                         try {
                             Files.list(wadPath).forEach((wadPathItem) -> {
@@ -195,22 +184,16 @@ final class FieldInputPane extends FlowPane {
                         catch(IOException ex) {
                             Logger.getLogger(FieldInputPane.class.getName()).log(Level.SEVERE, null, ex);
                         }
-                        break;
-                    default:
+                    }
                 }
-
                 listView.setItems(list);
                 getChildren().addAll(label, listView);
-                break;
-            case HIDDEN:
-                break;
-            case TEXT:
+            }
+            case TEXT -> {
                 initLabel();
                 initTextField();
-
                 getChildren().addAll(label, textField);
-                break;
-            default:
+            }
         }
     }
 
@@ -256,53 +239,33 @@ final class FieldInputPane extends FlowPane {
                     Path filePath = Paths.get(file.toURI());
                     Path configRootPath = null;
                     switch(field) {
-                        case FILE:
-                            switch(type) {
-                                case IWAD:
-                                    configRootPath = Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IWAD);
-                                    break;
-                                case MOD:
-                                    configRootPath = Paths.get(Config.getInstance().getConfigHome(), Config.DIR_MODS);
-                                    break;
-                                default:
-                            }
-                            break;
-                        case IMG:
-                            configRootPath = Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IMAGES);
-                            break;
-                        case TXT:
+                        case FILE -> configRootPath = switch(type) {
+                            case IWAD -> Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IWAD);
+                            case MOD -> Paths.get(Config.getInstance().getConfigHome(), Config.DIR_MODS);
+                            default -> null;
+                        };
+                        case IMG -> configRootPath = Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IMAGES);
+                        case TXT -> {
                             if(pwadPath != null) {
                                 configRootPath = pwadPath.getParent();
                             }
-                            break;
-                        default:
+                        }
                     }
 
                     if(configRootPath == null || !filePath.startsWith(configRootPath)) {
+                        // CMD will only be single file.
+                        // don't quote images or text files.
                         switch(field) {
-                            case WIN_CMD:
-                            case LINUX_CMD:
-                                // CMD will only be single file.
-                                textField.setText("\"" + filePath.toString() + "\" ");
-                                break;
-                            case TXT:
-                            case IMG:
-                                // don't quote images or text files.
-                                textField.setText(filePath.toString());
-                                break;
-                            default:
-                                textField.setText(textField.getText() + "\"" + filePath.toString() + "\" ");
+                            case WIN_CMD, LINUX_CMD -> textField.setText("\"" + filePath.toString() + "\" ");
+                            case TXT, IMG -> textField.setText(filePath.toString());
+                            default -> textField.setText(textField.getText() + "\"" + filePath.toString() + "\" ");
                         }
                     }
                     else {
+                        // don't quote images or text files.
                         switch(field) {
-                            case TXT:
-                            case IMG:
-                                // don't quote images or text files.
-                                textField.setText(configRootPath.relativize(filePath).toString());
-                                break;
-                            default:
-                                textField.setText(textField.getText() + "\"" + configRootPath.relativize(filePath).toString() + "\" ");
+                            case TXT, IMG -> textField.setText(configRootPath.relativize(filePath).toString());
+                            default -> textField.setText(textField.getText() + "\"" + configRootPath.relativize(filePath).toString() + "\" ");
                         }
                     }
                 }
@@ -344,22 +307,16 @@ final class FieldInputPane extends FlowPane {
     }
 
     String getValue() {
-        switch(field.inputType) {
-            case TEXT:
-            case BROWSE:
-            case BROWSE_DIR:
-                return textField.getText();
-            case BOOLEAN:
+        return switch(field.inputType) {
+            case TEXT, BROWSE, BROWSE_DIR -> textField.getText();
+            case BOOLEAN -> {
                 if(checkBox.isSelected()) {
-                    return Config.TRUE;
+                    break Config.TRUE;
                 }
-                break;
-            case LIST:
-                if(listView.getSelectionModel().getSelectedItem() != null) {
-                    return listView.getSelectionModel().getSelectedItem().getValue();
-                }
-                break;
-            case MULTI_LIST:
+                break null;
+            }
+            case LIST -> listView.getSelectionModel().getSelectedItem().getValue();
+            case MULTI_LIST -> {
                 String value = null;
                 if(!listView.getSelectionModel().getSelectedItems().isEmpty()) {
                     value = "";
@@ -367,24 +324,20 @@ final class FieldInputPane extends FlowPane {
                     value = value.substring(0, value.length() - 1);
                 }
 
-                if(value != null) {
-                    return value;
-                }
-                break;
-            case HIDDEN:
-                switch(field) {
-                    case TYPE:
-                        return type.iniValue();
-                    case SORT:
-                        if(item != null) {
-                            return item.get(Field.SORT);
+                break value;
+            }
+            case HIDDEN ->
+                    switch(field) {
+                        case TYPE -> type.iniValue();
+                        case SORT -> {
+                            if(item != null) {
+                                break item.get(Field.SORT);
+                            }
+                            break null;
                         }
-                    default:
-                }
-                break;
-            default:
-        }
-        return null;
+                        default -> null;
+            };
+        };
     }
 
     private static class ListItem {

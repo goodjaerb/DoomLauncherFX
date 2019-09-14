@@ -301,12 +301,10 @@ public class Config {
     private void parseIni() {
         CONFIGURABLES.clear();
         INI_FILE.values().forEach((section) -> {
-            Type type = Type.valueOf(section.get(Field.TYPE.iniKey()).toUpperCase());
+//            Type type = Type.valueOf(section.get(Field.TYPE.iniKey()).toUpperCase());
             // if i ever have a Config.Type and later remove it from the source, i need this check to make sure
             // i don't load any deprecated types into configurables.
-            if(null != type) {
-                CONFIGURABLES.add(new IniConfigurableItem(section));
-            }
+            CONFIGURABLES.add(new IniConfigurableItem(section));
         });
     }
 

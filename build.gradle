@@ -9,7 +9,7 @@ repositories {
 
 compileJava {
     options.encoding = 'UTF-8'
-    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    options.compilerArgs << "--enable-preview" << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
 
 jar {
