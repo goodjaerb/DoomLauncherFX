@@ -1510,7 +1510,7 @@ public class LauncherFX extends Application {
         public void handle(ActionEvent e) {
             LaunchButton myButton = (LaunchButton) e.getSource();
             switch(ic.getType()) {
-                case PORT:
+                case PORT -> {
                     if(selectedPort == ic) {
                         selectedPort = IniConfigurableItem.EMPTY_ITEM;
                         ic.setSelected(false);
@@ -1528,8 +1528,8 @@ public class LauncherFX extends Application {
                     checkLaunchNowAvailable();
                     loadPwadList();
                     loadWarpList();
-                    break;
-                case TC:
+                }
+                case TC -> {
                     if(selectedPort == ic) {
                         selectedPort = IniConfigurableItem.EMPTY_ITEM;
                         ic.setSelected(false);
@@ -1599,16 +1599,16 @@ public class LauncherFX extends Application {
                     checkLaunchNowAvailable();
                     loadPwadList();
                     loadWarpList();
-                    break;
-                case MOD:
+                }
+                case MOD -> {
                     if(myButton.isChecked()) {
                         ic.setSelected(false);
                     }
                     else {
                         ic.setSelected(true);
                     }
-                    break;
-                case IWAD:
+                }
+                case IWAD -> {
                     String iwadPath = resolvePathRelativeToConfig(ic.get(Field.FILE), Config.DIR_IWAD);
 
                     selectedIwad.setSelected(false);
@@ -1641,7 +1641,7 @@ public class LauncherFX extends Application {
                     checkLaunchNowAvailable();
                     loadPwadList();
                     loadWarpList();
-                    break;
+                }
             }
         }
     }
