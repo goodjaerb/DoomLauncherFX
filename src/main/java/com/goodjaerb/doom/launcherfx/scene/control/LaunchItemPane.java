@@ -14,6 +14,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -44,9 +45,25 @@ public class LaunchItemPane extends BorderPane {
         launchButton.textProperty().bind(item.valueProperty(Field.NAME));
 
         configurableItem = item;
-        configurableItem.selectedProperty().addListener((observable, oldValue, newValue) -> launchButton.setCheckmarkVisible(newValue));
+        configurableItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            launchButton.setCheckmarkVisible(newValue);
+            if(newValue) {
+                configurableItem.incompatibleProperty().set(false);
+            }
+        });
         configurableItem.enabledProperty().addListener((observable, oldValue, newValue) -> launchButton.setDisable(!newValue));
         configurableItem.valueProperty(Field.IMG).addListener((observable, oldValue, newValue) -> launchButton.setIcon(LauncherFX.resolvePathRelativeToConfig(newValue, Config.DIR_IMAGES)));
+        configurableItem.incompatibleProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue) {
+                System.out.println("asdf");
+                launchButton.setExclamationMarkVisible(true);
+                launchButton.setTooltip(new Tooltip("Incompatible with selected mods."));
+            }
+            else {
+                launchButton.setExclamationMarkVisible(false);
+                launchButton.setTooltip(null);
+            }
+        });
 
         nameLabel = new Text();
         nameLabel.textProperty().bind(item.valueProperty(Field.NAME));
@@ -81,13 +98,21 @@ public class LaunchItemPane extends BorderPane {
         launchButton.setContextMenu(menu);
     }
 
-    public void setSelected(boolean b) {
-        configurableItem.selectedProperty().set(b);
-    }
-
-    public void setEnabled(boolean b) {
-        configurableItem.enabledProperty().set(b);
-    }
+//    public void setTooltip(String s) {
+//        launchButton.setTooltip(new Tooltip(s));
+//    }
+//
+//    public void removeTooltip() {
+//        launchButton.setTooltip(null);
+//    }
+//
+//    public void setSelected(boolean b) {
+//        configurableItem.selectedProperty().set(b);
+//    }
+//
+//    public void setEnabled(boolean b) {
+//        configurableItem.enabledProperty().set(b);
+//    }
 
     private void layoutPane() {
         launchButton.setMinSize(175, 175);

@@ -23,6 +23,7 @@ public final class IniConfigurableItem {
     private final EnumMap<Field, ReadOnlyStringWrapper> fieldMap         = new EnumMap<>(Field.class);
     private final SimpleBooleanProperty                 selectedProperty = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty                 enabledProperty  = new SimpleBooleanProperty(true);
+    private final SimpleBooleanProperty                 incompatibleProperty = new SimpleBooleanProperty(false);
 
     private final Section iniSection;
 
@@ -153,5 +154,9 @@ public final class IniConfigurableItem {
 
     public final BooleanProperty selectedProperty() {
         return selectedProperty;
+    }
+
+    public final BooleanProperty incompatibleProperty() {
+        return incompatibleProperty;
     }
 }

@@ -665,15 +665,22 @@ public class LauncherFX extends Application {
                                     }
                                 }
 
-                                String portSupportedIwads = ic.get(Field.IWAD);
-                                for(IniConfigurableItem iwad : iwadsList) {
-                                    String iwadSupportedPorts = iwad.get(Field.PORT);
-                                    if((iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase()))
-                                            && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
-                                        iwad.setEnabled(true);
-                                    }
-                                    else {
+                                if(ic.getBoolean(Field.SKIPIWAD)) {
+                                    for(IniConfigurableItem iwad : iwadsList) {
                                         iwad.setEnabled(false);
+                                    }
+                                }
+                                else {
+                                    String portSupportedIwads = ic.get(Field.IWAD);
+                                    for(IniConfigurableItem iwad : iwadsList) {
+                                        String iwadSupportedPorts = iwad.get(Field.PORT);
+                                        if((iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(ic.sectionName().toLowerCase()))
+                                                && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
+                                            iwad.setEnabled(true);
+                                        }
+                                        else {
+                                            iwad.setEnabled(false);
+                                        }
                                     }
                                 }
                             }
@@ -810,6 +817,7 @@ public class LauncherFX extends Application {
 
                                     for(IniConfigurableItem iwad : iwadsList) {
                                         iwad.setEnabled(true);
+                                        iwad.incompatibleProperty().set(false);
                                     }
                                 }
                                 else {
@@ -833,6 +841,7 @@ public class LauncherFX extends Application {
                                             }
                                         }
                                         iwad.setEnabled(enableIwad);
+                                        iwad.incompatibleProperty().set(false);
                                     }
                                 }
                             }
@@ -852,7 +861,8 @@ public class LauncherFX extends Application {
                                 String modSupportedIwads = ic.get(Field.IWAD);
                                 for(IniConfigurableItem iwad : iwadsList) {
                                     if(modSupportedIwads != null && !modSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase())) {
-                                        iwad.setEnabled(false);
+                                        //iwad.setEnabled(false);
+                                        iwad.incompatibleProperty().set(true);
                                     }
                                     else {
                                         iwad.setEnabled(true);
@@ -1074,7 +1084,7 @@ public class LauncherFX extends Application {
     }
 
     private void checkLaunchNowAvailable() {
-        if(selectedPort.isSelected() && selectedIwad.isSelected()) {
+        if(selectedPort.isSelected() && (selectedPort.getBoolean(Field.SKIPIWAD) || selectedIwad.isSelected())) {
             launchNowButton.setDisable(false);
         }
         else {
@@ -1609,13 +1619,15 @@ public class LauncherFX extends Application {
                     }
                 }
                 case IWAD -> {
-                    String iwadPath = resolvePathRelativeToConfig(ic.get(Field.FILE), Config.DIR_IWAD);
+//                    String iwadPath = resolvePathRelativeToConfig(ic.get(Field.FILE), Config.DIR_IWAD);
 
-                    selectedIwad.setSelected(false);
+//                    selectedIwad.setSelected(false);
                     if(selectedIwad == ic) {
                         selectedIwad = IniConfigurableItem.EMPTY_ITEM;
+                        ic.setSelected(false);
                     }
                     else {
+                        String iwadPath = resolvePathRelativeToConfig(ic.get(Field.FILE), Config.DIR_IWAD);
                         try {
                             selectedGame = Game.getGameData(iwadPath);
                         }
