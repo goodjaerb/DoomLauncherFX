@@ -45,9 +45,7 @@ public class LaunchItemPane extends BorderPane {
 
         configurableItem = item;
         configurableItem.selectedProperty().addListener((observable, oldValue, newValue) -> launchButton.setCheckmarkVisible(newValue));
-
         configurableItem.enabledProperty().addListener((observable, oldValue, newValue) -> launchButton.setDisable(!newValue));
-
         configurableItem.valueProperty(Field.IMG).addListener((observable, oldValue, newValue) -> launchButton.setIcon(LauncherFX.resolvePathRelativeToConfig(newValue, Config.DIR_IMAGES)));
 
         nameLabel = new Text();

@@ -26,6 +26,7 @@ public final class LaunchButton extends Button {
     private final Label     label         = new Label();
     private final ImageView icon          = new ImageView();
     private final ImageView checkmarkView = new ImageView("images/checkmark.png");
+    private final ImageView exclamationView = new ImageView("images/exclamation-mark.png");
 
     LaunchButton(String imgPathStr) {
         super();
@@ -43,10 +44,17 @@ public final class LaunchButton extends Button {
         checkmarkView.setFitWidth(150);
         checkmarkView.setVisible(false);
 
+        exclamationView.setPreserveRatio(true);
+        exclamationView.setFitHeight(25);
+        exclamationView.setFitWidth(25);
+        exclamationView.setVisible(false);
+
         StackPane graphicStack = new StackPane();
         graphicStack.getChildren().add(label);
         graphicStack.getChildren().add(icon);
         graphicStack.getChildren().add(checkmarkView);
+        graphicStack.getChildren().add(exclamationView);
+        StackPane.setAlignment(exclamationView, Pos.TOP_RIGHT);
 
         setGraphic(graphicStack);
     }
@@ -66,6 +74,10 @@ public final class LaunchButton extends Button {
                 Logger.getLogger(LaunchItemPane.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    public void setExclamationMarkVisible(boolean b) {
+        exclamationView.setVisible(b);
     }
 
     public boolean isChecked() {
