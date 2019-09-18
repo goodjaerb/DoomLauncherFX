@@ -12,6 +12,10 @@ compileJava {
     options.compilerArgs << "--enable-preview" << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
 
+application {
+    applicationDefaultJvmArgs = ['--enable-preview']
+}
+
 jar {
     baseName = 'launcherfx'
     version = '0.0.1'
