@@ -90,7 +90,9 @@ public class LauncherFX extends Application {
     public void start(Stage primaryStage) {
         EventHandler<ActionEvent> launchHandler = (event) -> {
             String iwadPath = resolvePathRelativeToConfig(selectedIwad.get(Field.FILE), Config.DIR_IWAD);
-            addArgsToProcess("-iwad " + iwadPath);
+            if(iwadPath != null) {
+                addArgsToProcess("-iwad " + iwadPath);
+            }
 
             String currentSaveDir = null;
             if(selectedIwad.getBoolean(Field.SAVEDIR)) {
@@ -103,6 +105,9 @@ public class LauncherFX extends Application {
                 while(m.find()) {
                     String group = m.group(1);
                     String absPath = resolvePathRelativeToConfig(group, Config.DIR_MODS);
+                    if(absPath == null) {
+                        absPath = resolvePathRelativeToConfig(group, Config.DIR_IWAD);
+                    }
                     portArgs = portArgs.replace(group, absPath);
                 }
                 addArgsToProcess(portArgs);
@@ -1063,7 +1068,7 @@ public class LauncherFX extends Application {
     private static String resolveRelativePathToAbsolute(String pathStr, String parentStr) {
         String result;
         if(pathStr == null || "".equals(pathStr)) {
-            result = null;
+            return null;
         }
         else {
 //            System.out.println("-----------------------");
@@ -1080,7 +1085,12 @@ public class LauncherFX extends Application {
             }
         }
 
-        return result;
+        if(Files.exists(Paths.get(result))) {
+            return result;
+        }
+        else {
+            return null;
+        }
     }
 
     private void checkLaunchNowAvailable() {
