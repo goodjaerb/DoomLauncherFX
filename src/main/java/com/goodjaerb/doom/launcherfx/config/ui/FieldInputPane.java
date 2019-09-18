@@ -311,9 +311,9 @@ final class FieldInputPane extends FlowPane {
             case TEXT, BROWSE, BROWSE_DIR -> textField.getText();
             case BOOLEAN -> {
                 if(checkBox.isSelected()) {
-                    break Config.TRUE;
+                    yield Config.TRUE;
                 }
-                break null;
+                yield null;
             }
             case LIST -> listView.getSelectionModel().getSelectedItem().getValue();
             case MULTI_LIST -> {
@@ -324,16 +324,16 @@ final class FieldInputPane extends FlowPane {
                     value = value.substring(0, value.length() - 1);
                 }
 
-                break value;
+                yield value;
             }
             case HIDDEN ->
                     switch(field) {
                         case TYPE -> type.iniValue();
                         case SORT -> {
                             if(item != null) {
-                                break item.get(Field.SORT);
+                                yield item.get(Field.SORT);
                             }
-                            break null;
+                            yield null;
                         }
                         default -> null;
             };

@@ -17,10 +17,14 @@ jar {
     version = '0.0.1'
 }
 
+tasks.run {
+    jvmArgs("--enable-preview")
+}
+
 dependencies {
-    compile("org.ini4j:ini4j:0.5.4")
-    compile("javax.xml.bind:jaxb-api:2.3.0")
-    compile("org.apache.commons:commons-lang3:3.7")
+    implementation("org.ini4j:ini4j:0.5.4")
+    implementation("javax.xml.bind:jaxb-api:2.3.0")
+    implementation("org.apache.commons:commons-lang3:3.7")
 }
 
 javafx {
