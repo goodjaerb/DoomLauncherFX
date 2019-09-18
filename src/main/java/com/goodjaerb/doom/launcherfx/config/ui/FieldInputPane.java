@@ -315,7 +315,13 @@ final class FieldInputPane extends FlowPane {
                 }
                 yield null;
             }
-            case LIST -> listView.getSelectionModel().getSelectedItem().getValue();
+            case LIST -> {
+                ListItem item = listView.getSelectionModel().getSelectedItem();
+                if(item != null) {
+                    yield item.getValue();
+                }
+                yield null;
+            }
             case MULTI_LIST -> {
                 String value = null;
                 if(!listView.getSelectionModel().getSelectedItems().isEmpty()) {

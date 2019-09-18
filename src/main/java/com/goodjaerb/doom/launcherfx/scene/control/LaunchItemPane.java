@@ -55,9 +55,8 @@ public class LaunchItemPane extends BorderPane {
         configurableItem.valueProperty(Field.IMG).addListener((observable, oldValue, newValue) -> launchButton.setIcon(LauncherFX.resolvePathRelativeToConfig(newValue, Config.DIR_IMAGES)));
         configurableItem.incompatibleProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue) {
-                System.out.println("asdf");
                 launchButton.setExclamationMarkVisible(true);
-                launchButton.setTooltip(new Tooltip("Incompatible with selected mods."));
+                launchButton.setTooltip(new Tooltip("Incompatible with selected mods/iwads.\nSelecting this item will disable the offending items."));
             }
             else {
                 launchButton.setExclamationMarkVisible(false);
