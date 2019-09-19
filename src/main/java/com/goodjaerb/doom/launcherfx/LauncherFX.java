@@ -454,6 +454,7 @@ public class LauncherFX extends Application {
             refreshFromIni();
         });
 
+        primaryStage.setResizable(true);
         primaryStage.show();
     }
 
@@ -512,18 +513,18 @@ public class LauncherFX extends Application {
                                             }
                                         }
 
-                                        String portSupportedIwads = selectedPort.get(Field.IWAD);
-                                        for(IniConfigurableItem iwad : iwadsList) {
-
-                                            String iwadSupportedPorts = iwad.get(Field.PORT);
-                                            if(iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())
-                                                    && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
-                                                iwad.setEnabled(true);
-                                            }
-                                            else {
-                                                iwad.setEnabled(false);
-                                            }
-                                        }
+//                                        String portSupportedIwads = selectedPort.get(Field.IWAD);
+//                                        for(IniConfigurableItem iwad : iwadsList) {
+//
+//                                            String iwadSupportedPorts = iwad.get(Field.PORT);
+//                                            if(iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())
+//                                                    && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
+//                                                iwad.setEnabled(true);
+//                                            }
+//                                            else {
+//                                                iwad.setEnabled(false);
+//                                            }
+//                                        }
                                     }
                                 }
                                 else { // true. this port has been selected.
@@ -636,17 +637,17 @@ public class LauncherFX extends Application {
                                             }
                                         }
 
-                                        String portSupportedIwads = selectedPort.get(Field.IWAD);
-                                        for(IniConfigurableItem iwad : iwadsList) {
-                                            String iwadSupportedPorts = iwad.get(Field.PORT);
-                                            if(iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())
-                                                    && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
-                                                iwad.setEnabled(true);
-                                            }
-                                            else {
-                                                iwad.setEnabled(false);
-                                            }
-                                        }
+//                                        String portSupportedIwads = selectedPort.get(Field.IWAD);
+//                                        for(IniConfigurableItem iwad : iwadsList) {
+//                                            String iwadSupportedPorts = iwad.get(Field.PORT);
+//                                            if(iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(selectedPort.sectionName().toLowerCase())
+//                                                    && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(iwad.sectionName().toLowerCase()))) {
+//                                                iwad.setEnabled(true);
+//                                            }
+//                                            else {
+//                                                iwad.setEnabled(false);
+//                                            }
+//                                        }
                                     }
                                 }
                                 else { // true. this port has been selected.
@@ -731,7 +732,7 @@ public class LauncherFX extends Application {
                                     // because of this iwad but may now be available.
                                     if(selectedIwad == IniConfigurableItem.EMPTY_ITEM) {
                                         for(IniConfigurableItem port : portsList) {
-                                            port.setEnabled(true);
+//                                            port.setEnabled(true);
                                             port.incompatibleProperty().set(false);
                                         }
 
@@ -755,7 +756,7 @@ public class LauncherFX extends Application {
                                             String portSupportedIwads = port.get(Field.IWAD);
                                             if(iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(port.sectionName().toLowerCase())
                                                     && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase()))) {
-                                                port.setEnabled(true);
+//                                                port.setEnabled(true);
                                                 port.incompatibleProperty().set(false);
                                             }
                                             else {
@@ -789,7 +790,7 @@ public class LauncherFX extends Application {
                                         String portSupportedIwads = port.get(Field.IWAD);
                                         if((iwadSupportedPorts == null || iwadSupportedPorts.toLowerCase().contains(port.sectionName().toLowerCase()))
                                                 && (portSupportedIwads == null || portSupportedIwads.toLowerCase().contains(ic.sectionName().toLowerCase()))) {
-                                            port.setEnabled(true);
+//                                            port.setEnabled(true);
                                         }
                                         else {
                                             //port.setEnabled(false);
@@ -830,7 +831,7 @@ public class LauncherFX extends Application {
                                     selectedModsList.remove(ic);
                                     if(selectedModsList.isEmpty()) {
                                         for(IniConfigurableItem port : portsList) {
-                                            port.setEnabled(true);
+//                                            port.setEnabled(true);
                                             port.incompatibleProperty().set(false);
                                         }
 
@@ -848,8 +849,13 @@ public class LauncherFX extends Application {
                                                     enablePort = false;
                                                 }
                                             }
-                                            port.setEnabled(enablePort);
-                                            port.incompatibleProperty().set(false);
+                                            if(enablePort) {
+//                                                port.setEnabled(true);
+                                                port.incompatibleProperty().set(false);
+                                            }
+                                            else {
+                                                port.incompatibleProperty().set(true);
+                                            }
                                         }
 
                                         for(IniConfigurableItem iwad : iwadsList) {
@@ -875,7 +881,7 @@ public class LauncherFX extends Application {
                                             port.incompatibleProperty().set(true);
                                         }
                                         else {
-                                            port.setEnabled(true);
+//                                            port.setEnabled(true);
                                         }
                                     }
 
@@ -907,7 +913,6 @@ public class LauncherFX extends Application {
 
                                 String modSupportedIwads = ic.get(Field.IWAD);
                                 if(modSupportedIwads != null && !modSupportedIwads.toLowerCase().contains(selectedIwad.sectionName().toLowerCase())) {
-                                    System.out.println("disables!");
                                     ic.setEnabled(false);
                                 }
                             }
