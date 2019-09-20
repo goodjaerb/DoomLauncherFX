@@ -513,6 +513,7 @@ public class LauncherFX extends Application {
                                             }
                                         }
 
+                                        //i thought this was not needed then i thought it should be here but upon testing i'm thinking it is not needed.
 //                                        String portSupportedIwads = selectedPort.get(Field.IWAD);
 //                                        for(IniConfigurableItem iwad : iwadsList) {
 //
@@ -637,6 +638,7 @@ public class LauncherFX extends Application {
                                             }
                                         }
 
+                                        //i thought this was not needed then i thought it should be here but upon testing i'm thinking it is not needed.
 //                                        String portSupportedIwads = selectedPort.get(Field.IWAD);
 //                                        for(IniConfigurableItem iwad : iwadsList) {
 //                                            String iwadSupportedPorts = iwad.get(Field.PORT);
