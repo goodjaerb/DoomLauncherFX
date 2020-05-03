@@ -7,23 +7,29 @@ repositories {
     mavenCentral()
 }
 
-compileJava {
-    options.encoding = 'UTF-8'
-    options.compilerArgs << "--enable-preview" << "-Xlint:unchecked" << "-Xlint:deprecation"
+java {
+    sourceCompatibility = JavaVersion.VERSION_14
+    targetCompatibility = JavaVersion.VERSION_14
 }
 
-application {
-    applicationDefaultJvmArgs = ['--enable-preview']
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    //options.compilerArgs << "--enable-preview" << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
+
+//application {
+//    applicationDefaultJvmArgs = ['--enable-preview']
+//}
 
 jar {
     baseName = 'launcherfx'
     version = '0.0.1'
 }
 
-tasks.run {
-    jvmArgs("--enable-preview")
-}
+//tasks.run {
+//    jvmArgs("--enable-preview")
+//}
 
 dependencies {
     implementation("org.ini4j:ini4j:0.5.4")
