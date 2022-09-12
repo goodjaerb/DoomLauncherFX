@@ -137,6 +137,12 @@ public class LauncherFX extends Application {
                         addArgsToProcess("-file " + modFiles);
                     }
                 }
+                else if(mod.get(Field.MOD_DIR) != null) {
+                    String modDir = mod.get(Field.MOD_DIR);
+                    if(modDir != null) {
+                        addArgsToProcess("-file " + modDir);
+                    }
+                }
 
                 if(mod.getBoolean(Field.SAVEDIR)) {
                     currentSaveDir = "saves/" + mod.sectionName();
