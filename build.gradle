@@ -1,39 +1,47 @@
 plugins {
+    id 'java'
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.0.8'
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+    id 'org.beryx.jlink' version '2.25.0'
 }
+
+group 'com.goodjaerb.doom.launcherfx'
+version '1.0.0'
 
 repositories {
     mavenCentral()
 }
 
-compileJava {
+tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
-    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-    //options.compilerArgs << "--enable-preview" << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
 
-//application {
-//    applicationDefaultJvmArgs = ['--enable-preview']
-//}
-
-jar {
-    baseName = 'launcherfx'
-    version = '0.0.1'
+application {
+    mainModule = 'com.goodjaerb.doom.launcherfx'
+    mainClass = 'com.goodjaerb.doom.launcherfx.Main'
 }
-
-//tasks.run {
-//    jvmArgs("--enable-preview")
-//}
 
 dependencies {
+    implementation("com.sun.activation:javax.activation:1.2.0")
     implementation("org.ini4j:ini4j:0.5.4")
-    implementation("javax.xml.bind:jaxb-api:2.3.0")
-    implementation("org.apache.commons:commons-lang3:3.7")
+    implementation("javax.xml.bind:jaxb-api:2.3.1")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
 }
 
 javafx {
+    version = '18'
     modules = [ 'javafx.controls' ]
 }
 
-mainClassName = "com.goodjaerb.doom.launcherfx.Main"
+
+jlink {
+    imageZip = project.file("${buildDir}/distributions/app-${javafx.platform.classifier}.zip")
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+    launcher {
+        name = 'DoomLauncherFX'
+    }
+}
+
+jlinkZip {
+    group = 'distribution'
+}

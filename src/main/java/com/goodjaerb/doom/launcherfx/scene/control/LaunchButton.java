@@ -25,8 +25,8 @@ public final class LaunchButton extends Button {
 
     private final Label     label         = new Label();
     private final ImageView icon          = new ImageView();
-    private final ImageView checkmarkView = new ImageView("images/checkmark.png");
-    private final ImageView exclamationView = new ImageView("images/exclamation-mark.png");
+    private final ImageView checkmarkView = new ImageView(getClass().getResource("/images/checkmark.png").toExternalForm());
+    private final ImageView exclamationView = new ImageView(getClass().getResource("/images/exclamation-mark.png").toExternalForm());
 
     LaunchButton(String imgPathStr) {
         super();
