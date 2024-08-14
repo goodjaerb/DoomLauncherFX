@@ -5,6 +5,8 @@
  */
 package com.goodjaerb.doom.launcherfx.scene.control;
 
+import com.luciad.imageio.webp.WebPReadParam;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -12,6 +14,14 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.FileImageInputStream;
+import javax.swing.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -67,11 +77,28 @@ public final class LaunchButton extends Button {
         }
         else {
             try {
-                icon.setImage(new Image(Paths.get(imgPathStr).toUri().toURL().toString()));
+                Image image;
+                if(imgPathStr.toLowerCase().endsWith("webp")) {
+                    ImageReader reader = ImageIO.getImageReadersByMIMEType("image/webp").next();
+
+                    WebPReadParam readParam = new WebPReadParam();
+                    readParam.setBypassFiltering(true);
+
+                    reader.setInput(new FileImageInputStream(new File(Paths.get(imgPathStr).toString())));
+
+                    BufferedImage bImage = reader.read(0, readParam);
+                    image = SwingFXUtils.toFXImage(bImage, null);
+                }
+                else {
+                    image = new Image(Paths.get(imgPathStr).toUri().toURL().toString());
+                }
+                icon.setImage(image);
                 label.setVisible(false);
             }
             catch(MalformedURLException ex) {
                 Logger.getLogger(LaunchItemPane.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException e) {
+//                throw new RuntimeException(e);
             }
         }
     }

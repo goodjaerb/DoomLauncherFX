@@ -139,7 +139,7 @@ final class FieldInputPane extends FlowPane {
                     }
                     case IMG -> {
                         chooser.setInitialDirectory(Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IMAGES).toFile());
-                        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image File", "*.PNG", "*.JPG", "*.JPEG", "*.GIF"));
+                        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image File", "*.PNG", "*.JPG", "*.JPEG", "*.GIF", "*.WEBP"));
                     }
                     case TXT -> {
                         if(pwadPath != null) {
