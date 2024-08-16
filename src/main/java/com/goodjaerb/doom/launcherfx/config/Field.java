@@ -104,6 +104,15 @@ public enum Field {
                     "Field.FILE not implemented for PWAD's."),
             Config.Type.IWAD,
             Config.Type.MOD),
+    LOAD_PWAD("Load a PWAD", InputType.BROWSE,
+            false,
+            createHelpMap(
+                    "Field.LOAD_PWAD not implemented for ports.",
+                    "Field.LOAD_PWAD not implemented for tc's.",
+                    "Load this PWAD alongside the selected IWAD and have it listed in the IWAD list as such.",
+                    "Field.LOAD_PWAD not implemented for Mods",
+                    "Field.LOAD_PWAD not implemented for PWAD's."),
+            Config.Type.IWAD),
     MOD_DIR("Mod Directory:", InputType.BROWSE_DIR,
             false,
             createHelpMap(

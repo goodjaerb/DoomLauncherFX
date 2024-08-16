@@ -127,19 +127,19 @@ final class FieldInputPane extends FlowPane {
                         switch(type) {
                             case IWAD -> {
                                 chooser.setInitialDirectory(Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IWAD).toFile());
-                                chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(".WAD files", "*.WAD"));
+                                chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(".WAD files", "*.wad", "*.WAD"));
                             }
                             case MOD -> {
                                 chooser.setInitialDirectory(Paths.get(Config.getInstance().getConfigHome(), Config.DIR_MODS).toFile());
                                 chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All Files", "*.*"));
-                                chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(".PK3 files", "*.PK3"));
-                                chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(".PK7 files", "*.PK7"));
+                                chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(".PK3 files", "*.pk3", "*.PK3"));
+                                chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(".PK7 files", "*.pk7", "*.PK7"));
                             }
                         }
                     }
                     case IMG -> {
                         chooser.setInitialDirectory(Paths.get(Config.getInstance().getConfigHome(), Config.DIR_IMAGES).toFile());
-                        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image File", "*.PNG", "*.JPG", "*.JPEG", "*.GIF", "*.WEBP"));
+                        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image File", "*.png", "*.PNG", "*.jpg", "*.JPG", "*.jpeg", "*.JPEG", "*.gif", "*.GIF", "*.webp", "*.WEBP"));
                     }
                     case TXT -> {
                         if(pwadPath != null) {

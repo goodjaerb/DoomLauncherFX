@@ -53,29 +53,29 @@ public class LauncherFX extends Application {
     private static final Config CONFIG   = Config.getInstance();
     private final        String APP_NAME = "DoomLauncherFX";
 
-    private VBox portsBox = new VBox();
-    private VBox iwadsBox = new VBox();
-    private VBox modsBox  = new VBox();
+    private final VBox portsBox = new VBox();
+    private final VBox iwadsBox = new VBox();
+    private final VBox modsBox  = new VBox();
 
-    private TabPane tabPane  = new TabPane();
-    private Tab     portsTab = new Tab("Ports & TC's", new ScrollPane(portsBox));
-    private Tab     iwadsTab = new Tab("IWADS", new ScrollPane(iwadsBox));
-    private Tab     modsTab  = new Tab("Mods", new ScrollPane(modsBox));
-    private Tab     pwadsTab = new Tab("PWADS");
-    private Tab     warpTab  = new Tab("Warp");
+    private final TabPane tabPane  = new TabPane();
+    private final Tab     portsTab = new Tab("Ports & TC's", new ScrollPane(portsBox));
+    private final Tab     iwadsTab = new Tab("IWADS", new ScrollPane(iwadsBox));
+    private final Tab     modsTab  = new Tab("Mods", new ScrollPane(modsBox));
+    private final Tab     pwadsTab = new Tab("PWADS");
+    private final Tab     warpTab  = new Tab("Warp");
 
-    private CheckBox               showHiddenPwadItemsCheckBox = new CheckBox("Show Hidden Items");
-    private ListView<PWadListItem> pwadListView                = new ListView<>();
-    private ListView<WarpListItem> warpListView                = new ListView<>();
+    private final CheckBox               showHiddenPwadItemsCheckBox = new CheckBox("Show Hidden Items");
+    private final ListView<PWadListItem> pwadListView                = new ListView<>();
+    private final ListView<WarpListItem> warpListView                = new ListView<>();
 
-    private Button launchNowButton       = new Button("Launch Now!");
-    private Button clearSelectionsButton = new Button("Clear Selections");
+    private final Button launchNowButton       = new Button("Launch Now!");
+    private final Button clearSelectionsButton = new Button("Clear Selections");
 
-    private List<IniConfigurableItem> portsList         = new ArrayList<>();
-    private List<IniConfigurableItem> iwadsList         = new ArrayList<>();
-    private List<IniConfigurableItem> modsList          = new ArrayList<>();
-    private List<IniConfigurableItem> selectedModsList  = new ArrayList<>();
-    private Set<Path>                 removeFromWadList = new HashSet<>();
+    private final List<IniConfigurableItem> portsList         = new ArrayList<>();
+    private final List<IniConfigurableItem> iwadsList         = new ArrayList<>();
+    private final List<IniConfigurableItem> modsList          = new ArrayList<>();
+    private final List<IniConfigurableItem> selectedModsList  = new ArrayList<>();
+    private final Set<Path>                 removeFromWadList = new HashSet<>();
 
     private Game                selectedGame = Game.UNKNOWN_GAME;
     private IniConfigurableItem selectedIwad = IniConfigurableItem.EMPTY_ITEM;
@@ -93,6 +93,11 @@ public class LauncherFX extends Application {
             String iwadPath = resolvePathRelativeToConfig(selectedIwad.get(Field.FILE), Config.DIR_IWAD);
             if(iwadPath != null) {
                 addArgsToProcess("-iwad " + iwadPath);
+            }
+
+            String loadPwadPath = resolvePathRelativeToConfig(selectedIwad.get(Field.LOAD_PWAD), Config.DIR_WADS);
+            if(loadPwadPath != null) {
+                addArgsToProcess("-file " + loadPwadPath);
             }
 
             String currentSaveDir = null;
