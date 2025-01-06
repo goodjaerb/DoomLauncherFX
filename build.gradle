@@ -1,8 +1,15 @@
 plugins {
     id 'java'
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.0.13'
-    id 'org.beryx.jlink' version '2.25.0'
+    id 'org.beryx.jlink' version '3.0.1'
+    id 'org.javamodularity.moduleplugin' version '1.8.10' // this stops module errors with ini4j when i started using javafxplugin 0.1.0
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }
 
 group 'com.goodjaerb.doom.launcherfx'
@@ -30,16 +37,19 @@ dependencies {
 }
 
 javafx {
-    version = '18'
+    version = '21.0.4'
     modules = [ 'javafx.controls', 'javafx.swing' ]
 }
-
 
 jlink {
     imageZip = project.file("${buildDir}/distributions/app-${javafx.platform.classifier}.zip")
     options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
     launcher {
         name = 'DoomLauncherFX'
+    }
+
+    jpackage {
+        installerType = 'deb'
     }
 }
 
