@@ -228,10 +228,13 @@ public class LauncherFX extends Application {
             }
 
             ProcessBuilder processBuilder = new ProcessBuilder(processCommand);
-            processBuilder.directory(new File(processCommand.get(0)).getParentFile());
-
-            LauncherFX.info("command=" + processBuilder.command() + ", workingdir=" + processBuilder.directory());
             try {
+                processBuilder.directory(new File(processCommand.getFirst()).getParentFile());
+                processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+                processBuilder.redirectError(ProcessBuilder.Redirect.DISCARD);
+
+                LauncherFX.info("command=" + processBuilder.command() + ", workingdir=" + processBuilder.directory());
+
                 Process p = processBuilder.start();
                 p.waitFor();
             }
